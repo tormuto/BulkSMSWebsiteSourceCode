@@ -1,0 +1,11 @@
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+	Header add Access-Control-Allow-Headers "origin, x-requested-with, content-type, accept"
+	Header add Access-Control-Allow-Methods "PUT, GET, POST, DELETE, OPTIONS"
+</IfModule>
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond $1 !^(index\.php|images|assets|mobile|bootstrap|fonts)
+RewriteRule ^(.*)$ index.php/$1 [L,QSA]

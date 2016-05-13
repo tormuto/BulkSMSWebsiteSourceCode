@@ -1,0 +1,80 @@
+body,html{min-height:100%;height:100%;}
+
+body
+{
+	margin:0px;
+	color:#000000;
+	font-family:"lucida grande",tahoma,verdana,arial,sans-serif;
+	background-color:#ddd;
+	font-size:14px;
+	line-height: 1.38;
+}
+
+h1,h2,h3,h4,h4,h6
+{
+	font-family:Helvetica,Arial,"lucida grande",tahoma,verdana,arial,sans-serif;
+}
+
+.bordered-bottom
+{
+	border-bottom: 1px solid #CCC;
+	margin: 0px;
+	padding:5px 0px;
+}
+
+.alert{ word-wrap: break-word; }
+
+.alert-sm
+{
+	padding:5px;
+	margin-bottom:3px;
+}
+
+.alert-sm .alert-link
+{
+	font-weight:normal;
+}
+
+.alert-sm .close
+{
+	font-size:12px;
+}
+
+
+#page_body .panel{display:table; width:100%;}
+.panel{width:100%;}
+.panel-headingg form{white-space:nowrap;}
+
+.panel .form-inline  .form-control
+{
+	font-size:12px;
+	padding:0px;
+	max-width: 200px;
+}
+
+
+.panel .form-inline  .form-control.datepicker{ max-width:80px; }
+
+.well,.wrap
+{
+   word-wrap: break-word; 
+   max-width:100%;
+}
+
+
+a{
+text-decoration:none;
+color:#ff6633;
+}
+a:hover{color:#ff3300;}
+a:active{color:#ff9966;}
+
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button 
+{
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {-moz-appearance: textfield; }

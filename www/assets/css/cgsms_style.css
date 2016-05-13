@@ -1,0 +1,53 @@
+body{
+	font-family:"Rockwel";
+	font-size:16px;
+}
+
+
+.ui-dialog{max-width:95%;}
+.ui-dialog-titlebar{}
+	.ui-dialog-title{}
+	.ui-dialog-titlebar-close{}
+.ui-dialog-content{}
+.ui-dialog-buttonpane{}
+	.ui-dialog-buttonset{}
+	
+.alert,pre
+{
+	word-break: break-all;
+}
+
+code {
+word-break: break-all;
+white-space: normal;
+display: inline-block;
+}
+
+.input-xs {
+	height: 22px;
+	padding: 2px 5px;
+	font-size: 12px;
+	line-height: 1.5; /*If Placeholder of the input is moved up, rem/modify this.*/
+	border-radius: 3px;
+}
+
+.input-group-xs>.form-control,
+.input-group-xs>.input-group-addon,
+.input-group-xs>.input-group-btn>.btn {
+    height: 22px;
+    padding: 1px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.input-group-addon select{
+border: 0px;
+background-color: #EEE;
+}
+
+.light-fancy-gray{
+background-color: #f2f2f2;
+border-radius: 6px;
+padding: 6px;
+padding-top:10px;
+}
