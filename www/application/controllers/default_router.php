@@ -3401,30 +3401,21 @@ class Default_router extends CI_Controller{
 		}
 		
 		if(isset($_GET['show_balance']))
-		{
-			$ppu=$this->general_model->infobip_price_per_unit*0.01;
-			
+		{			
 			$total_unused_units=$this->general_model->get_total_user_balance();
-			$total_unused_amount=$total_unused_units*$ppu;
-			$cheapglobalsms_balance=0;
+			$cheapglobalsms_balance_units=0;
 			$info_resp=$this->general_model->_cheapglobalsms_get_balance($configs);
 			if(is_string($info_resp))$data['Error']=$info_resp;
-			else $cheapglobalsms_balance=$info_resp['balance'];
-			
-			$cheapglobalsms_balance_units=$cheapglobalsms_balance/$ppu;
-			
-			$reserve=$cheapglobalsms_balance-$total_unused_amount;
+			else $cheapglobalsms_balance_units=$info_resp['balance'];			
+			$reserve=$cheapglobalsms_balance_units-$total_unused_units;
 			
 			if($reserve>1000)$res_color='';
 			elseif($reserve>0)$res_color='color:#f90';
 			else $res_color='color:#f00';
 			
-			
-			$reserve_units=$reserve/$ppu;;
-			
-			$data['Success']="Total Unused : ".number_format($total_unused_units)." Units == ".number_format($total_unused_amount)." NGN".
-			"<br/>CheapGlobalSMS Balance: ".number_format($cheapglobalsms_balance_units)." Units == ".number_format($cheapglobalsms_balance)." NGN".
-			"<br/><br/>Total Reserve: <strong style='$res_color;' >".number_format($reserve_units)." Units == ".number_format($reserve)." NGN</strong>";
+			$data['Success']="Total Unused : ".number_format($total_unused_units)." Units".
+			"<br/>CheapGlobalSMS Balance: ".number_format($cheapglobalsms_balance_units)." Units".
+			"<br/><br/>Total Reserve: <strong style='$res_color;' >".number_format($$reserve)."</strong>";
 		}
 		
 		
@@ -3440,13 +3431,15 @@ class Default_router extends CI_Controller{
 			$sum=$query->row();
 			$total_units=$sum->total_units;
 			
-			$infobip_total=($total_units*$this->general_model->infobip_price_per_unit/100);
-			$gross_gain=$sum->total_amount-$infobip_total;
+			$cheapglobalsms_price_per_unit=1.75;  //assuming that you are always buying from cheapglobalsms at 1.75
+			
+			$cheapglobalsms_total=$total_units*$cheapglobalsms_price_per_unit;
+			$gross_gain=$sum->total_amount-$cheapglobalsms_total;
 			
 			$gross_vat=$sum->total_amount*0.05;
-			$infobip_vat=$infobip_total*0.05;
+			$cheapglobalsms_vat=$cheapglobalsms_total*0.05;
 
-			$my_vat=$gross_vat-$infobip_vat;
+			$my_vat=$gross_vat-$cheapglobalsms_vat;
 			
 			$tithe=$gross_gain*0.1;
 			
@@ -3458,7 +3451,7 @@ class Default_router extends CI_Controller{
 			$data['Success']="FOR THE PERIOD OF: <strong>$start_date_str</strong> <i>TO</i> <strong>$end_date_str</strong><br/>
 			<div class='list-group'>
 				<div class='list-group-item'>
-					Infobip Total: ".number_format($infobip_total,2)." NGN  ($total_units UNITS)
+					CheapGlobalSMS Total: ".number_format($cheapglobalsms_total,2)." NGN  ($total_units UNITS)
 				</div>
 				<div class='list-group-item'>
 					My Vat: <strong>".number_format($my_vat,2)." NGN</strong>
