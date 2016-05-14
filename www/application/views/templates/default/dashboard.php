@@ -1,6 +1,6 @@
 	<div class="jumbotron">
 		<h1><?php echo $configs['site_name']; ?></h1>
-		<p>...presents, so reliable & sophisticated SMS services on a very simple interface.</p>
+		<p>This is a showcase of the FREE, ready-made bulk sms reseller website. Become a CheapGlobalSMS.com reseller and <a href='https://cheapglobalsms.com/reseller' >get it here</a></p>
 
 		<?php if($this->general_model->logged_in()){ ?>
 		<p>
@@ -12,7 +12,7 @@
 			</a>
 		</p>
 		<?php } else { ?>
-		<p><a class="btn btn-primary btn-lg" href='javascript:void(0)' data-toggle='modal' data-target='#signup' role="button">Get started</a></p>
+		<p><a class="btn btn-primary btn-lg" href='javascript:void(0)' data-toggle='modal' data-target='#signup' role="button">Register</a></p>
 		<?php } ?>
 	</div>
 	<?php if($this->general_model->logged_in()&&!$this->general_model->has_sub_account($my_profile['user_id'])){ ?>

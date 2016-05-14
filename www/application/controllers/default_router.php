@@ -290,11 +290,6 @@ class Default_router extends CI_Controller{
 			$this->general_model->unset_login_cookie();
 		}
 		if($this->general_model->logged_in()){
-			$user_id=$this->get_login_data('user_id');
-			$data['my_profile']=$this->general_model->get_user($user_id,'user_id');
-			$news_feeds=@file_get_contents('auto/feeds.json');
-			if(!empty($news_feeds))$data['news_feeds']=@json_decode($news_feeds,true);
-			if(empty($data['news_feeds']))$data['news_feeds']=array();
 			$this->load_client_views('dashboard.php',$data);
 		}
 		else  $this->load_client_views('dashboard.php',$data);
