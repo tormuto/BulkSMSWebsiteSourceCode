@@ -54,7 +54,7 @@
 			<div class='col-md-2 col-sm-2 col-xs-6' title="If this is the default currency, set the value as 1." >
 				<label for='value_'>Value</label>
 				<div class='input-group'>
-					<input type='number' name='value_' class='form-control input-sm currency_price' step='0.000000001' placeholder='1' >
+					<input type='number' name='value_' class='form-control input-sm currency_price' step='any' placeholder='1' >
 					<span class='input-group-addon'><?php echo $configs['currency_code'];?></span>
 				</div>
 			</div>
