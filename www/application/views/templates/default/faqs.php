@@ -20,6 +20,12 @@
 				</p>
 			</li>
 			<li class='list-group-item' >
+				 <h4 class='list-group-item-heading'>Can I send SMS in Chinese,Japanese or Korean Language</h4>
+				<p class='list-group-item-text'>
+					Yes all the languages are supported. However for those special languages, you will need to specify that the message encoding is <strong>unicode</strong> when sending the message (please note that unicode messages reduces the character limits to 72 characters per page)
+				</p>
+			</li>
+			<li class='list-group-item' >
 				 <h4 class='list-group-item-heading'>How can I send SMS from my website/app?</h4>
 				<p class='list-group-item-text'>
 					With a basic knowledge of HTML forms and JSON, you can use our well documented <a title='application programming interface' href='<?php echo $this->general_model->get_url('gateway_api'); ?>'>API functions</a> to programmatically send sms, check balance, and get  SMS status.

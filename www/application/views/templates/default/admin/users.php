@@ -56,7 +56,8 @@
 					<th>Actions</th>
 				</tr>
 				<?php
-					$sn=$filter['offset'];	
+					$sn=$filter['offset'];
+					$flarr=array(-1=>'Trusted',0=>'Neutral',1=>'Single Linked SMS',2=>'No Linked SMS',3=>'Restricted');
 					
 					foreach($users as $row)
 					{
@@ -86,8 +87,8 @@
 									<div class='form-group' style='display:inline'>
 										<div class='input-group'>
 											<select  class='form-control input-xs' name='flag_level' >
-												<?php for($i=0;$i<=3;$i++){ ?>
-												<option value='<?php echo $i; ?>' <?php if($row['flag_level']==$i)echo 'selected'; ?> >Level <?php echo $i; ?></option>
+												<?php for($i=-1;$i<=3;$i++){ ?>
+												<option value='<?php echo $i; ?>' <?php if($row['flag_level']==$i)echo 'selected'; ?> ><?php echo $flarr[$i]; ?></option>
 												<?php } ?>
 											</select>
 											<span class='input-group-btn'>

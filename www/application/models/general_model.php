@@ -70,9 +70,10 @@
 		}
 		
 		
-		function count_message_pages($text){
+		function count_message_pages($text,$unicode=false){
 			$len=strlen($text);
 			if($len==0)return 0;
+			if($unicode)return ceil($len/72);
 			if($len<=160)return 1;
 			return 1+ceil(($len-160)/145);
 		}
@@ -1645,6 +1646,7 @@ MTN Nigeria
 			'action'=>'send_sms',
 			'callback_url'=>$callback_url,
 			'type'=>$sms_batch[0]['type'],
+			'unicode'=>$sms_batch[0]['unicode'],
 			'sender_id'=>$sms_batch[0]['sender'],
 			'contacts'=>json_encode($messages)
 			);

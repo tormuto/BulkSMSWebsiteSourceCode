@@ -1401,7 +1401,7 @@ class Default_router extends CI_Controller{
 		$this->load_client_views('send_sms.php',$data);
 	}
 	
-	function _send_sms($user,$contacts,$message=false,$sender_id=false,$date_time=false,$type=false){
+	function _send_sms($user,$contacts,$message=false,$sender_id=false,$date_time=false,$type=false,$unicode=false){
 		if(empty($contacts))return array('Error'=>"No recipient contact found.");
 		if($message===false)$message=$this->input->post('message');
 
@@ -1447,6 +1447,8 @@ class Default_router extends CI_Controller{
 		$batch_id=$user_id.'_'.$sub_account_id.'_'.$time;
 		if($type===false)$type=(int)$this->input->post('type');
 		if($type!=0)$type=1;
+		if($unicode===false)$unicode=(int)$this->input->post('unicode');
+		if($type!=0)$unicode=1;
 		if($sender_id===false)$sender_id=$this->input->post('sender_id');
 		if (empty($sender_id))$sender_id=$user['default_sender_id'];
 		$sender_id=substr($sender_id,0,11);
@@ -1499,6 +1501,7 @@ class Default_router extends CI_Controller{
 			$has_link=stripos($message_templates['default'],'http')!==false||stripos($message_templates['default'],'www.')!==false;
 			
 			if(!$has_link)$has_link=preg_match('/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/si',$message_templates['default']); //check email too
+			if(!$has_link)$has_link=preg_match('/\b[0-9]{11,}\b/si',$message_templates['default']); //check phones too
 			
 			if($flag_level>=2){ //level two can not send link at all
 				if($has_link)$restrict=true;
@@ -1509,7 +1512,7 @@ class Default_router extends CI_Controller{
 				if($flag_level>=1){ //level 1 can't send up to 2 links
 					if($has_link&&$cct>1)$restrict=true;
 				}
-				elseif($much_links)$restrict=true; //nobody can send mutiple links
+				elseif($much_links&&$flag_level>=0)$restrict=true; //nobody can send multiple links except trusted (flag_level<0)
 			}
 
 			if($restrict)$restrict=!$this->general_model->is_sms_whitelisted($message_templates['default'],$sender_id,$user_id,$sub_account_id);
@@ -1535,7 +1538,7 @@ class Default_router extends CI_Controller{
 			}
 			
 			$pn=$this->_valid_phone($pn,$user['default_dial_code']);
-			$pages=$this->general_model->count_message_pages($temp_msg);
+			$pages=$this->general_model->count_message_pages($temp_msg,$unicode);
 			
 			$sms_units= $this->general_model->get_cgsms_coverage_cost($pn) * $pages; 
 			$sms_total_units+=$sms_units;
@@ -1551,6 +1554,7 @@ class Default_router extends CI_Controller{
 				'pages'=>$pages,
 				'sender'=>$sender_id,
 				'type'=>$type,
+				'unicode'=>$unicode,
 				'units'=>$sms_units,
 				'locked'=>$locked,
 				'extra_data'=>$extra_data
@@ -1993,8 +1997,9 @@ class Default_router extends CI_Controller{
 							}
 							
 							$type=empty($_REQUEST['type'])?0:1;
+							$unicode=empty($_REQUEST['unicode'])?0:1;
 							
-							$resp=$this->_send_sms($sub_account,$contacts,$message_templates,false,$date_time,$type);
+							$resp=$this->_send_sms($sub_account,$contacts,$message_templates,false,$date_time,$type,$unicode);
 							
 							if(isset($resp['batch_id']))
 							{

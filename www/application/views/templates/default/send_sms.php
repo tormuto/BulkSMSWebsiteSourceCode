@@ -44,6 +44,12 @@
 				<textarea class='form-control input-sm' id='message' name='message' placeholder='Enter the message ... ' required ><?php if(!empty($prefill_message))echo $prefill_message; ?></textarea>
 				<div id='message_count_info2' class='text-danger'></div>
 			</div>
+			<div class='checkbox'>
+				<label for='unicode'>
+					<input type='checkbox' name='unicode' value='1' />
+					Preserve Unicode <i>(e.g Chinese, Russian or other special symbols) <strong>72 chars/page</strong></i>
+				</label>			
+			</div>
 		</div>
 		<div class='col-md-6 col-sm-6'>
 			<div class='form-group'>

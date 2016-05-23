@@ -122,6 +122,13 @@
 				<td>0</td>
 			</tr>
 			<tr>
+				<td>unicode</td>
+				<td><b>0</b> means non-unicode sms, while <b>1</b> means that the message contains some special characters (e.g chinese, korean,...) that must be preserved (hence the character encoding of the HTTP request is also <strong>UTF-8)</strong><br/>
+					<i>Please note that when a message is in unicode format, the character limits of the messages reduces to <strong>72 characters per page.</strong></i>
+				</td>
+				<td>0</td>
+			</tr>
+			<tr>
 				<td>sender_id</td>
 				<td>What will appear to the recipient as the sender of the SMS (Maximimum of 11 characters).<br/>
 					<i>If this was not supplied, the sub-account's default sender_id will be used.</i>
