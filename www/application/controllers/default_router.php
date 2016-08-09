@@ -4191,6 +4191,7 @@ function _replace_placeholders($template,$values)
 	}
 	
 	function _cron_breath($last_sync_time='',$cron_id='cron_breathing.txt'){
+		date_default_timezone_set('UTC');
 		$sync_time=@file_get_contents($cron_id);
 		$dt_now=date('y-m-d g:i a');
 		if($last_sync_time==''&&!empty($sync_time)){

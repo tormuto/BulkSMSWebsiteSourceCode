@@ -130,6 +130,7 @@
 					<span class='label label-danger'>deleted</span>
 					<?php } ?>
 				</div>
+				<div style='font-size:70%;'>Batch ID: <?php echo $sms['batch_id']; ?></div>
 			</td>
 		</tr>	
 	<?php } ?>

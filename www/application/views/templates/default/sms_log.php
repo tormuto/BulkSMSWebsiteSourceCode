@@ -45,7 +45,7 @@
 			</div>
 		</div>
 		<div class='form-group'>
-			<input type='search' name='q' placeholder='Recipient or message' value='<?php echo $filter['search_term']; ?>' class='form-control input-sm'>
+			<input type='search' name='q' placeholder='Batch Id, Recipient or message' value='<?php echo $filter['search_term']; ?>' class='form-control input-sm'>
 		</div>
 		<div class='form-group'>
 			<div class='input-group'>
@@ -178,7 +178,8 @@
 				<td class='sender_id' ><?php echo $sms['sender']; ?></td>
 				<td style='white-space: normal;' >
 					<div class='message'><?php echo $sms['message']; ?></div>
-					<div class='text-right' >				
+					<div class='text-right' >
+						<span style='font-size:70%;'>Batch ID: <?php echo $sms['batch_id']; ?></span>
 						<a class='btn btn-default btn-xs' href='<?php echo $this->general_model->get_url("sms_log?p=$p&q={$filter['search_term']}&stage={$filter['stage']}&action=delete&sms_id={$sms['sms_id']}"); ?>' title='Delete' >
 								<i class='fa fa-trash text-danger'></i>
 						</a>

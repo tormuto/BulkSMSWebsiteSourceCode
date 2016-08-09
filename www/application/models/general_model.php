@@ -637,7 +637,7 @@ MTN Nigeria
 		function get_sms_log($only_count=false,$filter=''){
 			$this->db->from('sms_log');
 			if(!isset($filter['deleted']))$this->db->where('deleted',0);
-			elseif(!empty($filter['deleted'])&&$filter['deleted']!=2)$this->db->where('deleted',$filter['deleted']);
+			elseif(isset($filter['deleted'])&&$filter['deleted']!=2)$this->db->where('deleted',$filter['deleted']);
 						
 			$where=array();
 			if(isset($filter['sub_account_id'])&&is_numeric($filter['sub_account_id']))$where['sms_log.sub_account_id']=$filter['sub_account_id'];
@@ -655,6 +655,12 @@ MTN Nigeria
 			if(!empty($filter['sender_id']))$this->db->where('sender',$filter['sender_id']);
 
 			if(!empty($filter['type']))$this->db->where('type',$filter['type']);
+			
+			if(!empty($filter['search_term'])&&$this->valid_sms_batch_id(trim($filter['search_term']))){
+				$filter['batch_id']=trim($filter['search_term']);
+				unset($filter['search_term']);				
+			}
+			
 			if(!empty($filter['batch_id']))$this->db->where('batch_id',$filter['batch_id']);
 			if(!empty($filter['sms_id']))$this->db->where('sms_id',$filter['sms_id']);
 			if(!empty($filter['sms_ids'])){
@@ -701,6 +707,12 @@ MTN Nigeria
 			if(!empty($filter['recipient']))$where['recipient']=$filter['recipient'];
 			if(!empty($filter['sender_id']))$where['sender']=$filter['sender_id'];
 			if(!empty($filter['type']))$where['type']=$filter['type'];
+			
+			if(!empty($filter['search_term'])&&$this->valid_sms_batch_id(trim($filter['search_term']))){
+				$filter['batch_id']=trim($filter['search_term']);
+				unset($filter['search_term']);				
+			}
+			
 			if(!empty($filter['batch_id']))$where['batch_id']=$filter['batch_id'];
 			
 			
@@ -750,7 +762,8 @@ MTN Nigeria
 		function get_total_user_balance(){
 			$row=$this->db->select_sum('balance','total_balance')->get('users')->row();
 			$row2=$this->db->select_sum('balance','total_balance')->get('sub_accounts')->row();
-			return $row->total_balance+$row2->total_balance;
+			$row3=$this->db->where('status',0)->where('deleted','0')->select_sum('units','total_balance')->get('sms_log')->row();
+			return $row->total_balance+$row2->total_balance+$row3->total_balance;
 		}
 		
 		

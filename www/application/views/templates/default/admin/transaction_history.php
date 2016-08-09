@@ -91,7 +91,7 @@
 									<td>
 										<span class='btn btn-xs btn-default'><?php echo $row['amount'].' '. $row['currency_code']; ?></span>
 									</td>
-						<td>
+						<td style='word-break:break-all;' >
 							<strong>Approved Amount:</strong> <?php echo number_format(@$json_details['approved_amount'],2); ?>  <?php echo $row['currency_code']; ?>
 							<br/>
 							<strong>VIA:</strong> <?php echo $this->general_model->split_format($row['payment_method']); ?>
