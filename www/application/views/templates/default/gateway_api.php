@@ -130,7 +130,7 @@
 			</tr>
 			<tr>
 				<td>sender_id</td>
-				<td>What will appear to the recipient as the sender of the SMS (Maximimum of 11 characters).<br/>
+				<td>What will appear to the recipient as the sender of the SMS. 3 to 11 characters (or 3 to 14 digits if numeric).<br/>
 					<i>If this was not supplied, the sub-account's default sender_id will be used.</i>
 				</td>
 				<td>President</td>
@@ -354,7 +354,7 @@
 			</tr>
 			<tr>
 				<td>sender_id</td>
-				<td>Maximum of 11 characters</td>
+				<td>3 to 11 characters (or 3 to 14 digits if numeric)</td>
 				<td>President</td>
 			</tr>
 			<tr>
@@ -690,7 +690,7 @@
 			</tr>
 			<tr>
 				<td>sender_id</td>
-				<td>Maximum of 11 characters</td>
+				<td>3 to 11 characters (or 3 to 14 digits if numeric)</td>
 				<td>President</td>
 			</tr>
 			<tr>

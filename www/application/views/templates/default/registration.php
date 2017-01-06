@@ -58,7 +58,7 @@
 				</div>
 				<div class='form-group col-xs-12 col-md-3'>
 					<label>Default Sender</label>
-					<input placeholder="Sender Id" name='default_sender_id'  minlength='3' maxlength='11' type="text" value="<?php echo set_value('default_sender_id');?>" class='form-control input-sm' required >
+					<input placeholder="Sender Id" name='default_sender_id'  minlength='3' pattern="^.{3,11}|[0-9]{3,14}$"  title='Between 3 to 11 characters (or 3 to 14 digits if numeric)' maxlength='14' type="text" value="<?php echo set_value('default_sender_id');?>" class='form-control input-sm' required >
 				</div>
 		</div>
 		<div class='row'>

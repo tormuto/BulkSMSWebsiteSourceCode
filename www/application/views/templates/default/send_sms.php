@@ -12,6 +12,7 @@
 	<?php } ?>
 	<div class='help-block'>
 		<strong class='text-warning'>Upload a VCard or multiple  phone numbers (comma separated)</strong>
+		<br><small class='text-success'>Sender id: (3 to 11characters) or (3 to 14 digits)</small>
 	</div>
 	<hr/>
 	<form method='post' enctype='multipart/form-data' >
@@ -19,7 +20,7 @@
 			<div class='row'>
 				<div class='form-group col-md-8 col-sm-7 col-xs-6'>
 					<label for='sender_id'>Sender ID</label>
-					<input class='form-control input-sm' type='text' maxlength='11' minlength='3' name='sender_id' placeholder='<?php echo $my_profile['default_sender_id']; ?>' value='<?php echo set_value('sender_id',$my_profile['default_sender_id']); ?>' />
+					<input class='form-control input-sm' type='text' pattern="^.{3,11}|[0-9]{3,14}$"  title='Between 3 to 11 characters (or 3 to 14 digits if numeric)' maxlength='14' minlength='3' name='sender_id' placeholder='<?php echo $my_profile['default_sender_id']; ?>' value='<?php echo set_value('sender_id',$my_profile['default_sender_id']); ?>' />
 				</div>
 				<div class='form-group col-md-4 col-sm-5 col-xs-6'>
 					<label for='type' style='display:block;' >Type <a href='<?php echo $this->general_model->get_url('faqs'); ?>' style='float:right;cursor:help;' target='_blank' title="Flash message are those message that will appear immediately on the recipients' screen. Irregardless of what he/she is currently doing on the phone." >?</a></label>

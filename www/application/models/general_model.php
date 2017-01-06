@@ -71,7 +71,7 @@
 		
 		
 		function count_message_pages($text,$unicode=false){
-			$len=strlen($text);
+			$len=mb_strlen($text,'UTF-8');
 			if($len==0)return 0;
 			if($unicode)return ceil($len/72);
 			if($len<=160)return 1;
@@ -1524,6 +1524,11 @@ MTN Nigeria
 	
 		function _log_error($error,$e_title=3){
 			if(is_numeric($e_title))$e_title="Error Level $e_title";
+			elseif(!empty($e_title)){
+				$temp=$e_title;
+				$e_title=$error;
+				$error=$temp;
+			}
 			$this->log_error($e_title,$error,0,'technical');
 			//error_log($error."\r\n\r\n",$level, FCPATH."/cgsms_errors.log");
 		}
@@ -1644,12 +1649,15 @@ MTN Nigeria
 			$callback_url=$this->get_url('callback_processor/cgsms');		
 			$callback_data=$sms_batch[0]['user_id'].':'.$sms_batch[0]['sub_account_id'];
 			$batch_id=$sms_batch[0]['batch_id'];
+			$default_message=$sms_batch[0]['message'];
 			
 			foreach($sms_batch as $sms)
 			{
 				if(!empty($sms['status'])||!empty($sms['units_confirmed']))continue;
-				$callback_data1=$callback_data.':'.$sms['sms_id'].':'.$sms['pages'].':'.$sms['units'];
-				$messages[]=array('phone'=>$sms['recipient'],'extra_data'=>$callback_data1);
+				$callback_data1=$callback_data.':'.$sms['sms_id'].':'.$sms['pages'].':'.$sms['units'];				
+				$temp_array=array('phone'=>$sms['recipient'],'extra_data'=>$callback_data1);
+				if($sms['message']!=$default_message)$temp_array['override_message']=$sms['message'];
+				$messages[]=$temp_array;
 			}
 			
 			
@@ -1661,7 +1669,8 @@ MTN Nigeria
 			'type'=>$sms_batch[0]['type'],
 			'unicode'=>$sms_batch[0]['unicode'],
 			'sender_id'=>$sms_batch[0]['sender'],
-			'contacts'=>json_encode($messages)
+			'contacts'=>json_encode($messages),
+			'message'=>$default_message
 			);
 			
 			$response_json=$this->_curl_json('http://cheapglobalsms.com/api_v1',$params,true);

@@ -203,7 +203,18 @@ class Default_router extends CI_Controller{
 		//preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $url);
 		if(substr($url,0,4)!='http')$url='http://'.$url;		
 		if(preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$url))return $url;
-		$this->form_validation->set_message('valid_url',"Invalid url '$url'. Sample url format: http://tormuto.com/");
+		$this->form_validation->set_message('_valid_url',"Invalid url '$url'. Sample url format: http://tormuto.com/");
+		return false;
+	}
+	
+	
+	function _valid_sender_id($sender_id){
+		if($sender_id=='')return true;	
+		$test1=preg_match("~^.{3,11}$~",$sender_id);
+		$test2=preg_match("~^[0-9]{3,14}$~",$sender_id);
+		//$test2=preg_match("~^.{3,11}|[0-9]{3,14}$~",$sender_id);
+		if($test1||$test2)return $sender_id;
+		$this->form_validation->set_message('_valid_sender_id',"Invalid sender id '$sender_id'. Sender Id length can either be between 3 to 11 characters (or 3 to 14 digits if numeric)");
 		return false;		
 	}
 	
@@ -344,7 +355,7 @@ class Default_router extends CI_Controller{
 			   array(
 					 'field'=>'default_sender_id',
 					 'label'=>'default sender id',
-					 'rules'=>'required|max_length[11]|min_length[3]'
+					 'rules'=>'required|min_length[3]|callback__valid_sender_id'
 				  ),
 			   array(
 					 'field'=>'phone',
@@ -454,7 +465,7 @@ class Default_router extends CI_Controller{
 			   array('field'=>'country','label'=>'country','rules'=>'required|max_length[3]|integer'),
 			   array('field'=>'default_dial_code','label'=>'default dial code','rules'=>'required|integer'),
 			   array('field'=>'timezone_offset','label'=>'timezone offset','rules'=>'required|max_length[6]|xss_clean'),
-			   array('field'=>'default_sender_id','label'=>'default sender id','rules'=>'required|max_length[11]|min_length[3]'),
+			   array('field'=>'default_sender_id','label'=>'default sender id','rules'=>'required|min_length[3]|callback__valid_sender_id'),
 			   array('field'=>'credit_notification','label'=>'credit notification','rules'=>'integer'),
 				);
 			
@@ -1450,8 +1461,8 @@ class Default_router extends CI_Controller{
 		if($unicode===false)$unicode=(int)$this->input->post('unicode');
 		if($type!=0)$unicode=1;
 		if($sender_id===false)$sender_id=$this->input->post('sender_id');
-		if (empty($sender_id))$sender_id=$user['default_sender_id'];
-		$sender_id=substr($sender_id,0,11);
+		if(!empty($sendder_id)&&!$this->_valid_sender_id($sender_id))return array('Error'=>"Invalid sender id $sender_id. It can only be between 3 to 11 characters (or 3 to 14 digits if numeric)");
+		if(empty($sender_id))$sender_id=$user['default_sender_id'];
 		if (empty($sender_id))$sender_id=''; //if boolean, false to zero
 		
 		if($date_time!==false)$ds=$date_time;
@@ -1686,7 +1697,7 @@ class Default_router extends CI_Controller{
 				 array( 'field'=>'default_dial_code','label'=>'default dial code','rules'=>'trim|integer|max_length[8]'),
 				 array( 'field'=>'timezone_offset','label'=>'timezone offset','rules'=>'trim|max_length[6]|xss_clean'),
 				 array( 'field'=>'enabled','label'=>'enabled','rules'=>'trim|integer|max_length[1]'),
-				 array( 'field'=>'default_sender_id','label'=>'default dial code','rules'=>'trim|xss_clean|max_length[11]|min_length[3]'),
+				 array( 'field'=>'default_sender_id','label'=>'default dial code','rules'=>'trim|xss_clean|min_length[3]|callback__valid_sender_id'),
 			);	
 
 
@@ -1891,7 +1902,7 @@ class Default_router extends CI_Controller{
 				}
 				elseif($_REQUEST['action']=='send_sms')
 				{
-					if(empty($_REQUEST['recipients'])&&empty($_REQUEST['contact_groups'])){
+					if(empty($_REQUEST['recipients'])&&empty($_REQUEST['contact_groups'])&&empty($_REQUEST['contacts'])){
 						$response->error='recipients not supplied';
 						$response->error_code=7;
 					}

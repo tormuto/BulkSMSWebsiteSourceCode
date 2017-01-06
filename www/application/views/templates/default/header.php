@@ -251,18 +251,18 @@
 	      </div>
 	      <div class="modal-body" id="signup_details">
 			<div class='row'>
-				<div class='form-group col-xs-6 col-md-6'>
+				<div class='form-group col-sm-6 col-md-6'>
 					<label>First Name</label>
 					<input placeholder="Firstname" name="firstname" type="text" mustmatch='^[a-zA-Z]+$' mustmatchmessage='Firstname can only contain alphabets. Symbols and punctuation marks are not allowed' value="<?php echo set_value('firstname');?>" class='form-control input-sm' required maxlength='35' >
 				</div>
-				<div class='form-group col-xs-6 col-md-6'>
+				<div class='form-group col-sm-6 col-md-6'>
 					<label>Last Name</label>
 					<input placeholder="Lastname" name="lastname" type="text"  mustmatch='^[a-zA-Z]+$' mustmatchmessage='Lastname can only contain alphabets. Symbols and punctuation marks are not allowed' value="<?php echo set_value('lastname');?>" class='form-control input-sm' required  maxlength='35' >
 				</div>
 			</div>
 			
 			<div class='row'>
-				<div class='form-group col-xs-8 col-md-4'>
+				<div class='form-group col-sm-8 col-md-4'>
 					<label>Country</label>
 					<select name="country" class='form-control input-sm' required onchange="$('div.form-group .default_dial_code').val($(this).find('option:selected').attr('dial_code'))" >
 						<?php
@@ -281,39 +281,39 @@
 					?>
 					</select>
 				</div>
-				<div class='form-group col-xs-4 col-md-2'>
+				<div class='form-group col-sm-4 col-md-2'>
 					<label>Prefix</label>
 					<input placeholder="+234" name="default_dial_code" type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g 234" value='<?php echo set_value('default_dial_code','+234'); ?>'  class='form-control input-sm default_dial_code' required >
 				</div>
-				<div class='form-group col-xs-12 col-md-3'>
+				<div class='form-group col-sm-12 col-md-3'>
 					<label>Timezone <a href='https://wikipedia.org/wiki/List_of_time_zones_by_country' title='Supplying the timezone offset of your country ensures that any information you recieve carries accurate timestamp' target='_blank' style='cursor:help;'>?</a></label>
 					<div class='input-group'>
 						<span class='input-group-addon'>GMT</span>
 						<input placeholder="+01:00" name="timezone_offset" type='text' maxlength='6'  pattern='^[-+]?[0-9]{1,2}(:[0-9]{1,2})?$' title='e.g +1' value="<?php echo set_value('timezone_offset','+01:00');?>" class='form-control input-sm' required >
 					</div>
 				</div>
-				<div class='form-group col-xs-12 col-md-3'>
+				<div class='form-group col-sm-12 col-md-3'>
 					<label>Default Sender</label>
-					<input placeholder="Sender Id" name='default_sender_id'  minlength='3' maxlength='11' type="text" value="<?php echo set_value('default_sender_id');?>" class='form-control input-sm' required >
+					<input placeholder="Sender Id" name='default_sender_id'  minlength='3' pattern="^.{3,11}|[0-9]{3,14}$"  title='Between 3 to 11 characters (or 3 to 14 digits if numeric)' maxlength='14' type="text" value="<?php echo set_value('default_sender_id');?>" class='form-control input-sm' required >
 				</div>
 			</div>
 	        
 			<div class='row'>
-				<div class='form-group  col-xs-6 col-md-6'>
+				<div class='form-group  col-sm-6 col-md-6'>
 					<label>Email</label>
 					<input placeholder="example@gmail.com" name='email' type='email'  value="<?php echo set_value('email');?>"  class='form-control input-sm' required >
 				</div>
-				<div class='form-group  col-xs-6 col-md-6'>
+				<div class='form-group  col-sm-6 col-md-6'>
 					<label>Phone</label>
 					<input placeholder="+23480XXXXXXXX" name="phone" type="text" title='+XXXXXXXXXXXX'  pattern="^\+?[0-9]{7,}$" value='<?php echo set_value('phone','+234');?>'  class='form-control input-sm default_dial_code' required >
 				</div>
 			</div>
 			<div class='row'>
-				<div class='form-group  col-xs-6 col-md-6'>
+				<div class='form-group  col-sm-6 col-md-6'>
 					<label>Password</label>
 					<input placeholder="Password" name="password" type="password"  class='form-control input-sm' required >
 				</div>
-				<div class='form-group col-xs-6 col-md-6'>
+				<div class='form-group col-sm-6 col-md-6'>
 					<label>Confirm</label>
 					<input placeholder="Re-type Password" name="confirm_password" type="password"  class='form-control input-sm' required >
 				</div>

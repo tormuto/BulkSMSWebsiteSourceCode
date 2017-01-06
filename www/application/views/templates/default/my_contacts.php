@@ -164,11 +164,12 @@
 				<h4 class='modal-title' id='smsModalLabel'>SEND SMS</h4>
 			  </div>
 			  <div class='modal-body'>
+				<div class='text-success'>Sender id: (3 to 11characters) or (3 to 14 digits)</div>
 				<div class='help-block' id='recipient_info'></div>
 				<div class='row'>
 					<div class='form-group col-md-8 col-sm-8 col-sm-7 col-xs-6'>
 						<label for='sender_id'>Sender ID</label>
-						<input class='form-control input-sm' type='text' maxlength='11' minlength='3' name='sender_id' placeholder='<?php echo $my_profile['default_sender_id']; ?>' />
+						<input class='form-control input-sm' type='text' pattern="^.{3,11}|[0-9]{3,14}$"  title='Between 3 to 11 characters (or 3 to 14 digits if numeric)' maxlength='14'' minlength='3' name='sender_id' placeholder='<?php echo $my_profile['default_sender_id']; ?>' />
 					</div>
 					<div class='form-group col-md-4 col-sm-4 col-sm-5 col-xs-6'>
 						<label for='type'>Type</label>
