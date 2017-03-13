@@ -2463,10 +2463,10 @@ class Default_router extends CI_Controller{
 					$interswitch_mac_key=$configs['interswitch_mac_key'];
 					
 					if($configs['interswitch_demo']==1){
-						$data['action']='https://stageserv.interswitchng.com/test_paydirect/pay';
+						$data['action']='https://sandbox.interswitchng.com/webpay/pay';
 					}
 					else{
-						$data['action']='https://webpay.interswitchng.com/paydirect/webpay/pay.aspx';
+						$data['action']='https://webpay.interswitchng.com/collections/w/pay';
 					}
 					
 					$pay_item_id=101;
@@ -2958,12 +2958,12 @@ class Default_router extends CI_Controller{
 					if($configs['interswitch_demo']==1){
 						$interswitch_product_id=6205;
 						$interswitch_mac_key='D3D1D05AFE42AD50818167EAC73C109168A0F108F32645C8B59E897FA930DA44F9230910DAC9E20641823799A107A02068F7BC0F4CC41D2952E249552255710';
-						$interswitch_url='https://stageserv.interswitchng.com/test_paydirect/api/v1/gettransaction.json';
+						$interswitch_url='https://sandbox.interswitchng.com/webpay/api/v1/gettransaction.json';
 					}
 					else{
 						$interswitch_product_id=$configs['interswitch_product_id'];
 						$interswitch_mac_key=$configs['interswitch_mac_key'];
-						$interswitch_url='https://webpay.interswitchng.com/paydirect/api/v1/gettransaction.json';
+						$interswitch_url='https://webpay.interswitchng.com/collections/api/v1/gettransaction.json';
 					}
 
 					$hash=strtoupper(hash("sha512",$interswitch_product_id.$transaction_reference.$interswitch_mac_key));

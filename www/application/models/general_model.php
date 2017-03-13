@@ -2323,8 +2323,9 @@ MTN Nigeria
 			$this->db->where('status',1)->where('time_sent',0)->update('scheduled_mails',array('status'=>0));
 			
 			$time=time();
-			$results=$this->db->query("SELECT * FROM "._DB_PREFIX_."scheduled_mails WHERE time<=$time AND status=0 ")->result();
-			if(!empty($results))$this->db->query("UPDATE "._DB_PREFIX_."scheduled_mails SET status=1 WHERE time<=$time AND status=0 ");
+			$limit=1000;
+			$results=$this->db->query("SELECT * FROM "._DB_PREFIX_."scheduled_mails WHERE time<=$time AND status=0 LIMIT $limit")->result();
+			if(!empty($results))$this->db->query("UPDATE "._DB_PREFIX_."scheduled_mails SET status=1 WHERE time<=$time AND status=0 LIMIT $limit ");
 			
 			return $results;
 		}
