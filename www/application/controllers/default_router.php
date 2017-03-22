@@ -638,10 +638,31 @@ class Default_router extends CI_Controller{
 		$this->load_client_views('contact_us.php',$data);
 	}
 	
+	
 	public function reseller(){
-		$data['page_title']="Reseller";
+		$data['page_title']="Bulk SMS Reseller";
+		$data['og_description']="Get bulk SMS credits at the lowest/wholesale rates";
+		
+		if($this->input->get('activate')){
+			$this->check_login();
+			$user_id=$this->get_login_data('user_id');		
+			$activate=$this->input->get('activate');
+			
+			if($activate==1){
+				$resp=$this->general_model->refill_surety_units($user_id,true);
+				if(is_string($resp))$data['Error']=$resp;
+				elseif($resp)$data['Success']='Reseller account activated';
+			}
+			elseif($activate==-1){
+				$resp=$this->general_model->deactivate_reseller_account($user_id);
+				if(is_string($resp))$data['Error']=$resp;
+				elseif($resp)$data['Success']='Reseller account de-activated';
+			}
+		}
+		
 		$this->load_client_views('reseller.php',$data);
 	}
+	
 	
 	public function coverage_list(){
 		$data['page_title']="Coverage List";
@@ -1442,6 +1463,10 @@ class Default_router extends CI_Controller{
 			$sub_account_id=0;
 			$email=$user['email'];
 		}
+		
+		
+		
+		if(!empty($user['owing_surety']))return array('Error'=>'The surety units for this reseller account is empty');
 		
 		if(!empty($email)&&$user['balance']<100&&$user['last_notified']!=date('Y-m-d')){
 			if(!empty($user['sub_account']))$formatted_sub=$this->general_model->format_sub_account($user['sub_account'],$user['user_id']);
@@ -2324,7 +2349,8 @@ class Default_router extends CI_Controller{
 			elseif($sms_units<$configs['minimum_units'])$data['Error']="You can not buy less than {$configs['minimum_units']} SMS units";
 			else
 			{
-				$original_amount=$this->general_model->sms_units_to_price($sms_units,$currencies[$cur]['value']);
+				$original_amount=$this->general_model->sms_units_to_price($sms_units,$currencies[$cur]['value'],!empty($user_data['reseller_account']));
+				
 				$amount=$original_amount;
 				$tax_amount=0;
 				if(!empty($configs['tax_percent']))
@@ -4282,8 +4308,9 @@ function _replace_placeholders($template,$values)
 	
 	
 	function run_sms_cron(){
-		if(!$this->input->is_cli_request())die('DIRECT WEB ACCESS DENIED');
-		$this->config->set_item('base_url','https://cheapglobalsms.com/') ;
+		set_time_limit(0);
+		ignore_user_abort(true);
+		
 		$sync_time=$this->_cron_breath();
 		$configs=$this->general_model->get_configs();
 		$cron_run_count=0;
@@ -4307,7 +4334,34 @@ function _replace_placeholders($template,$values)
 			if(empty($batches))sleep(5);
 		}
 	}	
-	 
+	  
+	function run_reseller_cron()
+	{		
+		set_time_limit(0);
+		ignore_user_abort(true);
+		
+		$this->db->query("SET SESSION group_concat_max_len=10000000");
+		$sql="SELECT GROUP_CONCAT(user_id) user_ids FROM "._DB_PREFIX_."users WHERE reseller_account=1 AND last_surety_updated+INTERVAL 30 DAY < NOW()";
+
+		$query=$this->db->query($sql);
+		$row=$query->row();
+		if(!empty($row->user_ids)){
+			$user_ids=$row->user_ids;
+			$reseller_min_sales=$this->general_model->get_reseller_min_sales();
+			$sql="SELECT user_id,SUM(units) sum_units FROM "._DB_PREFIX_."sms_log WHERE user_id IN ($user_ids) GROUP BY user_id HAVING sum_units<$reseller_min_sales";
+			$query=$this->db->query($sql);
+			$result=$query->result();
+			$user_ids=array();
+			foreach($result as $row)$user_ids[]=$row->user_id;
+			$user_id_str=implode(',',$user_ids);
+			$this->db->query("UPDATE  "._DB_PREFIX_."users SET owing_surety=1 WHERE user_id IN ($user_id_str)");
+			$this->db->query("UPDATE  "._DB_PREFIX_."sub_accounts SET owing_surety=1 WHERE user_id IN ($user_id_str)");
+			
+			foreach($user_ids as $user_id)$this->general_model->refill_surety_units($user_id);
+		}
+	}
+	
+	
 	function __simulate_cron() //not used anywhere yet.
 	{
 		ignore_user_abort(true);

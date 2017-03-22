@@ -72,7 +72,9 @@ CREATE TABLE IF NOT EXISTS `gm_users`
 	credit_notification TINYINT NOT NULL DEFAULT 1,
 	verification_file VARCHAR(225) NOT NULL,
 	flag_level TINYINT(1) NOT NULL DEFAULT 0,
+	last_surety_updated DATE NOT NULL,
 	reseller_account TINYINT(1) NOT NULL DEFAULT 0,
+	owing_surety TINYINT(1) NOT NULL DEFAULT 0,
 	cache LONGTEXT,
 	UNIQUE(email),
 	PRIMARY KEY(user_id)
@@ -90,7 +92,8 @@ CREATE TABLE IF NOT EXISTS `gm_sub_accounts`
 	default_dial_code INT(6) NOT NULL,
 	timezone_offset VARCHAR(6) NOT NULL,
 	last_notified DATE  NOT NULL,
-	enabled TINYINT(1) NOT NULL,INDEX(enabled)
+	enabled TINYINT(1) NOT NULL,INDEX(enabled),
+	owing_surety TINYINT(1) NOT NULL DEFAULT 0
 );
 
 

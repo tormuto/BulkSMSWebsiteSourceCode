@@ -191,23 +191,24 @@ MTN Nigeria
 			
 			return $result;
 		}
-		
-		function reseller_min_sales($reseller_highest_price=0){
-			if(!isset($this->reseller_min_sales)){
-				$this->get_prices($reseller_highest_price);
+		function get_reseller_highest_price(){
+			if(!isset($this->reseller_highest_price)){
+				$this->reseller_highest_price=$this->get_config('reseller_highest_price');
 			}
-			return $this->reseller_min_sales;
+			return $this->reseller_highest_price;
 		}
 		
-		function reseller_surety_fee($reseller_highest_price=0){
+		function get_reseller_min_sales(){
+			if(empty($this->reseller_min_sales))$this->get_prices(true);
+			return $this->reseller_min_sales;
+		}
+		function get_reseller_surety_fee(){
 			if(!isset($this->reseller_surety_fee)){
-				$reseller_min_sales=$this->reseller_min_sales($reseller_highest_price);
-				$this->reseller_surety_fee=$reseller_min_sales/20;
+				$reseller_min_sales=$this->get_reseller_min_sales();
+				$this->reseller_surety_fee=$reseller_min_sales/40; //half of sopposed profit
 			}
 			return $this->reseller_surety_fee;
 		}
-		
-		
 		
 		
 
@@ -216,10 +217,10 @@ MTN Nigeria
 			$this->db->insert_batch('prices',$new_prices);
 		}
 		
-		function sms_units_to_price($new_units,$currency_value=1,$prices=''){	
+		function sms_units_to_price($new_units,$currency_value=1,$prices='',$is_reseller){	
 			$new_amount=0;	
 			
-			if($prices=='')$prices=$this->get_prices();	
+			if($prices=='')$prices=$this->get_prices($is_reseller);	
 			if(!is_numeric($new_units))$new_units=0;
 			
 			if($new_units>0){			
@@ -2003,6 +2004,59 @@ MTN Nigeria
 			
 			if($sub_account_id>0)$this->db->query("UPDATE "._DB_PREFIX_."sub_accounts SET $set_query WHERE sub_account_id=$sub_account_id LIMIT 1");
 			else $this->db->query("UPDATE "._DB_PREFIX_."users SET $set_query WHERE user_id=$user_id LIMIT 1");
+		}
+		
+				
+		function deactivate_reseller_account($user_id){
+			$user=$this->get_user($user_id);
+			if(empty($user))return 'User record not found';
+			if(empty($user['reseller_account']))return 'This is not a reseller account';
+			if(!empty($user['owing_surety']))return 'A reseller account without surety can-not be downgraded. Please refill your surety first.';
+			
+			$this->db->where('user_id',$user_id)->limit(1)->update('users',array('reseller_account'=>0));			
+			return true;						
+		}
+		
+		function refill_surety_units($user,$activate_reseller=false){
+			if(!is_array($user))$user=$this->get_user($user);
+			if(empty($user))return 'User record not found';
+			if(empty($user['reseller_account'])&&!$activate_reseller)return 'This is not a reseller account';
+			elseif($activate_reseller&&!empty($user['reseller_account']))return 'This reseller account is already activated';
+			
+			$reseller_surety_fee=$this->get_reseller_surety_fee();
+			if(empty($user['owing_surety'])&&!empty($user['reseller_account']))return 'This reseller account is already insured';
+			if($user['balance']<$reseller_surety_fee)return "Insufficient balance, there is need to have at least $reseller_surety_fee SMS units.";
+			$new_bal=$user['balance']-$reseller_surety_fee;
+			$date_time=date('Y-m-d H:i');
+
+			$this->db->query("UPDATE "._DB_PREFIX_."users SET reseller_account=1,last_surety_updated='$date_time',balance=balance-$reseller_surety_fee,owing_surety=0 WHERE user_id='{$user['user_id']}' LIMIT 1");
+			$this->db->query("UPDATE "._DB_PREFIX_."sub_accounts SET owing_surety=0 WHERE user_id='{$user['user_id']}' ");
+		
+			$message="Dear {$user['firstname']},<br/><br/>Please Note that $reseller_surety_fee SMS units has been charged from your SMS balance, to cover for the deficiency in your Reseller Surety Units. Leaving your new SMS balance at $new_bal Units. <br/><br/>Regards.";
+			$this->send_email($user['email'],'Surety Units Refilled',$message);
+			
+			$details="-$reseller_surety_fee SMS units for reseller surety top-up. New SMS balance: $new_bal Units";
+			$time=time();
+			$amount=$this->sms_units_to_price($reseller_surety_fee);
+						
+			$transaction=
+				array(
+						'user_id'=>$user['user_id'],
+						'time'=>$time,
+						'transaction_reference'=>$time,
+						'amount'=>$amount,
+						'type'=>2,
+						'currency_code'=>'NGN',
+						'details'=>$details,									
+						'payment_method'=>'free_checkout',
+						'sms_units'=>$reseller_surety_fee,
+						'net_amount_ngn'=>$amount,
+						'status'=>1
+					);
+							
+			$this->db->insert('transactions',$transaction);
+			
+			return true;
 		}
 		
 		

@@ -60,12 +60,20 @@
 	<?php
 		}
 	?>
+	<style type='text/css'>
+		.navbar-brand,.side-nav li a{
+			color: #3c763d;
+			font-weight: bold;
+		}
+
+		.side-nav,.navbar-ex1-collapse{ background-color:#eee; }
+	</style>
 	
 </head>
 <body style='background-color:#fff;' >
     <div id="wrapper">
         <!-- Navigation -->
-        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <nav class="navbar  navbar-fixed-top" role="navigation">
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
@@ -90,6 +98,13 @@
                         <li>
                             <a href="<?php echo $this->general_model->get_url('pricing');?>"><i class="fa fa-fw fa-database"></i><?php echo $my_profile['balance']; ?> Units</a>
                         </li>
+						<?php if(!empty($my_profile['reseller_account'])){ ?>
+                        <li>
+							<a href='<?php echo $this->general_model->get_url('?refill_surety=1');?>' >
+							<?php echo empty($my_profile['owing_surety'])?"<i class='fa fa-check text-success'></i>":"<i class='fa fa-warning-sign text-danger'></i>"; ?> Reseller Surety
+						   </a>
+                        </li>
+						<?php } ?>
                         <li>
                             <a href="<?php echo $this->general_model->get_url('sub_accounts');?>"><i class="fa fa-fw fa-cubes"></i> Sub Accounts</a>
                         </li>
@@ -194,6 +209,9 @@
                     </li>                    
 					<li  class="<?php if($page_name=='gateway_api')echo 'active'; ?>">
                         <a href="<?php echo $this->general_model->get_url('gateway_api');?>"><i class="fa fa-fw fa-wrench"></i> Gateway API</a>
+                    </li>
+					<li  class="<?php if($page_name=='reseller')echo 'active'; ?>" >
+                        <a href="<?php echo $this->general_model->get_url('reseller');?>" style='font-weight:800;' ><i class="fa fa-fw fa-recycle"></i> Bulk SMS Reseller</a>
                     </li>
 					<li>
 						<div id='google_translate_element' style='display:inline-block;max-width:100%;overflow:auto;'></div>
