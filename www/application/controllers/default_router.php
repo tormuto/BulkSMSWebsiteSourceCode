@@ -3378,6 +3378,7 @@ class Default_router extends CI_Controller{
 				if(empty($data['Error']))
 				{
 					//$new_status=1; //zombie payment confirmation:: do not uncomment.
+					if(empty($batch_used))$batch_used='';
 					$this->general_model->change_transaction_status($trans_ref,$new_status,$json_data,$batch_used);
 					
 					//update it for display purpose.
