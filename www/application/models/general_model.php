@@ -25,7 +25,7 @@
 			$this->payment_methods=array(
 				//'free'=>'FREE','cumulated'=>'CUMULATED',
 				'ucollect'=>'UCollect','gtpay'=>'GTPay',
-				'interswitch'=>'Interswitch','perfectmoney'=>'PerfectMoney',
+				'interswitch'=>'Interswitch','bitcoin'=>'Bitcoin','perfectmoney'=>'PerfectMoney',
 				'2checkout'=>'2CheckOut','zenith_globalpay'=>'Zenith Globalpay',
 				'bank_deposit'=>'Bank Deposit','ussd_code'=>'USSD Code','pay_on_delivery'=>'Pay On Delivery/Venue','western_union'=>'Western Union',
 				'stanbic'=>'StanbicIBTC','paypal'=>'Paypay','firstpay'=>'Firstpay','skye'=>'Skye',
@@ -33,7 +33,7 @@
 				'free_checkout'=>'FREE'
 				);
 			
-			$this->payment_methods_no_requery=array('perfectmoney','bank_deposit','pay_on_delivery','ussd_code','western_union','2checkout','paypal','free_checkout','simplepay','voguepay');
+			$this->payment_methods_no_requery=array('perfectmoney','bitcoin','bank_deposit','pay_on_delivery','ussd_code','western_union','2checkout','paypal','free_checkout','simplepay','voguepay');
 			
 			
 			$this->payment_gateway_params=array
@@ -42,6 +42,7 @@
 					'gtpay'=>array('merchant_id'=>'gtpay_merchant_id','key'=>'gtpay_hash_key'),
 					'interswitch'=>array('merchant_id'=>'interswitch_product_id','key'=>'interswitch_mac_key'),
 					'perfectmoney'=>array('merchant_id'=>'perfectmoney_account','key'=>'perfectmoney_paraphrase'),
+					'bitcoin'=>array('merchant_id'=>'bitcoin_address','key'=>''),
 					'2checkout'=>array('merchant_id'=>'2checkout_seller_id','key'=>'2checkout_secret'),
 					'zenith_globalpay'=>array('merchant_id'=>'globalpay_merchant_id','uid'=>'globalpay_user_id','key'=>'globalpay_password'),
 					'bank_deposit'=>array('merchant_id'=>'bank_account_details','key'=>'','textarea'=>'1'),
@@ -217,10 +218,10 @@ MTN Nigeria
 			$this->db->insert_batch('prices',$new_prices);
 		}
 		
-		function sms_units_to_price($new_units,$currency_value=1,$prices='',$is_reseller){	
+		function sms_units_to_price($new_units,$currency_value=1,$is_reseller=false){	
 			$new_amount=0;	
 			
-			if($prices=='')$prices=$this->get_prices($is_reseller);	
+			$prices=$this->get_prices($is_reseller);	
 			if(!is_numeric($new_units))$new_units=0;
 			
 			if($new_units>0){			
@@ -265,6 +266,7 @@ MTN Nigeria
 					$currency_code=$configs['currency_code'];
 					if($currency_code=='USD'&&($pm_key=='gtpay'||$pm_key=='interswitch'))continue;
 					elseif($currency_code!='USD'&&$pm_key=='perfectmoney')continue;
+					//elseif($currency_code!='BTC'&&$pm_key=='bitcoin')continue;
 				}
 
 				if(!empty($configs[$pm_key."_enabled"]))
@@ -389,8 +391,85 @@ MTN Nigeria
 	   function format_sub_account($sub_account,$user_id){ return str_pad($user_id,3,'0',STR_PAD_LEFT)."_$sub_account"; }
 
 	   
+		####################### Bitcoin Payment Helper #######
+		
+	   function secure_btc_amount($btc){
+		   $btc=$btc*1.055; //add 5.5% for correction
+		   $temp=ceil($btc*10000)/10000;
+		   $temp2=rand(100,999)/100000000;
+		   return $temp+$temp2;
+	   }
+		
+		
+		function formatBTC($value,$add_code=false) {
+			$value = sprintf('%.8f', $value);
+			$value = rtrim($value, '0');
+			if($add_code)return "$value BTC";
+			return $value;
+		}
+		
+		
+		function shatoshi_to_btc($shatoshi){ return $shatoshi/100000000; }
+		
+		function btc_to_shatoshi($btc){ return $btc*100000000; }
+		
+		function is_duplicate_hash($hash){
+			return $this->db->where('checksum',$hash)->limit(1)->from('transactions')->count_all_results();
+		}
+		
 	   
-		###################################  CURRENCIES ##################################
+	
+		   
+	   function get_blockchain_confirmations($block_height){
+		   
+		   if(is_array($block_height)){
+			   if(!empty($block_height['lock_time']))$block_height=$block_height['lock_time'];
+			   else $block_height=empty($block_height['block_height'])?0:$block_height['block_height'];
+		   }
+		   
+		   if(empty($block_height))return 0;
+			if(!isset($this->current_blockchain_height)){
+				$blockheight_checked_time=$this->get_config('blockheight_checked_time');
+				
+				$cbh=$this->get_config('current_blockchain_height');
+				$time=time();
+				$offset=$time-($blockheight_checked_time*1);
+				if($offset>600||!empty($cbh))
+				{
+					$temp=$this->_curl_json('https://blockchain.info/q/getblockcount');
+										
+					if(empty($temp['error']))
+					{
+						$val=$temp['response']*1;
+						
+						if(!empty($val)){
+							$time=time();
+							$this->update_config('current_blockchain_height',$val);
+							$this->update_config('blockheight_checked_time',$time);
+							if(!empty($this->configs)){
+								$this->configs['current_blockchain_height']=$val;
+								$this->configs['blockheight_checked_time']=$time;
+							}
+							$this->current_blockchain_height=$val;
+							return $val;
+						}
+						
+					}			
+				}
+				$cbh=$this->get_config('current_blockchain_height');
+				if(!empty($cbh))$this->current_blockchain_height=$cbh;
+			}
+			
+			if(isset($this->current_blockchain_height)){
+				return $this->current_blockchain_height - $block_height + 1;
+			}
+			
+			return 0;
+	   }
+	
+	###################################  CURRENCIES #################
+		
+		
 		
 		
 		function replace_currencies($currencies){
@@ -430,9 +509,10 @@ MTN Nigeria
 		
 		############################ CONFIGS FUNCTIONS ################
 
+	
 		function get_config($key){
-			$query=$this->db->where('config_name',$key)->limit(1)->get('website_configuration');
-			if($row=$query->row())return $row->config_value;
+			if(empty($this->configs))$this->get_configs();
+			if(isset($this->configs[$key]))return $this->configs[$key];
 			return "";
 		}
 
@@ -444,15 +524,16 @@ MTN Nigeria
 			$query=$this->db->get('website_configuration');
 			$results=array();
 			foreach($query->result() as $row)$results[$row->config_name]=$row->config_value;
-
+			if(isset($results['reseller_highest_price']))$this->reseller_highest_price=$results['reseller_highest_price'];
 			if(!defined('_CURRENCY_CODE_'))$currency_code='NGN'; else $currency_code=_CURRENCY_CODE_;
 			
 			$results['currency_code']=$currency_code;
 			if(empty($results['site_name']))$results['site_name']=$_SERVER['HTTP_HOST'];
-			$this->site_name=$results['site_name'];
+			$this->configs=$results;
 			return $results;
 		}
-
+		
+		
 		function update_config($key,$value){
 			$num=$this->db->where('config_name',$key)->from('website_configuration')->count_all_results();
 			if($num==0)$this->db->insert('website_configuration',array('config_name'=>$key,'config_value'=>$value));
@@ -1301,7 +1382,7 @@ MTN Nigeria
 		}
 
 		
-		function change_transaction_status($transaction_reference,$new_status,$json_info){
+		function change_transaction_status($transaction_reference,$new_status,$json_info,$batch_used=''){
 			$transaction=$this->get_transaction($transaction_reference,true);
 			if(empty($transaction))return "Transaction not found.";
 			if($transaction['status']==1)return "Transaction already completed.";
@@ -1335,14 +1416,6 @@ MTN Nigeria
 						$update_data['surety_units']=$user_data['surety_units']+$surety_topup;
 						$extra_notes.="<br/>Please Note that $surety_topup SMS units has been charged form your SMS balance, to cover for the deficiency in your Reseller Surety Units<br/>";
 					}
-				}
-				
-				if($new_bal>0){
-					$temp_num=$this->db->where('user_id',$transaction['user_id'])->where('status',0)->count_all_results();
-					if($temp_num>0){
-						$this->db->where('user_id',$transaction['user_id'])->where('status',0)->update('cpss',array('status'=>1));
-						$extra_notes.="<br/>Also, $temp_num paused CPS on your account has now been automatically re-activated.<br/>";
-					};
 				}
 				
 				$update_data['balance']=$new_bal;
@@ -1379,6 +1452,7 @@ MTN Nigeria
 			}
 			
 			$update_data=array('status'=>$new_status,'json_info'=>json_encode($json_info));
+			if(!empty($batch_used))$update_data['checksum']=$batch_used;
 			$this->db->where('transaction_reference',$transaction_reference)->update('transactions',$update_data);
 			
 			
@@ -1624,8 +1698,8 @@ MTN Nigeria
 			else
 			{
 				$json=@json_decode($response,true);
-				
 				if($json===null)return array('error'=>"Invalid Remote Server Response",'response_text'=>$response);
+				if(is_numeric($json))return array('response_text'=>$response,'response'=>$response);
 				else return $json;
 			}
 			

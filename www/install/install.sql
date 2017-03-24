@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS `gm_currencies`
 );
 
 
-INSERT INTO `gm_currencies`(`currency`,`iso_code`,`symbol`,`currency_title`,`value`) VALUES ('NGN','566','#','Nigerian Naira',1),('USD','840','$','US Dollars','0.0050'),('EUR','978','&#8364;','Euro','0.0046'),('GBP','826','&#163;','Great Britain Pounds','0.0032');
+INSERT INTO `gm_currencies`(`currency`,`iso_code`,`symbol`,`currency_title`,`value`) VALUES ('NGN','566','#','Nigerian Naira',1),('USD','840','$','US Dollars','0.0050'),('EUR','978','&#8364;','Euro','0.0046'),('GBP','826','&#163;','Great Britain Pounds','0.0032'),('BTC','100','B','Bitcoin','0.0000025');
 
 
 --
@@ -194,6 +194,7 @@ CREATE TABLE IF NOT EXISTS `gm_transactions`
   `net_amount_ngn` DOUBLE NOT NULL DEFAULT 0,
   UNIQUE(`transaction_reference`),
   `details` VARCHAR(225) NOT NULL,
+  `batch_used` VARCHAR(128) NOT NULL DEFAULT '',
   `json_details` text,
   `json_info` text,
   PRIMARY KEY (`id`),

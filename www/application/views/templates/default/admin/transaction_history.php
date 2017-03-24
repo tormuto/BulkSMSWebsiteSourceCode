@@ -183,7 +183,21 @@
 									</form>
 									<?php
 									}
-									elseif($row['status']==0&&in_array($row['payment_method'],$this->general_model->payment_methods_no_requery)){
+									elseif($row['status']==0){
+									
+									if($row['payment_method']=='bitcoin'){ ?>
+										<form method='post' action="<?php echo $this->general_model->get_url('transaction'); ?>" target='_blank' >
+											<input type='hidden' name='confirm_trans' value='<?php echo $row['transaction_reference']; ?>' />
+											<div class='form-group'>
+												<label>Bitcoin TX Hash</label>
+												<input name='bit_hash' type='text' class='form-control input-sm'  minlength='64' maxlength='64' pattern='^[a-z0-9]{64}$' required />
+											</div>
+											<button class='btn btn-default btn-xs pull-right' value='requery' >Requery</button>
+										</form>
+										<?php
+										}
+									//elseif($row['status']==0&&in_array($row['payment_method'],$this->general_model->payment_methods_no_requery))
+									
 									?>
 									<form method='post'>
 										<div class='form-group'>

@@ -2698,6 +2698,23 @@ class Default_router extends CI_Controller{
 					<input type=hidden name=site_logo value='{$configs['logo']}'>
 					";
 				}
+				elseif($payment_method=='bitcoin')
+				{
+						$transaction['amount']=$amount=$this->general_model->secure_btc_amount($amount);
+						$transaction['details'].=" (Currently $amount BTC)";
+						
+						$data['input_fields']="<h4 class='text-center'>IMPORTANT</h4>
+							<h3 style='line-height: normal;font-weight: normal;' class='text-success'>
+								Complete your transaction by transferring EXACTLY <strong>$amount</strong> to <code>{$configs['bitcoin_address']}</code><br/>
+							</h3>
+							<div class='alert alert-danger'>
+								If you send more than $amount BTC, <strong>you will lose your fund</strong></br>
+								If you send less than $amount BTC, <strong>you will lose your fund</strong>
+							</div>
+							<p>After your payment has reached 1 confirmation, Please supply your payment bitcoin transaction id on the transaction log.</p>";
+						$data['form_method']='get';
+						$data['action']=$this->general_model->get_url('transaction');
+				}
 				elseif($payment_method=='bank_deposit')
 				{
 						
@@ -2864,6 +2881,7 @@ class Default_router extends CI_Controller{
 				}
 			}
 			
+			$bit_hash='';
 			
 			if($transaction['status']!=1&&empty($data['Error']))
 			{
@@ -3085,6 +3103,71 @@ class Default_router extends CI_Controller{
 					}
 					else $json_data['response_description'] = "Verification failed: MD5 does not match!";
 				}
+				elseif($transaction['payment_method']=='bitcoin')
+				{
+					$bit_hash=$this->input->post('bit_hash',true);
+					$new_status=0;
+					
+					if(!preg_match("~^[a-zA-Z0-9]{64}$~",$bit_hash))$json_data['info']="Please supply your bitcoin payment transaction hash; it must be 64 characters";
+					elseif($this->general_model->is_duplicate_hash($bit_hash))$json_data['info']="This transaction hash has already been used to validate another payment";
+					else 
+					{
+						$address=$configs['bitcoin_address'];
+						$url="https://blockchain.info/tx/$bit_hash?format=json";
+						
+						$btc_trans=$this->general_model->_curl_json($url);
+						if(!empty($btc_trans['error']))$data['Error']=$btc_trans['error'];
+						if(empty($btc_trans['out']))$json_data['response_description']="No bitcoin payment record found on the supplied hash $bit_hash";
+						else
+						{
+							$same_addr=false;
+							foreach($btc_trans['inputs'] as $in){
+								if($in['prev_out']['addr']==$address){		
+									$same_addr=true;
+									break;
+								}
+							}
+							
+							if($same_addr)$json_data['response_description']="Suspicious: Re-query hash $bit_hash is from an outgoing transaction.";
+							else
+							{
+								$to_wrong_address=true;
+								
+								$outs=$btc_trans['out'];
+								$out=array();
+								foreach($outs as $out){
+									if($out['addr']==$address){
+										$to_wrong_address=false;
+										break;
+									}
+								}
+
+								if($to_wrong_address)$json_data['response_description']="Wrong receiving address from requery txn hash ";
+								else
+								{
+									$btc_amount=$this->general_model->shatoshi_to_btc($out['value']);
+									$json_data['approved_amount']=$btc_amount;
+									
+									if(floatval($btc_amount)!=floatval($expected_deposit))
+										$json_data['response_description']="In-correct BTC amount ($btc_amount != {$expected_deposit}) from the supplied hash $bit_hash";
+									else 
+									{
+										$json_data['supplied_hash']=$transaction_hash=$bit_hash;
+										$confs=$this->general_model->get_blockchain_confirmations($btc_trans);
+										
+										if(empty($confs))$json_data['response_description']="This Bitcoin Transaction is still unconfirmed ";
+										else
+										{
+											$new_status=1;
+											$json_data['response_description']="Bitcoin payment confirmed";
+											$batch_used=$bit_hash;
+										}
+									}
+								}
+							}
+						}				
+					}
+				}
 				elseif($transaction['payment_method']=='perfectmoney')
 				{					
 					$new_status=-1;
@@ -3295,7 +3378,7 @@ class Default_router extends CI_Controller{
 				if(empty($data['Error']))
 				{
 					//$new_status=1; //zombie payment confirmation:: do not uncomment.
-					$this->general_model->change_transaction_status($trans_ref,$new_status,$json_data);
+					$this->general_model->change_transaction_status($trans_ref,$new_status,$json_data,$batch_used);
 					
 					//update it for display purpose.
 					$transaction['status']=$new_status;
