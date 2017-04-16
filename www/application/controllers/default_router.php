@@ -620,7 +620,7 @@ class Default_router extends CI_Controller{
 						$code=mt_rand(10000,999999);
 						$array=array('temp_password'=>md5($code));
 						$this->general_model->update_user_data($row['user_id'],$array);					
-						$msg="Your password has been reset at ".$this->general_model->get_url()."<br/>Your new password is: $code <br/>Please ignore this message if you did not request for a password reset.<br/>Thanks";
+						$msg="Your password has been reset at ".$this->general_model->get_url()."<br/>Your new password is: $code<br/>Please ignore this message if you did not request for a password reset.<br/>Thanks";
 						$this->general_model->send_email($remail,"Password Reset",$msg);
 					
 						$data['Success']="Your new password has just been sent to $remail.";
@@ -4337,7 +4337,9 @@ function _replace_placeholders($template,$values)
 	
 	function run_mail_queue()
 	{
-		if(!$this->input->is_cli_request())die('DIRECT WEB ACCESS DENIED');
+		ignore_user_abort(true);
+		set_time_limit(0);
+		//if(!$this->input->is_cli_request())die('DIRECT WEB ACCESS DENIED');
 		$sync_file='cron_email_sync.txt';
 		$sync_time=$this->_cron_breath('',$sync_file);
 		$configs=$this->general_model->get_configs();

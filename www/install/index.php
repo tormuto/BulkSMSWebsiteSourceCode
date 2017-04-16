@@ -34,9 +34,9 @@ if(isset($_POST['install']))
 		"define('_DB_NAME_','{$_POST['db_name']}');\n".
 		"define('_DB_PREFIX_','{$_POST['db_prefix']}');\n".
 		"define('_DB_USERNAME_','{$_POST['db_user']}');\n".
-		"define('_DB_PASS_','{$_POST['db_pass']}');\n".
+		"define('_DB_PASS_',\"{$_POST['db_pass']}\");\n".
 		"define('_ADMIN_EMAIL_','{$_POST['admin_email']}');\n".
-		"define('_ADMIN_PASS_','{$_POST['admin_pass']}');\n".
+		"define('_ADMIN_PASS_',\"{$_POST['admin_pass']}\");\n".
 		"?>";
 		
 		fwrite($file, $str);

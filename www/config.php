@@ -5,4 +5,6 @@ define('_DB_NAME_','project_ediarosms');
 define('_DB_PREFIX_','ed_');
 define('_DB_USERNAME_','root');
 define('_DB_PASS_','');
+define('_ADMIN_EMAIL_','proff.tormuto@gmail.com');
+define('_ADMIN_PASS_','omodaadaa');
 ?>
