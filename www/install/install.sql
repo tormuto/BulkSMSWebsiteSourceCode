@@ -1,12 +1,18 @@
 
-CREATE TABLE IF NOT EXISTS `gm_whitelisted_sms`(
-	whitelisted_sms_id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(whitelisted_sms_id),
-	sender_id VARCHAR(16) NOT NULL,
-	message TEXT NOT NULL,
-	user_id INT NOT NULL,INDEX(user_id),
-	sub_account_id INT NOT NULL,INDEX(sub_account_id),
-	INDEX(user_id,sub_account_id)
+
+CREATE TABLE IF NOT EXISTS `gm_whitelisted_sms` (
+  `whitelisted_sms_id` int(11) NOT NULL AUTO_INCREMENT,
+  `sender_id` varchar(16) CHARACTER SET utf8 NOT NULL,
+  `message` text CHARACTER SET utf8 NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `sub_account_id` int(11) NOT NULL,
+  `date_time` datetime NOT NULL,
+  PRIMARY KEY (`whitelisted_sms_id`),
+  KEY `user_id` (`user_id`),
+  KEY `sub_account_id` (`sub_account_id`),
+  KEY `user_id_2` (`user_id`,`sub_account_id`)
 );
+
 
 CREATE TABLE IF NOT EXISTS `gm_pending_email_data`
 (
