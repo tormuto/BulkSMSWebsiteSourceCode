@@ -2338,7 +2338,7 @@ MTN Nigeria
 			$config['username'] = _DB_USERNAME_;
 			$config['password'] = _DB_PASS_;
 			$config['database'] = _DB_NAME_;
-			$config['dbdriver'] = "mysql";
+			$config['dbdriver'] = "mysqli";
 			$config['dbprefix'] = _DB_PREFIX_;
 			$config['pconnect'] = FALSE;
 			$config['db_debug'] = TRUE;
@@ -2381,7 +2381,9 @@ MTN Nigeria
 			
 			if($reformat){
 				$message=str_replace(array("\r\n", "\n\r", "\r", "\n",'\r\n', '\n\r', '\r', '\n',),"<br/>",$message);
-				$message=preg_replace('|(?<!\[.rl=)http[s]?://[^<>[:space:]]+[[:alnum:]/]|',"<a href='\\0' target=_blank>\\0</a>",$message);
+				
+				$message = preg_replace('$(\s|^)(https?://[a-z0-9_./?=&-]+)(?![^<>]*>)$i', ' <a href="$2" target="_blank">$2</a> ', $message." ");
+				$message = preg_replace('$(\s|^)(www\.[a-z0-9_./?=&-]+)(?![^<>]*>)$i', '<a target="_blank" href="http://$2"  target="_blank">$2</a> ', $message." ");
 			}
 			
 			if($signature===null)$message.="<br/>".$this->get_url();

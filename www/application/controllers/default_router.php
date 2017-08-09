@@ -3429,14 +3429,38 @@ class Default_router extends CI_Controller{
 	}
 	
 	public function admin_login(){	
-		$data['page_title']="Admin Login";		$code=$this->input->get('code',true);				if($code)		{			$code=md5($code);			if($code==$this->session->userdata('admin_mail_code')){				$this->general_model->log_admin_in();				$this->b_redirect("panel");			} else $data['Error']='Invalid authentication code!';		}	
+		$data['page_title']="Admin Login";		$code=$this->input->get('code',true);
+		if($code){
+			$code=md5($code);
+			if($code==$this->session->userdata('admin_mail_code')){
+				$this->general_model->log_admin_in();
+				$this->b_redirect("panel");
+			}
+			else $data['Error']='Invalid authentication code!';	
+		}
+		
 		$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
 		$this->form_validation->set_rules('password', 'Password', 'required');
+		
 		if($this->form_validation->run()){
 			if($this->input->post('email')!=_ADMIN_EMAIL_||$this->input->post('password')!=_ADMIN_PASS_)$data['Error']="Incorrect admin email or password.";
 			else
-			{				if($this->general_model->on_localhost())				{					$this->general_model->log_admin_in();					$this->b_redirect("panel");				}				else				{					$code=mt_rand(10000,999999);					$access_link=$this->general_model->get_url("admin_login/?code=$code");					$msg="Follow this link to access admin panel: $access_link ";					$this->general_model->send_email(_ADMIN_EMAIL_,'Admin Panel Access Link',$msg);					$this->session->set_userdata('admin_mail_code',md5($code));					$data['Success']='Check the email for access link';				}
-			}		}
+			{
+				if($this->general_model->on_localhost())
+				{
+					$this->general_model->log_admin_in();
+					$this->b_redirect("panel");
+				}
+				else {
+					$code=mt_rand(10000,999999);
+					$access_link=$this->general_model->get_url("admin_login/?code=$code");
+					$msg="Follow this link to access admin panel: $access_link ";
+					$this->general_model->send_email(_ADMIN_EMAIL_,'Admin Panel Access Link',$msg);
+					$this->session->set_userdata('admin_mail_code',md5($code));
+					$data['Success']='Check the email for access link';
+				}
+			}
+		}
 		$this->load_admin_views('login.php',$data,true);
 	}
 	
