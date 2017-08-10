@@ -68,6 +68,7 @@
 			$this->date_time_patern="^\s*(([0-9]{2,4}[\-/][0-9]{1,2}[\-/][0-9]{1,2})|([0-9]{1,2}[\-/][0-9]{1,2}[\-/][0-9]{2,4}))?\s*([0-9]{1,2}(:[0-9]{1,2})?(\s*[aApP][mM])?)?\s*$";
 			
 			$this->date_time_patern_php='~'.$this->date_time_patern.'~';
+			$this->db->query("SET sql_mode=''");
 		}
 		
 		
@@ -1402,7 +1403,7 @@ MTN Nigeria
 				if(!empty($user_data['reseller_account'])&&$new_bal>0)
 				{
 					$data['configs']=$this->general_model->get_configs();
-					$reseller_surety_fee=$this->general_model->reseller_surety_fee($data['configs']['maximum_reseller_price']);
+					$reseller_surety_fee=$this->general_model->get_reseller_surety_fee(); 
 					
 					if(!empty($user_data['reseller_account'])&&$user_data['surety_units']<$reseller_surety_fee){
 						$balance=$new_bal;
@@ -2338,7 +2339,7 @@ MTN Nigeria
 			$config['username'] = _DB_USERNAME_;
 			$config['password'] = _DB_PASS_;
 			$config['database'] = _DB_NAME_;
-			$config['dbdriver'] = "mysqli";
+			$config['dbdriver'] = "mysql";
 			$config['dbprefix'] = _DB_PREFIX_;
 			$config['pconnect'] = FALSE;
 			$config['db_debug'] = TRUE;

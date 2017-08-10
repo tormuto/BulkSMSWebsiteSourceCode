@@ -45,6 +45,7 @@ if(isset($_POST['install']))
 		$lines = file('install.sql');
 		if ($lines) 
 		{
+			mysqli_query($cid,"SET sql_mode = ''");
 			$sql = '';
 			foreach($lines as $line) 
 			{

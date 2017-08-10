@@ -310,7 +310,6 @@ class Default_router extends CI_Controller{
 		$this->uncheck_login();
 		$data['page_title']="Registration";
 		$data['signup_stage']=0;
-
 		$cid=$this->input->get('cid');
 		if(!empty($cid)){
 			$code=$this->input->get('code');
@@ -320,7 +319,7 @@ class Default_router extends CI_Controller{
 		}
 		$data['configs']=$this->general_model->get_configs();
 
-		if($this->session->userdata('pendingEmailData')==''){
+		if($this->session->userdata('pendingEmailData')==''||$this->input->post('email')!=''){
 			$rules=array(
 			   array(
 					 'field'=>'email',
