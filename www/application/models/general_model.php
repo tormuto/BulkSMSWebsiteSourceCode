@@ -455,7 +455,7 @@ MTN Nigeria
 							return $val;
 						}
 						
-					}			
+					}
 				}
 				$cbh=$this->get_config('current_blockchain_height');
 				if(!empty($cbh))$this->current_blockchain_height=$cbh;

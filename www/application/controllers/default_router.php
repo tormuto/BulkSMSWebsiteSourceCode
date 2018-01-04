@@ -2340,7 +2340,12 @@ class Default_router extends CI_Controller{
 			$cur=$this->input->post('payment_currency',true);
 			$payment_methods=$this->general_model->get_available_payment_methods($configs);
 			$currencies=$this->general_model->get_currencies(true);
+			
+			$meth_curs=$configs["{$payment_method}_currencies"];
+			$expcurr=explode(',',$meth_curs);
+			
 			if(empty($payment_methods[$payment_method]))$data['Error']="Invalid payment method $payment_method";
+			elseif(!in_array($cur,$expcurr))$data['Error']="Selected currency $cur not a supported currency ($meth_curs) for $payment_method ";
 			elseif(empty($configs["{$payment_method}_enabled"]))$data['Error']="The selected payment method ($payment_method) is unavailable. ";
 			elseif(empty($currencies[$cur]))$data['Error']="Invalid currency $cur.";
 			elseif(empty($currencies[$cur]['enabled']))$data['Error']="Payment currency $cur is currently unavailable.";
