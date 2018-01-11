@@ -2366,11 +2366,27 @@ MTN Nigeria
 			if(empty($this->site_name))$this->site_name=$this->get_config('site_name');
 			return $this->site_name;
 		}
-	
+		
+		function get_main_domain() {
+			$host=$_SERVER['HTTP_HOST'];
+			$domain_parts = explode('.',$host);
+			$count=count($domain_parts);
+			if($count<=2)return $host;
+			
+			$permit=0;
+			for($i=$count-1;$i>=0;$i--){
+				$permit++;
+				if(strlen($domain_parts[$i])>3)break;
+			}
+			
+			while(count($domain_parts) >$permit)array_shift($domain_parts);
+			return join('.', $domain_parts);
+		}
+		
+		
 		function send_email($to,$subject,$message,$extras="",$signature=null){			
 			$from_name=$this->get_site_name();
-			
-			$domain=(substr($_SERVER['HTTP_HOST'],0,4)=='www.')?substr($_SERVER['HTTP_HOST'],4):$_SERVER['HTTP_HOST'];
+			$domain=$this->get_main_domain();
 			$from="no-reply@$domain";
 			
 			if(!empty($extras['from'])){
@@ -2397,6 +2413,7 @@ MTN Nigeria
 			$config=array('mailtype'=>'html','priority'=>1);
 			$this->email->initialize($config);
 			$this->email->from($from, $from_name)->to($to)->subject($subject)->message($message);
+			//echo "\$this->email->from($from, $from_name)->to($to)->subject($subject)->message($message);";
 			$resp=@$this->email->send();
 			if($resp)return true;
 			
