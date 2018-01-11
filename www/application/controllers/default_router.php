@@ -4215,8 +4215,10 @@ function _replace_placeholders($template,$values)
 	function callback_processor($section=''){
 		if(isset($_POST['result'])){
 			$response_json=@json_decode($_POST['result']);
-			if($response_json)$this->general_model->_cheapglobalsms_process_delivery_reports($response_json);
+			if($response_json)echo $this->general_model->_cheapglobalsms_process_delivery_reports($response_json);
+			else echo "unable to decode result from posted result: ".json_encode($_POST['result']);
 		}
+		else echo "unable to decode result from post_data: ".json_encode($_POST);
 	}
 	
 	public function ajax_processor(){

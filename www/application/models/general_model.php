@@ -1767,10 +1767,11 @@ MTN Nigeria
 			return false;
 		}
 		
-		function _cheapglobalsms_process_delivery_reports($response_json){
-			if(empty($response_json->result))return;
+		function _cheapglobalsms_process_delivery_reports($results){
+			if(empty($results))return "empty record submitted";
+			$processed_records=array();
 			
-			foreach($response_json->result as $result)
+			foreach($results as $result)
 			{
 				$cd=explode(':',$result->extra_data);
 				$user_id=$cd[0];
@@ -1786,6 +1787,7 @@ MTN Nigeria
 				$new_units=$units*$result->pages;
 				$old_units=$initial_units*$initial_pages;
 				
+				$processed_records[]=$sms_id;
 				
 				if($new_units!=$old_units)
 				{					
@@ -1808,6 +1810,8 @@ MTN Nigeria
 				$update_data=array('info'=>$result->info,'status'=>$new_sms_status,'units'=>$units,'locked'=>0,'units_confirmed'=>1,'pages'=>$pages);
 				$this->db->where('sms_id',$result->messageId)->update('sms_log',$update_data);
 			}
+			
+			return "Processed records: ".json_encode($processed_records);
 		}
 		
 		############### cron functions ########################
