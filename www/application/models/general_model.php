@@ -1750,6 +1750,8 @@ MTN Nigeria
 			);
 			
 			$response_json=$this->_curl_json('http://cheapglobalsms.com/api_v1',$params,true);
+		
+			$this->_log_error('CheapGlobalSMS Sending params',json_encode($params));
 			
 			if(empty($response_json['error'])){
 				//response_json->total
@@ -1808,7 +1810,7 @@ MTN Nigeria
 				}
 				
 				$update_data=array('info'=>$result->info,'status'=>$new_sms_status,'units'=>$units,'locked'=>0,'units_confirmed'=>1,'pages'=>$pages);
-				$this->db->where('sms_id',$result->messageId)->update('sms_log',$update_data);
+				$this->db->where('sms_id',$sms_id)->update('sms_log',$update_data);
 			}
 			
 			return "Processed records: ".json_encode($processed_records);
@@ -2343,7 +2345,7 @@ MTN Nigeria
 			$config['username'] = _DB_USERNAME_;
 			$config['password'] = _DB_PASS_;
 			$config['database'] = _DB_NAME_;
-			$config['dbdriver'] = "mysql";
+			$config['dbdriver'] = "mysqli";
 			$config['dbprefix'] = _DB_PREFIX_;
 			$config['pconnect'] = FALSE;
 			$config['db_debug'] = TRUE;

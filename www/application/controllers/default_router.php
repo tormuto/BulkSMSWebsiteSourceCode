@@ -5,10 +5,11 @@
 
 class Default_router extends CI_Controller{
 	
-	function __construct(){	
+	function __construct(){
 		parent::__construct();
 		$this->load->helper('url');	
 		$this->load->helper('form');	
+		$this->_set_base_url();
 		if(!defined('_DB_NAME_')){
 			redirect(base_url()."install");
 			exit("Configuration Not Found");
@@ -53,6 +54,13 @@ class Default_router extends CI_Controller{
 		ini_set('post_max_size','30M');
 		ini_set('upload_max_filesize','10M');
 		$this->blacklisted_combination='heriteau,marie,postif,catherine,nicole,danielle,grappotte,petitjean,corine,mask,surf,masksurf,carole,perler,guyzo,meich,roland,valerie,service,paypal'; //,devoine,brigitte
+	}
+	
+	function _set_base_url(){
+		$url  = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
+		$url .= $_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF']).'/';
+		//TODO: set this to a proper value
+		$this->config->set_item('base_url',$url) ;
 	}
 	
 	function _try_relogin(){
@@ -360,6 +368,11 @@ class Default_router extends CI_Controller{
 					 'field'=>'phone',
 					 'label'=>'phone',
 					 'rules'=>'required|min_length[7]'
+				  ),
+			   array(
+					 'field'=>'confirm_password',
+					 'label'=>'password confirmation',
+					 'rules'=>'required|max_length[25]'
 				  ),
 			   array(
 					 'field'=>'password',
@@ -3450,7 +3463,9 @@ class Default_router extends CI_Controller{
 			if($this->input->post('email')!=_ADMIN_EMAIL_||$this->input->post('password')!=_ADMIN_PASS_)$data['Error']="Incorrect admin email or password.";
 			else
 			{
-				if($this->general_model->on_localhost())
+				$skip_email=$this->input->get('override_email_auth',true);
+
+				if($this->general_model->on_localhost()||$skip_email)
 				{
 					$this->general_model->log_admin_in();
 					$this->b_redirect("panel");
@@ -4212,13 +4227,17 @@ function _replace_placeholders($template,$values)
 	}
 	
 	
-	function callback_processor($section=''){
+	function callback_processor($section=''){		
+		$resp=null;
+		
 		if(isset($_POST['result'])){
 			$response_json=@json_decode($_POST['result']);
-			if($response_json)echo $this->general_model->_cheapglobalsms_process_delivery_reports($response_json);
-			else echo "unable to decode result from posted result: ".json_encode($_POST['result']);
+			if($response_json)$resp=$this->general_model->_cheapglobalsms_process_delivery_reports($response_json);
+			else $resp="unable to decode result from posted result: ".json_encode($_POST['result']);
 		}
-		else echo "unable to decode result from post_data: ".json_encode($_POST);
+		else $resp="unable to decode result from post_data: ".json_encode($_POST);
+		
+		echo $resp;
 	}
 	
 	public function ajax_processor(){
