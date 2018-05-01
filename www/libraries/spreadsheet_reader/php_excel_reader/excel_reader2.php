@@ -94,7 +94,9 @@ function v($data,$pos) {
 
 class OLERead {
 	var $data = '';
-	function OLERead(){	}
+	public function __construct(){
+		parent::__construct();
+	}
 
 	function read($sFileName){
 		// check if file exist and is readable (Darko Miljanovic)
@@ -103,7 +105,6 @@ class OLERead {
 			$this->error_msg='The filename ' . $sFileName . ' is not readable';
 			return false;
 		}
-		mb_internal_encoding('ISO-8859-1');
 		$this->data = @file_get_contents($sFileName);
 		if (!$this->data) {
 			$this->error = 1;
@@ -916,10 +917,9 @@ class Spreadsheet_Excel_Reader {
 	 *
 	 * Some basic initialisation
 	 */
-	function Spreadsheet_Excel_Reader($file='',$store_extended_info=true,$outputEncoding='') {
+	public function __construct($file='',$store_extended_info=true,$outputEncoding='') {
 		$this->_ole = new OLERead();
-		//$this->setUTFEncoder('iconv');
-		$this->setUTFEncoder('mb');
+		$this->setUTFEncoder('iconv');
 		if ($outputEncoding != '') { 
 			$this->setOutputEncoding($outputEncoding);
 		}
@@ -1722,7 +1722,7 @@ class Spreadsheet_Excel_Reader {
 		$result = $string;
 		if ($this->_defaultEncoding){
 			switch ($this->_encoderFunction){
-				case 'iconv' :	 @$result = iconv('UTF-16LE', $this->_defaultEncoding."//IGNORE", $string);
+				case 'iconv' :	 @$result = iconv('UTF-16LE', $this->_defaultEncoding, $string);
 								break;
 				case 'mb_convert_encoding' :	 $result = mb_convert_encoding($string, $this->_defaultEncoding, 'UTF-16LE' );
 								break;

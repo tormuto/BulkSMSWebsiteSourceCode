@@ -2,11 +2,11 @@
 
 CREATE TABLE IF NOT EXISTS `gm_whitelisted_sms` (
   `whitelisted_sms_id` int(11) NOT NULL AUTO_INCREMENT,
-  `sender_id` varchar(16) CHARACTER SET utf8 NOT NULL,
-  `message` text CHARACTER SET utf8 NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `sub_account_id` int(11) NOT NULL,
-  `date_time` datetime NOT NULL,
+  `sender_id` VARCHAR(16) NOT NULL DEFAULT '',
+  `message` TEXT,
+  `user_id` INT(11) NOT NULL DEFAULT 0,
+  `sub_account_id` INT(11) NOT NULL DEFAULT 0,
+  `date_time` DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00',
   PRIMARY KEY (`whitelisted_sms_id`),
   KEY `user_id` (`user_id`),
   KEY `sub_account_id` (`sub_account_id`),
@@ -18,24 +18,24 @@ CREATE TABLE IF NOT EXISTS `gm_pending_email_data`
 (
 	id INT NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY(id),
-	email VARCHAR(84) NOT NULL,
+	email VARCHAR(84) NOT NULL DEFAULT '',
 	INDEX(email),
-	code INT(8) NOT NULL,
-	time INT NOT NULL,
+	code INT(8) NOT NULL DEFAULT 0,
+	time INT NOT NULL DEFAULT 0,
 	display_name VARCHAR(14) NOT NULL DEFAULT '',
-	firstname VARCHAR(64) NOT NULL,
-	lastname VARCHAR(64) NOT NULL,
-	phone VARCHAR(18) NOT NULL,
-	default_sender_id VARCHAR(14) NOT NULL,
+	firstname VARCHAR(64) NOT NULL DEFAULT '',
+	lastname VARCHAR(64) NOT NULL DEFAULT '',
+	phone VARCHAR(18) NOT NULL DEFAULT '',
+	default_sender_id VARCHAR(14) NOT NULL DEFAULT '',
 	country_id INT NOT NULL DEFAULT 0,
-	default_dial_code INT(10) NOT NULL,
-	timezone_offset VARCHAR(6) NOT NULL,
-	password VARCHAR(64) NOT NULL
+	default_dial_code INT(10) NOT NULL DEFAULT 0,
+	timezone_offset VARCHAR(6) NOT NULL DEFAULT '',
+	password VARCHAR(64) NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS `gm_website_configuration`
 (
-	config_name VARCHAR(64) NOT NULL,
+	config_name VARCHAR(64) NOT NULL DEFAULT '',
 	UNIQUE(config_name),
 	config_value text NOT NULL
 );
@@ -45,39 +45,39 @@ CREATE TABLE IF NOT EXISTS `gm_contacts`
 (
 	contact_id INT NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY(contact_id),
-	user_id INT NOT NULL,INDEX(user_id),
-	sub_account_id INT NOT NULL,INDEX(sub_account_id),
-	phone VARCHAR(25) NOT NULL,INDEX(phone),
-	firstname VARCHAR(25) NOT NULL,
-	lastname VARCHAR(25) NOT NULL,
+	user_id INT NOT NULL DEFAULT 0,INDEX(user_id),
+	sub_account_id INT NOT NULL DEFAULT 0,INDEX(sub_account_id),
+	phone VARCHAR(25) NOT NULL DEFAULT '',INDEX(phone),
+	firstname VARCHAR(25) NOT NULL DEFAULT '',
+	lastname VARCHAR(25) NOT NULL DEFAULT '',
 	group_name VARCHAR(84) NOT NULL DEFAULT 'default',INDEX(group_name),
-	time INT NOT NULL
+	time INT NOT NULL DEFAULT 0
 );
 
 
 CREATE TABLE IF NOT EXISTS `gm_users`
 (
 	user_id INT NOT NULL AUTO_INCREMENT,
-	email VARCHAR(84) NOT NULL,INDEX(email),
-	firstname VARCHAR(64) NOT NULL,
-	lastname VARCHAR(64) NOT NULL,
-	phone VARCHAR(18) NOT NULL,
-	default_sender_id VARCHAR(14) NOT NULL,
+	email VARCHAR(84) NOT NULL DEFAULT '',INDEX(email),
+	firstname VARCHAR(64) NOT NULL DEFAULT '',
+	lastname VARCHAR(64) NOT NULL DEFAULT '',
+	phone VARCHAR(18) NOT NULL DEFAULT '',
+	default_sender_id VARCHAR(14) NOT NULL DEFAULT '',
 	country_id INT NOT NULL DEFAULT 0,
-	default_dial_code INT(6) NOT NULL,
-	timezone_offset VARCHAR(6) NOT NULL,
-	password VARCHAR(64) NOT NULL,INDEX(password),
+	default_dial_code INT(6) NOT NULL DEFAULT 0,
+	timezone_offset VARCHAR(6) NOT NULL DEFAULT '',
+	password VARCHAR(64) NOT NULL DEFAULT '',INDEX(password),
 	balance DOUBLE NOT NULL DEFAULT 0,
 	surety_units DOUBLE NOT NULL DEFAULT 0,
 	temp_password VARCHAR(64) NOT NULL DEFAULT '',INDEX(temp_password),
 	access_level TINYINT NOT NULL DEFAULT 1,
-	banned VARCHAR(10) NOT NULL,
-	last_ip VARCHAR(32) NOT NULL,
+	banned VARCHAR(10) NOT NULL DEFAULT '',
+	last_ip VARCHAR(32) NOT NULL DEFAULT '',
 	last_seen INT  NOT NULL,
 	last_notified DATE  NOT NULL,
 	status TINYINT NOT NULL DEFAULT 1,
 	credit_notification TINYINT NOT NULL DEFAULT 1,
-	verification_file VARCHAR(225) NOT NULL,
+	verification_file VARCHAR(225) NOT NULL DEFAULT '',
 	flag_level TINYINT(1) NOT NULL DEFAULT 0,
 	last_surety_updated DATE NOT NULL,
 	reseller_account TINYINT(1) NOT NULL DEFAULT 0,
@@ -90,16 +90,16 @@ CREATE TABLE IF NOT EXISTS `gm_users`
 CREATE TABLE IF NOT EXISTS `gm_sub_accounts`
 (
 	sub_account_id INT NOT NULL AUTO_INCREMENT,PRIMARY KEY(sub_account_id),
-	sub_account VARCHAR(25) NOT NULL,INDEX(sub_account),
-	sub_account_password VARCHAR(25) NOT NULL,
-	user_id INT NOT NULL,INDEX(user_id),
-	balance INT NOT NULL,
-	notification_email VARCHAR(225) NOT NULL,
-	default_sender_id VARCHAR(14) NOT NULL,
-	default_dial_code INT(6) NOT NULL,
-	timezone_offset VARCHAR(6) NOT NULL,
+	sub_account VARCHAR(25) NOT NULL DEFAULT '',INDEX(sub_account),
+	sub_account_password VARCHAR(25) NOT NULL DEFAULT '',
+	user_id INT NOT NULL DEFAULT 0,INDEX(user_id),
+	balance INT NOT NULL DEFAULT 0,
+	notification_email VARCHAR(225) NOT NULL DEFAULT '',
+	default_sender_id VARCHAR(14) NOT NULL DEFAULT '',
+	default_dial_code INT(6) NOT NULL DEFAULT 0,
+	timezone_offset VARCHAR(6) NOT NULL DEFAULT '',
 	last_notified DATE  NOT NULL,
-	enabled TINYINT(1) NOT NULL,INDEX(enabled),
+	enabled TINYINT(1) NOT NULL DEFAULT 0,INDEX(enabled),
 	owing_surety TINYINT(1) NOT NULL DEFAULT 0
 );
 
@@ -108,11 +108,11 @@ CREATE TABLE IF NOT EXISTS `gm_errors`
 (
 	error_id INT NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY(error_id),
-	user_id INT(11) NOT NULL,
-	related_id VARCHAR(84) NOT NULL,
-	time INT NOT NULL,
+	user_id INT(11) NOT NULL DEFAULT 0,
+	related_id VARCHAR(84) NOT NULL DEFAULT '',
+	time INT NOT NULL DEFAULT 0,
 	type VARCHAR(32) NOT NULL DEFAULT 'general',
-	topic VARCHAR(224) NOT NULL,
+	topic VARCHAR(224) NOT NULL DEFAULT '',
 	details TEXT NOT NULL,
 	json_details TEXT NOT NULL
 );
@@ -121,16 +121,16 @@ CREATE TABLE IF NOT EXISTS `gm_scheduled_mails`
 (
 	scheduled_mail_id INT NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY(scheduled_mail_id),
-	time INT NOT NULL,
+	time INT NOT NULL DEFAULT 0,
 	time_sent INT NOT NULL DEFAULT 0,
-	email VARCHAR(224) NOT NULL,
-	sender VARCHAR(224) NOT NULL,
-	sender_name VARCHAR(224) NOT NULL,
-	subject VARCHAR(224) NOT NULL,
-	message LONGTEXT NOT NULL,
+	email VARCHAR(224) NOT NULL DEFAULT '',
+	sender VARCHAR(224) NOT NULL DEFAULT '',
+	sender_name VARCHAR(224) NOT NULL DEFAULT '',
+	subject VARCHAR(224) NOT NULL DEFAULT '',
+	message LONGTEXT,
 	status TINYINT(1) NOT NULL DEFAULT 0,INDEX(status),
 	info TEXT NOT NULL
-);
+) DEFAULT CHARSET=utf8;
 
 
 
@@ -140,17 +140,14 @@ CREATE TABLE IF NOT EXISTS `gm_currencies`
 (
 	currency_id INT NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY(currency_id),
-	currency VARCHAR(3) NOT NULL,UNIQUE(currency),
-	iso_code INT(5) NOT NULL,
-	symbol VARCHAR(8) NOT NULL,
-	currency_title VARCHAR(225) NOT NULL,
-	enabled TINYINT(1) NOT NULL DEFAULT '1',
-	decimal_places TINYINT(1) NOT NULL DEFAULT '2',
-	value DOUBLE NOT NULL
-);
-
-
-INSERT INTO `gm_currencies`(`currency`,`iso_code`,`symbol`,`currency_title`,`value`) VALUES ('NGN','566','#','Nigerian Naira',1),('USD','840','$','US Dollars','0.0050'),('EUR','978','&#8364;','Euro','0.0046'),('GBP','826','&#163;','Great Britain Pounds','0.0032'),('BTC','100','B','Bitcoin','0.0000025');
+	currency VARCHAR(3) NOT NULL DEFAULT '',UNIQUE(currency),
+	iso_code INT(5) NOT NULL DEFAULT 0,
+	symbol VARCHAR(8) NOT NULL DEFAULT '',
+	currency_title VARCHAR(225) NOT NULL DEFAULT '',
+	enabled TINYINT(1) NOT NULL DEFAULT 1,
+	decimal_places TINYINT(1) NOT NULL DEFAULT 2,
+	value DOUBLE NOT NULL DEFAULT 0
+) CHARACTER SET = utf8;
 
 
 --
@@ -161,46 +158,46 @@ INSERT INTO `gm_currencies`(`currency`,`iso_code`,`symbol`,`currency_title`,`val
 CREATE TABLE IF NOT EXISTS `gm_sms_log`
 (
 	sms_id INT NOT NULL AUTO_INCREMENT,PRIMARY KEY(sms_id),
-	sender VARCHAR(14) NOT NULL,
-	recipient VARCHAR(25) NOT NULL,
+	sender VARCHAR(14) NOT NULL DEFAULT '',
+	recipient VARCHAR(25) NOT NULL DEFAULT '',
 	message TEXT NOT NULL,
-	sub_account_id INT NOT NULL,INDEX(sub_account_id),
-	user_id INT NOT NULL,INDEX(user_id),
-	time_submitted INT NOT NULL,
-	time_scheduled INT NOT NULL,
-	time_sent INT NOT NULL,
-	batch_id VARCHAR(25) NOT NULL,INDEX(batch_id),
-	units TINYINT(4) NOT NULL,
-	pages TINYINT(3) NOT NULL,
-	reference VARCHAR(35) NOT NULL,
+	sub_account_id INT NOT NULL DEFAULT 0,INDEX(sub_account_id),
+	user_id INT NOT NULL DEFAULT 0,INDEX(user_id),
+	time_submitted INT NOT NULL DEFAULT 0,
+	time_scheduled INT NOT NULL DEFAULT 0,
+	time_sent INT NOT NULL DEFAULT 0,
+	batch_id VARCHAR(25) NOT NULL DEFAULT '',INDEX(batch_id),
+	units TINYINT(4) NOT NULL DEFAULT 0,
+	pages TINYINT(3) NOT NULL DEFAULT 0,
+	reference VARCHAR(35) NOT NULL DEFAULT '',
 	type TINYINT(1) NOT NULL DEFAULT 0,
 	unicode TINYINT(1) NOT NULL DEFAULT 0,
 	status TINYINT(1) NOT NULL DEFAULT 0,INDEX(status),
 	units_confirmed TINYINT(1) NOT NULL DEFAULT 0,
 	locked TINYINT(1) NOT NULL DEFAULT 0,
 	deleted TINYINT(1) NOT NULL DEFAULT 0,INDEX(deleted),
-	gateway VARCHAR(64) NOT NULL,
-	info VARCHAR(225) NOT NULL,
-	extra_data VARCHAR(225) NOT NULL
-);
+	gateway VARCHAR(64) NOT NULL DEFAULT '',
+	info VARCHAR(225) NOT NULL DEFAULT '',
+	extra_data VARCHAR(225) NOT NULL DEFAULT ''
+) CHARACTER SET = utf8;
 	
 
 CREATE TABLE IF NOT EXISTS `gm_transactions`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` INT NOT NULL,
+  `time` INT NOT NULL DEFAULT 0,
   `user_id` int(11) NOT NULL DEFAULT 0,
-  `related` int(11) NOT NULL DEFAULT '0',
+  `related` int(11) NOT NULL DEFAULT 0,
   `amount` double(10,2) NOT NULL DEFAULT '0.00',
-  `type` tinyint(2) NOT NULL DEFAULT '0',
+  `type` tinyint(2) NOT NULL DEFAULT 0,
   `currency_code` VARCHAR(3) NOT NULL DEFAULT 'NGN',
-  `status` tinyint(1) NOT NULL DEFAULT '0',
-  `payment_method` VARCHAR(32) NOT NULL,
-  `transaction_reference` VARCHAR(38) NOT NULL,INDEX(transaction_reference),
+  `status` tinyint(1) NOT NULL DEFAULT 0,
+  `payment_method` VARCHAR(32) NOT NULL DEFAULT '',
+  `transaction_reference` VARCHAR(38) NOT NULL DEFAULT '',INDEX(transaction_reference),
   `sms_units` INT NOT NULL DEFAULT 0,
   `net_amount_ngn` DOUBLE NOT NULL DEFAULT 0,
   UNIQUE(`transaction_reference`),
-  `details` VARCHAR(225) NOT NULL,
+  `details` VARCHAR(225) NOT NULL DEFAULT '',
   `batch_used` VARCHAR(128) NOT NULL DEFAULT '',
   `json_details` text,
   `json_info` text,
@@ -213,8 +210,8 @@ DROP TABLE IF EXISTS `gm_banks`;
 
 CREATE TABLE IF NOT EXISTS `gm_banks` (
   `bank_id` int(11) NOT NULL AUTO_INCREMENT,
-  `bank` varchar(80) NOT NULL,
-  `bank_long_name` varchar(225) NOT NULL,
+  `bank` VARCHAR(80) NOT NULL DEFAULT '',
+  `bank_long_name` VARCHAR(225) NOT NULL DEFAULT '',
   PRIMARY KEY (`bank_id`)
 ) ;
 
@@ -246,10 +243,10 @@ CREATE TABLE IF NOT EXISTS `gm_prices`
 (
 	price_id INT NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY(price_id),
-	price DOUBLE NOT NULL,
+	price DOUBLE NOT NULL DEFAULT 0,
 	UNIQUE(price),
-	min_units INT NOT NULL,
-	bonus_units INT NOT NULL
+	min_units INT NOT NULL DEFAULT 0,
+	bonus_units INT NOT NULL DEFAULT 0
 );
 
 
@@ -257,11 +254,11 @@ CREATE TABLE IF NOT EXISTS `gm_coverage_list`
 (
 	coverage_id INT NOT NULL AUTO_INCREMENT,PRIMARY KEY(coverage_id),
 	continent VARCHAR(48),
-	country VARCHAR(225) NOT NULL,
+	country VARCHAR(225) NOT NULL DEFAULT '',
 	country_code varchar(2),
-	network VARCHAR(225) NOT NULL,
-	dial_code  INT(6) NOT NULL,
-	units DOUBLE NOT NULL,
+	network VARCHAR(225) NOT NULL DEFAULT '',
+	dial_code  INT(6) NOT NULL DEFAULT 0,
+	units DOUBLE NOT NULL DEFAULT 0,
 	currency VARCHAR(8)
 );
 
@@ -271,8 +268,8 @@ DROP TABLE IF EXISTS `gm_countries`;
 CREATE TABLE IF NOT EXISTS `gm_countries` (
 `country_id` int(11) NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY (`country_id`),
-  `country` varchar(225) NOT NULL,
-  `currency_code` varchar(3) NOT NULL,
+  `country` VARCHAR(225) NOT NULL DEFAULT '',
+  `currency_code` VARCHAR(3) NOT NULL DEFAULT '',
   `country_code` varchar(2),
   UNIQUE(country_code),
   `dial_code` INT(6) NOT NULL  

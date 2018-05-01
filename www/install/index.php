@@ -12,11 +12,37 @@ if(file_exists("../config.php")&&!isset($_POST['install']))
 	$_POST['db_pass']=_DB_PASS_;
 	$_POST['admin_email']=_ADMIN_EMAIL_;
 	$_POST['admin_pass']=_ADMIN_PASS_;
+	
+	if(defined('_BASE_URL_'))$_POST['base_url']=_BASE_URL_;
+	if(defined('_DEFAULT_MAIL_SENDER_'))$_POST['default_mail_sender']=_DEFAULT_MAIL_SENDER_;
+	if(defined('_SMTP_HOST_'))$_POST['smtp_host']=_SMTP_HOST_;
+	if(defined('_SMTP_USER_'))$_POST['smtp_user']=_SMTP_USER_;
+	if(defined('_SMTP_PASS_'))$_POST['smtp_pass']=_SMTP_PASS_;
+	if(defined('_SMTP_PORT_'))$_POST['smtp_port']=_SMTP_PORT_;
 }
 
 if(empty($_POST['db_host']))$_POST['db_host']='localhost';
 if(empty($_POST['template']))$_POST['template']='default';
 if(empty($_POST['currency_code']))$_POST['currency_code']='NGN';
+
+
+$domain=$_SERVER['HTTP_HOST'];
+if($domain=='[::1]')$domain='localhost';
+$sample_host="mail.$domain";
+$sample_user="no_reply@$domain";
+
+if(empty($_POST['base_url'])){
+	$is_https=(!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')||$_SERVER['SERVER_PORT']==443;
+	$url=$is_https? 'https://' : 'http://';
+	$url.=$domain.dirname($_SERVER['PHP_SELF']);
+	$_POST['base_url']=dirname($url);
+}
+$_POST['base_url']=rtrim($_POST['base_url'],'/').'/';
+
+
+if(empty($_POST['smtp_host']))$_POST['smtp_host']=$sample_host;
+if(empty($_POST['smtp_user']))$_POST['smtp_user']=$sample_user;
+if(empty($_POST['smtp_port']))$_POST['smtp_port']=25;
 
 if(isset($_POST['install']))
 {
@@ -36,11 +62,19 @@ if(isset($_POST['install']))
 		"define('_DB_USERNAME_','{$_POST['db_user']}');\n".
 		"define('_DB_PASS_',\"{$_POST['db_pass']}\");\n".
 		"define('_ADMIN_EMAIL_','{$_POST['admin_email']}');\n".
-		"define('_ADMIN_PASS_',\"{$_POST['admin_pass']}\");\n".
+		"define('_ADMIN_PASS_',\"{$_POST['admin_pass']}\");\n\n".
+		"define('_BASE_URL_','{$_POST['base_url']}');\n".
+		"define('_DEFAULT_MAIL_SENDER_','{$_POST['default_mail_sender']}');\n\n".
+		
+		"define('_SMTP_HOST_','{$_POST['smtp_host']}');\n".
+		"define('_SMTP_USER_','{$_POST['smtp_user']}');\n".
+		"define('_SMTP_PASS_','{$_POST['smtp_pass']}');\n".
+		"define('_SMTP_PORT_','{$_POST['smtp_port']}');\n".
 		"?>";
 		
 		fwrite($file, $str);
 		fclose($file);
+		mysqli_set_charset($cid,'utf8');
 		
 		$lines = file('install.sql');
 		if ($lines) 
@@ -69,10 +103,19 @@ if(isset($_POST['install']))
 			}
 		}
 		
-		//@unlink('../install/install.sql');
-		//@unlink('../install/index.php');
-		//@rmdir('../install');
-		header("Location:../panel");
+		$sql2="SELECT * FROM {$_POST['db_prefix']}currencies WHERE 1 LIMIT 1";
+		$res2=mysqli_query($cid,$sql2);
+		if(mysqli_num_rows($res2)==0){
+			$sql2="INSERT INTO `{$_POST['db_prefix']}currencies`(`currency`,`iso_code`,`symbol`,`currency_title`,`value`) VALUES ('NGN','566','₦','Nigerian Naira',1),('USD','840','$','US Dollars','0.0050'),('EUR','978','€','Euro','0.0046'),('GBP','826','£','Great Britain Pounds','0.0032'),('BTC','100','Ƀ','Bitcoin','0.0000025');";
+			$res2=mysqli_query($cid,$sql2);
+		}
+		
+		if($domain!='localhost'){
+			@unlink('../install/install.sql');
+			@unlink('../install/index.php');
+			@rmdir('../install');
+			header("Location:../panel");
+		}
 	}
 }
 
@@ -91,7 +134,7 @@ if(isset($_POST['install']))
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
   </head>
-  <body>
+  <body style='background-color:#eeeeee;'>
 	<div class='container'>
 		<div class='col-xs-6 col-xs-offset-3'>
 			<h3 class='breadcrumb'>
@@ -142,41 +185,83 @@ if(isset($_POST['install']))
 				</div>
 				</div>
 				<div class='row'>
-				<div class='form-group col-md-3'>
-					<label for='db_prefix'>
-						Db Prefix
-					</label>
-					<input type='text' name='db_prefix' value="<?php echo $_POST['db_prefix'];?>" class='form-control' placeholder='gm_'>
+					<div class='form-group col-md-3'>
+						<label for='db_prefix'>
+							Db Prefix
+						</label>
+						<input type='text' name='db_prefix' value="<?php echo $_POST['db_prefix'];?>" class='form-control' placeholder='gm_'>
+					</div>
+					<div class='form-group col-md-5'>
+						<label for='db_user'>
+							Database User*
+						</label>
+						<input type='text' name='db_user' value="<?php echo $_POST['db_user'];?>" class='form-control' required>
+					</div>
+					<div class='form-group col-md-4'>
+						<label for='db_pass'>
+							Database Password
+						</label>
+						<input type='text' name='db_pass' value="<?php echo $_POST['db_pass'];?>" class='form-control'>
+					</div>
 				</div>
-				<div class='form-group col-md-5'>
-					<label for='db_user'>
-						Database User*
-					</label>
-					<input type='text' name='db_user' value="<?php echo $_POST['db_user'];?>" class='form-control' required>
+				
+					<div class='row'>
+					<div class='form-group col-sm-6'>
+						<label for='base_url'>Base URL</label>
+						<input type='url'  name='base_url' value="<?php echo $_POST['base_url'];?>" title='Most likely the parent directory to this path' class='form-control input-sm'/>
+					</div>
+					<div class='form-group col-md-6 col-sm-6'>
+						<label for='db_pass'>
+							Default Mail Sender
+						</label>
+						<input type='text' name='default_mail_sender' value="<?php echo $_POST['default_mail_sender'];?>" class='form-control input-sm' placeholder='WebsiteName' >
+					</div>
 				</div>
-				<div class='form-group col-md-4'>
-					<label for='db_pass'>
-						Database Password
-					</label>
-					<input type='text' name='db_pass' value="<?php echo $_POST['db_pass'];?>" class='form-control'>
+				<div class='text-warning'><strong>NOTE:</strong> If any one of the SMTP parameters is missing, the site will not use SMTP</div>
+				<div class='row'>					
+					<div class='form-group col-sm-6'>
+						<label for='smtp_host'>SMTP HOST</label>
+						<input type='text' name='smtp_host' value="<?php echo $_POST['smtp_host'];?>" class='form-control input-sm' placeholder='<?php echo $sample_host; ?>' >
+					</div>
+					
+					<div class='form-group col-sm-6'>
+						<label for='smtp_user'>SMTP USER</label>
+						<input type='email' name='smtp_user' value="<?php echo $_POST['smtp_user'];?>" class='form-control input-sm' placeholder='<?php echo $sample_user; ?>' >
+					</div>
+					
+					<div class='form-group col-sm-6'>
+						<label for='smtp_pass'>SMTP PASS</label>
+						<input type='password' name='smtp_pass' value="<?php echo $_POST['smtp_pass'];?>" class='form-control input-sm' placeholder='SMTP Email Password' >
+					</div>
+					
+					<div class='form-group col-sm-6'>
+						<label for='smtp_port'>SMTP PORT</label>
+						<input type='number' name='smtp_port' min='1' value="<?php echo $_POST['smtp_port'];?>" class='form-control input-sm' placeholder='mostly, non-ssl=25, ssl=465' >
+					</div>
+					
+				
 				</div>
+				
+				<div class='row'>
+					<div class='form-group col-sm-6' title='Where all the administrative reports will be sent.'>
+						<label for='admin_email'>
+							Admin Email
+						</label>
+						<input type='email' name='admin_email' value="<?php echo $_POST['admin_email'];?>" class='form-control input-sm' required/>
+					</div>
+					<div class='form-group col-sm-6'>
+						<label for='admin_pass'>
+							Admin Password
+						</label>
+						<input type='text' name='admin_pass' id='admin_pass' value="<?php echo $_POST['admin_pass'];?>" class='form-control input-sm' required>
+					</div>
+					<div class='clearfix'></div>
+					<div class='text-danger'>Please keep in mind that you will need this admin email & password to access the panel</div>
 				</div>
-				<div class='form-group' title='Where all the administrative reports will be sent.'>
-					<label for='admin_email'>
-						Admin Email
-					</label>
-					<input type='email' name='admin_email' value="<?php echo $_POST['admin_email'];?>" class='form-control' required/>
-				</div>
-				<div class='form-group'>
-					<label for='admin_pass'>
-						Admin Password
-					</label>
-					<input type='text' name='admin_pass' id='admin_pass' value="<?php echo $_POST['admin_pass'];?>" class='form-control' required>
-					<div class='text-danger'>Please note the admin email and password details. You will need it to access the admin panel.</div>
-				</div>		
+					
 				<div class='clearfix'></div>
 				<div>
-					<button class='btn btn-primary pull-right' value='install' name='install'><span class='glyphicon glyphicon-save'> INSTALL</button>
+					<button class='btn btn-default btn-sm pull-right' value='install' name='install'><span class='glyphicon glyphicon-save'> INSTALL</button>
 				</div>			
 			</form>
 		</div>
