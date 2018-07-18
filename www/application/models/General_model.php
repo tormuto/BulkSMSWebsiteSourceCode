@@ -2462,25 +2462,25 @@ MTN Nigeria
 				$config=array('mailtype'=>'html','priority'=>1);
 			}
 			
-			$this->CI->load->library('email');
-			$this->CI->email->clear(true);//this may not be necessary
-			$this->CI->email->initialize($config);
+			$this->load->library('email');
+			$this->email->clear(true);//this may not be necessary
+			$this->email->initialize($config);
 			if(!empty($extras['reply_to'])){
-				if(empty($extras['reply_to_name']))$this->CI->email->reply_to($extras['reply_to']);
-				else $this->CI->email->reply_to($extras['reply_to'],$extras['reply_to_name']);
+				if(empty($extras['reply_to_name']))$this->email->reply_to($extras['reply_to']);
+				else $this->email->reply_to($extras['reply_to'],$extras['reply_to_name']);
 			}
 			
 			if(!empty($attachments)&&is_array($attachments)){
-				foreach($attachments as $attachment)$this->CI->email->attach($attachment);
+				foreach($attachments as $attachment)$this->email->attach($attachment);
 			}
 			
-			$this->CI->email->from($from, $from_name)->to($to)->subject($subject)->message($message);
-			$resp= @$this->CI->email->send();
+			$this->email->from($from, $from_name)->to($to)->subject($subject)->message($message);
+			$resp= @$this->email->send();
 			if($resp){ return true; }
 			
 			
 			if(!empty($extras['debug'])||true){
-				$error='MailError:'.$this->CI->email->print_debugger();
+				$error='MailError:'.$this->email->print_debugger();
 				$this->error_report->_log_error($error);
 				return $error;
 			}

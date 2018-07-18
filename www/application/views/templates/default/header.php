@@ -18,28 +18,10 @@
 	?></title>
 	
 	<link rel="shortcut icon" href="<?php echo $this->general_model->get_url('favicon.ico'); ?>" type="image/x-icon" />
-	
-	<link href="<?php echo $this->general_model->get_url('bootstrap/css/bootstrap.min.css');?>" rel="stylesheet">
-	<link href="<?php echo $this->general_model->get_url('assets/css/jquery-ui.css');?>" rel="stylesheet">
-	<link href='<?php echo $this->general_model->get_url('bootstrap/css/bootstrap-theme.min.css');?>' rel='stylesheet'>
-	<link href='<?php echo $this->general_model->get_url('assets/css/font-awesome.min.css');?>' rel='stylesheet' type='text/css'>	
-	
-	<link href='<?php echo $this->general_model->get_url('assets/css/sb-admin.css');?>' rel='stylesheet'>
-	<link href='<?php echo $this->general_model->get_url('assets/css/cgsms_style.css');?>' rel='stylesheet'>
-	<link rel='stylesheet' type='text/css' href='<?php echo $this->general_model->get_url('assets/css/bootstrap-datetimepicker.min.css');?>' />
-	
 	<script src="<?php echo $this->general_model->get_url('assets/js/modernizr-inputtypes.js');?>"></script>
 	<script src="<?php echo $this->general_model->get_url('assets/js/jquery.min.js');?>"></script>
-	<script src="<?php echo $this->general_model->get_url('assets/js/jquery-ui.js');?>"></script>
-	<script src="<?php echo $this->general_model->get_url('assets/js/moment.min.js');?>"></script>
-	<script src="<?php echo $this->general_model->get_url('assets/js/moment_locales_en_gb.js');?>"></script>
-	<script src="<?php echo $this->general_model->get_url('assets/js/bootstrap-datetimepicker.min.js');?>"></script>
-	<script src="<?php echo $this->general_model->get_url('bootstrap/js/bootstrap.min.js');?>"></script>
-			
-	<script type='text/javascript'> var base_url='<?php echo base_url(); ?>'; </script>
-    <script src="<?php echo $this->general_model->get_url('assets/js/script.js');?>"></script>
-	<script src='<?php echo $this->general_model->get_url('assets/js/jquery.autovalidate.js');?>'></script>
 	
+	<link href="<?php echo $this->general_model->get_url('bootstrap/css/bootstrap.min.css');?>" rel="stylesheet">
 	
 	<?php
 		if(!empty($configs['facebook_app_id']))
@@ -73,14 +55,12 @@
 <body style='background-color:#fff;' >
     <div id="wrapper">
         <!-- Navigation -->
-        <nav class="navbar  navbar-fixed-top" role="navigation">
+        <nav class="navbar  navbar-fixed-top" role="navigation" style='background-color:rgba(0,0,0,.1);' >
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
                     <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
+                    <i class='fa fa-bars'></i>
                 </button>
 				<a href='<?php echo $this->general_model->get_url();?>' class='pull-left' style='display:none;' >
 					<img src='<?php echo $this->general_model->get_url('assets/images/cheap_global_sms_logo.png'); ?>' style='max-height:35px;background-color:#fff;'/>

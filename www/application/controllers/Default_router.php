@@ -1811,7 +1811,7 @@ class Default_router extends CI_Controller{
 
 
 		$data['filter']=array('user_id'=>$user_id);
-		$num=$this->general_model->get_sub_accounts(true);
+		$num=$this->general_model->get_sub_accounts(true,$data['filter']);
 		if(empty($num))$data['Warning']="No record found.";
 		else{
 			extract($this->_analyse_pagination($num,$data));
@@ -2537,7 +2537,7 @@ class Default_router extends CI_Controller{
 					$data['action']='https://perfectmoney.is/api/step1.asp';
 					
 					$data['input_fields']="
-						<input type='hidden' name='PAYEE_ACCOUNT' value='{$configs['pm_account']}'>
+						<input type='hidden' name='PAYEE_ACCOUNT' value='{$configs['perfectmoney_account']}'>
 						<input type='hidden' name='PAYEE_NAME' value='{$configs['site_name']}'>
 						<input type='hidden' name='PAYMENT_AMOUNT' value='{$amount}'>
 						<input type='hidden' name='PAYMENT_UNITS' value='$cur'>
