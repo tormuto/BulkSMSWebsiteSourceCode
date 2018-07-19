@@ -4,7 +4,7 @@ This application has already been integrated with the [CheapGlobalSMS.com API](h
 See a live sample at http://cgsms.tormuto.com
 
 HIGHLIGHTS
-	
+
 	*Very comprehensive admin panel and totally customizable.
 	*All your customers totally belongs to you.
 	*Several in-built payment systems, including Unified Purse https://unifiedpurse.com/. (Just enable the ones you like)
