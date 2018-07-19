@@ -2402,7 +2402,7 @@ MTN Nigeria
 		{
 			$domain=$this->get_domain(true);
 			
-			if($domain=='localhost')return $this->error_report->_log_error("$to<br/>$subject<br/><br/>$message","Mail not set to $to");
+			if($domain=='localhost')return $this->_log_error("$to<br/>$subject<br/><br/>$message","Mail not set to $to");
 			
 			if(defined('_DEFAULT_MAIL_SENDER_'))$from_name=_DEFAULT_MAIL_SENDER_;
 			else $from_name=$this->get_config('site_name');
@@ -2481,7 +2481,7 @@ MTN Nigeria
 			
 			if(!empty($extras['debug'])||true){
 				$error='MailError:'.$this->email->print_debugger();
-				$this->error_report->_log_error($error);
+				$this->_log_error($error);
 				return $error;
 			}
 			return false;
