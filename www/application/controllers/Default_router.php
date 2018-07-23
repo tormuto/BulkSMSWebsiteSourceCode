@@ -1827,6 +1827,9 @@ class Default_router extends CI_Controller{
 	function run_updates(){	
 		$sql="ALTER TABLE "._DB_PREFIX_."sms_log ADD route TINYINT(1) NOT NULL DEFAULT 0 AFTER gateway";
 		@$this->db->query($sql);
+		
+		$sql="ALTER TABLE "._DB_PREFIX_."transactions ADD `checksum` VARCHAR(128) NOT NULL DEFAULT ''";
+		@$this->db->query($sql);
 		echo '--DONE--';
 		
 	}
@@ -3188,6 +3191,7 @@ class Default_router extends CI_Controller{
 											$new_status=1;
 											$json_data['response_description']="Bitcoin payment confirmed";
 											$batch_used=$bit_hash;
+											$json_data['checksum']=$bit_hash;
 										}
 									}
 								}
@@ -3222,6 +3226,7 @@ class Default_router extends CI_Controller{
 					elseif(floatval($PAYMENT_AMOUNT)<$expected_deposit)$json_data['response_description']="Incorrect deposit amount ($expected_deposit USD was expected, but $PAYMENT_AMOUNT USD found). ";
 					else {
 						$new_status=1;
+						$json_data['checksum']=$hash;
 						$json_data['response_description']="Transaction successfully completed.";
 					}
 				}

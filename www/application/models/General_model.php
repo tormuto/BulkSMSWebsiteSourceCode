@@ -1402,6 +1402,14 @@ MTN Nigeria
 			
 			
 			if($new_status==1){
+				if(isset($transaction['checksum'])&&!empty($json_info['checksum'])){
+					$this->db->where('transaction_reference',$transaction_reference)->limit(1)->update('transactions',array('checksum'=>$json_info['checksum']));
+					if(!$this->db->affected_rows()){						
+						$this->_log_error("Transaction $transaction_reference simultaneusly completed (checksum {$json_info['checksum']})");
+						return "Transaction already processed";
+					}
+				}
+				
 				$user_data=$this->get_user($transaction['user_id'],'user_id');
 				$json_details=$this->get_json($transaction['json_details']);
 				

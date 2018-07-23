@@ -195,6 +195,7 @@ CREATE TABLE IF NOT EXISTS `gm_transactions`
   `status` tinyint(1) NOT NULL DEFAULT 0,
   `payment_method` VARCHAR(32) NOT NULL DEFAULT '',
   `transaction_reference` VARCHAR(38) NOT NULL DEFAULT '',INDEX(transaction_reference),
+  `checksum` VARCHAR(128) NOT NULL DEFAULT '',
   `sms_units` INT NOT NULL DEFAULT 0,
   `net_amount_ngn` DOUBLE NOT NULL DEFAULT 0,
   UNIQUE(`transaction_reference`),
