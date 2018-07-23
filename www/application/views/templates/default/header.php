@@ -176,6 +176,11 @@
 								</a>
                             </li>
 							<li>
+								<a href="<?php echo $this->general_model->get_url('sms_log');?>">
+									<i class="fa fa-fw fa-list"></i> All Delivery Reports
+								</a>
+							</li>
+							<li>
 								<a href="<?php echo $this->general_model->get_url('sms_log?stage=pending');?>">
 									<i class="fa fa-fw fa-calendar"></i> Scheduled Messages
 								</a>
