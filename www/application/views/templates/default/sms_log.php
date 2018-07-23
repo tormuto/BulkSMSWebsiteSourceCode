@@ -91,7 +91,7 @@
 				<div class='row'>
 					<div class='form-group col-md-8 col-sm-7 col-xs-6'>
 						<label for='sender_id'>Sender ID</label>
-						<input class='form-control input-sm' type='text' maxlength='11' minlength='3' name='sender_id' placeholder='<?php echo $my_profile['default_sender_id']; ?>' />
+						<input class='form-control input-sm' type='text' maxlength='11' minlength='3' name='sender_id' id='sender_id' placeholder='<?php echo $my_profile['default_sender_id']; ?>' />
 					</div>
 					<div class='form-group col-md-4 col-sm-5 col-xs-6'>
 						<label for='type'>Type</label>
@@ -117,9 +117,23 @@
 				<div class='row'>
 					<div class='form-group col-md-12'>
 						<label for='schedule_date_time'>Future Date-time</label>
-						<input class='form-control input-sm' type='datetime' placeholder='YYYY-MM-DD hh:mm am' pattern='<?php echo $this->general_model->date_time_patern; ?>'  title='e.g 2016-31-01 5:30 am' name='schedule_date_time' />
+						<input class='form-control input-sm' type='datetime-local' placeholder='YYYY-MM-DD hh:mm am' pattern='<?php echo $this->general_model->date_time_patern; ?>'  title='e.g 2016-31-01 5:30 am' name='schedule_date_time' />
 					</div>
 				</div>
+				
+				
+				<?php if($my_profile['country_id']==37){ ?>
+				<div class='form-group'>
+					<label style='color:#990000;'>Standard or Corporate(DND Bypass) Route</label>
+					<select class='form-control input-sm' id='route' name='route' data-toggle='tooltip' title="TIPS: While using CORPORATE ROUTE helps your budget (economizing by sending through standard channel if the destination has already been found to be unrestrictive). FINANCIAL ROUTE doesn't do such fallback (typically used for OTP/Transactional messages)." >
+						<option value='0' <?php if(@$_POST['route']==0)echo 'selected'; ?> >Use Standard Route</option>
+						<option value='1' <?php if(@$_POST['route']=='1')echo 'selected'; ?> >Use Corporate Route for all recipients - 2 units per page</option>
+						<option value='2' <?php if(@$_POST['route']=='2')echo 'selected'; ?> >Use Corporate Route if on DND - 2 units if on DND</option>
+					</select>
+				</div>
+				<?php } ?>
+			
+				
 				<div class='text-right'>
 					<button class='btn btn-success' name='send_message' value='send_message' >
 						<i class='fa fa-send'></i>
@@ -170,7 +184,7 @@
 						if(!empty($sms['group_name']))echo "<div class='text-muted'><i class='fa fa-users'></i> {$sms['group_name']} </div>";
 					?>
 					<div>
-						<a class='btn btn-default btn-xs send_single_sms' checkbox='<?php echo "#checkbox_$sn"; ?>' title="<?php echo "TO: {$sms['recipient']}"; ?>" href='javascript:;'>
+						<a class='btn btn-default btn-xs send_single_sms' checkbox='<?php echo "#checkbox_$sn"; ?>' title="<?php echo "TO: {$sms['recipient']}"; ?>" href='javascript:;' data-route="<?php echo $sms['route']; ?>">
 							<i class='fa fa-envelope'></i> Edit & Send SMS
 						</a>
 					</div>
@@ -289,8 +303,9 @@
 			
 			$('#recipient_info').html(btn.attr('title'));
 			btntr=btn.closest('tr');
-			$('#message').val(btntr.find('.message').html());
-			$('#sender_id').val(btntr.find('.sender_id').html());
+			$('#message').val(btntr.find('.message').text());
+			$('#sender_id').val(btntr.find('.sender_id').text());
+			$('#route').val(btntr.attr('data-route'));
 		}
 		$('#message').prop('required',true);
 		//$('#sender_id,#message,#schedule_date,#schedule_time').val('');

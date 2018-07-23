@@ -51,6 +51,23 @@
 					Preserve Unicode <i>(e.g Chinese, Russian or other special symbols) <strong>72 chars/page</strong></i>
 				</label>			
 			</div>
+			
+			
+			<?php if($my_profile['country_id']==37){ ?>
+				<div>Sending to Nigerian networks on corporate/financial route charges 2 units per SMS page</div>
+			<?php } ?>
+			<div class='form-group' data-toggle='tooltip' title="TIPS: While using CORPORATE ROUTE helps your budget (economizing by sending through standard channel if the destination has already been found to be unrestrictive). FINANCIAL ROUTE doesn't do such fallback (typically used for OTP/Transactional messages)." >
+				<div class='input-group'>
+					<span class='input-group-addon'>Use</span>
+					<select class='form-control input-sm' name='route' >
+						<option value='0' <?php if(isset($_POST['route'])&&$_POST['route']==0)echo 'selected'; ?> >Standard Route</option>
+						<option value='1' <?php if(@$_POST['route']=='1')echo 'selected'; ?> >Financial Route</option>
+						<option value='2' <?php if(@$_POST['route']=='2'||(!isset($_POST['route'])&&$my_profile['country_id']==37))echo 'selected'; ?> >Corporate Route</option>
+					</select>
+				</div>
+			</div>
+			
+			
 		</div>
 		<div class='col-md-6 col-sm-6'>
 			<div class='form-group'>
@@ -86,7 +103,7 @@
 				<div class='row'>
 					<div class='form-group col-md-12'>
 						<label for='schedule_date_time'>Future Date-time</label>
-						<input class='form-control input-sm' type='datetime' placeholder='YYYY-MM-DD hh:mm am' pattern='<?php echo $this->general_model->date_time_patern; ?>'  title='e.g 2016-31-01 5:30 am' name='schedule_date_time' />
+						<input class='form-control input-sm' type='datetime-local' placeholder='YYYY-MM-DD hh:mm am' pattern='<?php echo $this->general_model->date_time_patern; ?>'  title='e.g 2016-31-01 5:30 am' name='schedule_date_time' />
 					</div>
 				</div>
 			</div>

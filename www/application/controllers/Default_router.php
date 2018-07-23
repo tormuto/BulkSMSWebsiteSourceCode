@@ -1444,7 +1444,7 @@ class Default_router extends CI_Controller{
 		$this->load_client_views('send_sms.php',$data);
 	}
 	
-	function _send_sms($user,$contacts,$message=false,$sender_id=false,$date_time=false,$type=false,$unicode=false){
+	function _send_sms($user,$contacts,$message=false,$sender_id=false,$date_time=false,$type=false,$unicode=false,$route=false){
 		if(empty($contacts))return array('Error'=>"No recipient contact found.");
 		if($message===false)$message=$this->input->post('message');
 
@@ -1495,7 +1495,9 @@ class Default_router extends CI_Controller{
 		if($type===false)$type=(int)$this->input->post('type');
 		if($type!=0)$type=1;
 		if($unicode===false)$unicode=(int)$this->input->post('unicode');
-		if($type!=0)$unicode=1;
+		if($unicode!=0)$unicode=1;
+		if($route===false)$route=(int)$this->input->post('route');
+		if($route!=0)$route=1;
 		if($sender_id===false)$sender_id=$this->input->post('sender_id');
 		if(!empty($sendder_id)&&!$this->_valid_sender_id($sender_id))return array('Error'=>"Invalid sender id $sender_id. It can only be between 3 to 11 characters (or 3 to 14 digits if numeric)");
 		if(empty($sender_id))$sender_id=$user['default_sender_id'];
@@ -1602,6 +1604,7 @@ class Default_router extends CI_Controller{
 				'sender'=>$sender_id,
 				'type'=>$type,
 				'unicode'=>$unicode,
+				'route'=>$route,
 				'units'=>$sms_units,
 				'locked'=>$locked,
 				'extra_data'=>$extra_data
@@ -1820,6 +1823,13 @@ class Default_router extends CI_Controller{
 		$this->load_client_views('sub_accounts.php',$data);
 	}
 
+	
+	function run_updates(){	
+		$sql="ALTER TABLE "._DB_PREFIX_."sms_log ADD route TINYINT(1) NOT NULL DEFAULT 0 AFTER gateway";
+		@$this->db->query($sql);
+		echo '--DONE--';
+		
+	}
 	
 	function faqs(){
 		$data['page_title']="Frequently Asked Questions";
@@ -2045,8 +2055,9 @@ class Default_router extends CI_Controller{
 							
 							$type=empty($_REQUEST['type'])?0:1;
 							$unicode=empty($_REQUEST['unicode'])?0:1;
+							$route=empty($_REQUEST['route'])?0:1;
 							
-							$resp=$this->_send_sms($sub_account,$contacts,$message_templates,false,$date_time,$type,$unicode);
+							$resp=$this->_send_sms($sub_account,$contacts,$message_templates,false,$date_time,$type,$unicode,$route);
 							
 							if(isset($resp['batch_id']))
 							{

@@ -129,6 +129,14 @@
 				<td>0</td>
 			</tr>
 			<tr>
+				<td>route</td>
+				<td>
+					<b>0</b> means standard route, <b>1</b> means financial route, <b>2</b> means corporate route
+					<i class='fa fa-lightbulb-o'></i> TIPS: <i>TIPS: While using CORPORATE ROUTE helps your budget (economizing by sending through standard channel if the destination has already been found to be unrestrictive). FINANCIAL ROUTE doesn't do such fallback (typically used for OTP/Transactional messages).</i>
+				</td>
+				<td>0</td>
+			</tr>
+			<tr>
 				<td>sender_id</td>
 				<td>What will appear to the recipient as the sender of the SMS. 3 to 11 characters (or 3 to 14 digits if numeric).<br/>
 					<i>If this was not supplied, the sub-account's default sender_id will be used.</i>

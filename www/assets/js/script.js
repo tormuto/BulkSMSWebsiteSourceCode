@@ -133,6 +133,7 @@ function runAjax(params,callbackFunction)
 		monitor_sms_characters();
 		
 		impose_textarea_maxlength();
+		$('[data-toggle="tooltip"]').tooltip();
 		
 	});
 

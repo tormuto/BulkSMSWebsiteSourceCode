@@ -1756,6 +1756,7 @@ MTN Nigeria
 			'callback_url'=>$callback_url,
 			'type'=>$sms_batch[0]['type'],
 			'unicode'=>$sms_batch[0]['unicode'],
+			'route'=>$sms_batch[0]['route'],
 			'sender_id'=>$sms_batch[0]['sender'],
 			'contacts'=>json_encode($messages),
 			'message'=>$default_message
@@ -1763,7 +1764,7 @@ MTN Nigeria
 			
 			$response_json=$this->_curl_json('http://cheapglobalsms.com/api_v1',$params,true);
 		
-			$this->_log_error('CheapGlobalSMS Sending params',json_encode($params));
+			//$this->_log_error('CheapGlobalSMS Sending params',json_encode($params));
 			
 			if(empty($response_json['error'])){
 				//response_json->total
@@ -1777,7 +1778,7 @@ MTN Nigeria
 				return $response_json['total'];
 			}
 			
-			$this->_log_error('CheapGlobalSMS bug while sending sms',json_encode($params)."<br/><br/><br/>===><br/>  ".$response_json['error']);
+			if(empty($response_json['error_code']))$this->_log_error('CheapGlobalSMS bug while sending sms',json_encode($params)."<br/><br/><br/>===><br/>  ".$response_json['error']);
 			return false;
 		}
 		
