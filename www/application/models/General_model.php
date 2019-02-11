@@ -2375,6 +2375,7 @@ MTN Nigeria
 			$config['char_set'] = "utf8";
 			$config['dbcollat'] = "utf8_general_ci";
 			$this->load->database($config);
+            $this->db->query("SET SESSION sql_mode=''");
 		}
 
 		function get_url($uri=''){return (base_url().$uri);}

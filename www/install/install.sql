@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `gm_website_configuration`
 	config_name VARCHAR(64) NOT NULL DEFAULT '',
 	UNIQUE(config_name),
 	config_value text NOT NULL
-);
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ;
 
 
 CREATE TABLE IF NOT EXISTS `gm_contacts`
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `gm_contacts`
 	lastname VARCHAR(25) NOT NULL DEFAULT '',
 	group_name VARCHAR(84) NOT NULL DEFAULT 'default',INDEX(group_name),
 	time INT NOT NULL DEFAULT 0
-);
+) ENGINE=MyISAM  CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 
 CREATE TABLE IF NOT EXISTS `gm_users`
@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS `gm_sms_log`
 	route TINYINT(1) NOT NULL DEFAULT 0,
 	info VARCHAR(225) NOT NULL DEFAULT '',
 	extra_data VARCHAR(225) NOT NULL DEFAULT ''
-) CHARACTER SET = utf8;
+)  CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 	
 
 CREATE TABLE IF NOT EXISTS `gm_transactions`

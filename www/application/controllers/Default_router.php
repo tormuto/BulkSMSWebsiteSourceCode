@@ -1825,11 +1825,11 @@ class Default_router extends CI_Controller{
 
 	
 	function run_updates(){	
-		$sql="ALTER TABLE "._DB_PREFIX_."sms_log ADD route TINYINT(1) NOT NULL DEFAULT 0 AFTER gateway";
-		@$this->db->query($sql);
-		
-		$sql="ALTER TABLE "._DB_PREFIX_."transactions ADD `checksum` VARCHAR(128) NOT NULL DEFAULT ''";
-		@$this->db->query($sql);
+        $pref=_DB_PREFIX_;
+		@$this->db->query("ALTER TABLE {$pref}sms_log CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci");
+		@$this->db->query("ALTER TABLE {$pref}contacts CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci");
+		@$this->db->query("ALTER TABLE {$pref}sms_log ADD route TINYINT(1) NOT NULL DEFAULT 0 AFTER gateway");
+		@$this->db->query("ALTER TABLE {$pref}transactions ADD `checksum` VARCHAR(128) NOT NULL DEFAULT ''");
 		echo '--DONE--';
 		
 	}
