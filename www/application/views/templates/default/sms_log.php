@@ -117,7 +117,7 @@
 				<div class='row'>
 					<div class='form-group col-md-12'>
 						<label for='schedule_date_time'>Future Date-time</label>
-						<input class='form-control input-sm' type='datetime-local' placeholder='YYYY-MM-DD hh:mm am' pattern='<?php echo $this->general_model->date_time_patern; ?>'  title='e.g 2016-31-01 5:30 am' name='schedule_date_time' />
+						<input class='form-control input-sm' type='datetime-local' placeholder='YYYY-MM-DD hh:mm am'  title='e.g 2016-31-01 5:30 am' name='schedule_date_time' />
 					</div>
 				</div>
 				

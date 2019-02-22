@@ -2162,14 +2162,18 @@ MTN Nigeria
 		}
 		
 		
-		function valid_date_time($date_time){
-			$date_time=trim($date_time);
-			
-			if(!empty($date_time)&&preg_match($this->date_time_patern_php,$date_time)){
-				$time=strtotime($date_time);
-				return date('Y-m-d H:i',$time);
+		function valid_date_time($date,$totime=false){
+			$date=trim($date);			
+			if(empty($date))return '';
+			try { 
+				$date = new DateTime($date);
+				if($totime)return $date->format('U');
+				else return $date->format('Y-m-d H:i:s');
+			} catch (Exception $e) {
+				$err= $e->getMessage();			
+				$msg="Invalid date format $date supplied for %s. $err";
+				return false;
 			}
-			return '';
 		}
 		
 		function get_www_url(){
