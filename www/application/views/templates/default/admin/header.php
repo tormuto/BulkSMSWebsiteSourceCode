@@ -103,9 +103,9 @@
 				</a>
 			</li>
              <li role="separator" class="divider"></li>
-            <li class='<?php if($page_name=='admin_voguepay')echo 'active';?>'>
-				<a href="<?php echo $this->general_model->get_url('admin_voguepay');?>">
-					<i class='fa fa-vimeo-square'></i> Voguepay
+            <li class='<?php if($page_name=='admin_unifiedpurse_widget')echo 'active';?>'>
+				<a href="<?php echo $this->general_model->get_url('admin_unifiedpurse_widget');?>">
+					<i class='fa fa-support'></i> Unifiedpurse Widget
 				</a>
 			</li>
           </ul>

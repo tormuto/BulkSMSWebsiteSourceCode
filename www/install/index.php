@@ -1,9 +1,13 @@
 <?php
 ini_set('error_reporting',E_WARNING|E_PARSE|E_ERROR);
 
-if(file_exists("../config.php")&&!isset($_POST['install']))
-{
-	include('../config.php');
+
+$domain=$_SERVER['HTTP_HOST'];
+if($domain=='[::1]')$domain='localhost';
+$config_file=($domain=='localhost')?'../localhost_config.php':'../config.php';
+
+if(file_exists($config_file)&&!isset($_POST['install'])){
+	include($config_file);
 	$_POST['currency_code']=_CURRENCY_CODE_;
 	$_POST['db_host']=_DB_HOST_;
 	$_POST['db_name']=_DB_NAME_;
@@ -25,11 +29,9 @@ if(empty($_POST['db_host']))$_POST['db_host']='localhost';
 if(empty($_POST['template']))$_POST['template']='default';
 if(empty($_POST['currency_code']))$_POST['currency_code']='NGN';
 
-
-$domain=$_SERVER['HTTP_HOST'];
-if($domain=='[::1]')$domain='localhost';
 $sample_host="mail.$domain";
 $sample_user="no_reply@$domain";
+
 
 if(empty($_POST['base_url'])){
 	$is_https=(!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')||$_SERVER['SERVER_PORT']==443;
@@ -42,7 +44,7 @@ $_POST['base_url']=rtrim($_POST['base_url'],'/').'/';
 
 if(empty($_POST['smtp_host']))$_POST['smtp_host']=$sample_host;
 if(empty($_POST['smtp_user']))$_POST['smtp_user']=$sample_user;
-if(empty($_POST['smtp_port']))$_POST['smtp_port']=25;
+if(empty($_POST['smtp_port']))$_POST['smtp_port']=587;
 
 if(isset($_POST['install']))
 {
@@ -50,7 +52,7 @@ if(isset($_POST['install']))
 	
 	if(!$cid)$Error=mysqli_connect_error()." Please make sure you have already created the database and assigned a user to it.";	
 	elseif(!file_exists('install.sql'))$Error="Could not load sql file:  install.sql";
-	elseif(($file=@fopen("../config.php", "w"))===false)$Error='Update configuration parameters failed. Check write permissions for file "config.htm".';
+	elseif(($file=@fopen($config_file, "w"))===false)$Error='Update configuration parameters failed. Check write permissions for file "config.htm".';
 	else
 	{
 		$str=
@@ -114,8 +116,8 @@ if(isset($_POST['install']))
 			@unlink('../install/install.sql');
 			@unlink('../install/index.php');
 			@rmdir('../install');
-			header("Location:../panel");
 		}
+		header("Location:../panel");
 	}
 }
 
@@ -236,7 +238,7 @@ if(isset($_POST['install']))
 					
 					<div class='form-group col-sm-6'>
 						<label for='smtp_port'>SMTP PORT</label>
-						<input type='number' name='smtp_port' min='1' value="<?php echo $_POST['smtp_port'];?>" class='form-control input-sm' placeholder='mostly, non-ssl=25, ssl=465' >
+						<input type='number' name='smtp_port' min='1' value="<?php echo $_POST['smtp_port'];?>" class='form-control input-sm' placeholder='mostly: 587, non-ssl=25, ssl=465' >
 					</div>
 					
 				

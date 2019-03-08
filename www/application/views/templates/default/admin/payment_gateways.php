@@ -55,8 +55,11 @@
 			$pgmid=$pgp['merchant_id'];
 			$pgmide=$this->general_model->split_format($pgmid);
 			
+			$pgmide2=$this->general_model->split_format($pgpname);
+			
 			$pgk=$pgp['key'];
 			$pgke=$this->general_model->split_format($pgk);
+			//$pgke=str_ireplace("$pgpname ",'',$pgke);
 			
 			$pgu=@$pgp['uid'];
 			$pgue=$this->general_model->split_format($pgu);
@@ -71,6 +74,18 @@
 			$pgcharge_cap="{$pgpname}_charge_cap";
 			$mid_size=4;
 	?>	
+	<div class='clearfix'></div>
+	<div class='well well-sm'>
+		<?php if(empty($pgp['url'])){ ?>
+			<h4>Accept Payments With <?php echo $pgmide2; ?></h4>
+		<?php } else { ?>
+		<a href='<?php echo $pgp['url']; ?>' target='_blank'>
+			<h4>Accept Payments With <?php echo $pgmide2; ?></h4>
+		</a>
+		<?php } ?>
+		<p><?php echo $pgp['descr']; ?></p>
+	</div>
+	<div class='clearfix'></div>
 	
 	<div class='form-group col-md-6 col-sm-6 col-xs-12'>
 		<label for='<?php echo $pglabel; ?>'><?php echo $this->general_model->split_format($pgpname); ?> Label</label>

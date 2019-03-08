@@ -39,40 +39,19 @@
 			$this->payment_western_union_params=array('senders_firstname','senders_lastname','senders_country','mtcn','security_answer','amount_transfered');
 				
 			$this->payment_methods=array(
-				//'free'=>'FREE','cumulated'=>'CUMULATED',
-				'ucollect'=>'UCollect','gtpay'=>'GTPay',
-				'interswitch'=>'Interswitch','bitcoin'=>'Bitcoin','perfectmoney'=>'PerfectMoney',
-				'2checkout'=>'2CheckOut','zenith_globalpay'=>'Zenith Globalpay',
-				'bank_deposit'=>'Bank Deposit','ussd_code'=>'USSD Code','pay_on_delivery'=>'Pay On Delivery/Venue','western_union'=>'Western Union',
-				'stanbic'=>'StanbicIBTC','paypal'=>'Paypay','firstpay'=>'Firstpay','skye'=>'Skye',
-				'simplepay'=>'Simplepay','voguepay'=>'VoguePay','jostpay'=>'JostPay',
+				'unifiedpurse'=>'UnifiedPurse',
 				'free_checkout'=>'FREE'
 				);
 			
 			$this->payment_methods_no_requery=array('perfectmoney','bitcoin','bank_deposit','pay_on_delivery','ussd_code','western_union','2checkout','paypal','free_checkout','simplepay','voguepay');
 			
 			
-			$this->payment_gateway_params=array
-				(
-					'ucollect'=>array('merchant_id'=>'ucollect_merchant_id','key'=>'ucollect_service_key'),
-					'gtpay'=>array('merchant_id'=>'gtpay_merchant_id','key'=>'gtpay_hash_key'),
-					'interswitch'=>array('merchant_id'=>'interswitch_product_id','key'=>'interswitch_mac_key'),
-					'perfectmoney'=>array('merchant_id'=>'perfectmoney_account','key'=>'perfectmoney_paraphrase'),
-					'bitcoin'=>array('merchant_id'=>'bitcoin_address','key'=>''),
-					'2checkout'=>array('merchant_id'=>'2checkout_seller_id','key'=>'2checkout_secret'),
-					'zenith_globalpay'=>array('merchant_id'=>'globalpay_merchant_id','uid'=>'globalpay_user_id','key'=>'globalpay_password'),
-					'bank_deposit'=>array('merchant_id'=>'bank_account_details','key'=>'','textarea'=>'1'),
-					'jostpay'=>array('merchant_id'=>'jostpay_merchant','key'=>''),
-					'ussd_code'=>array('merchant_id'=>'ussd_code_details','key'=>'','textarea'=>'1'),
-					'pay_on_delivery'=>array('merchant_id'=>'pay_on_delivery_note','key'=>'','textarea'=>'1'),
-					'western_union'=>array('merchant_id'=>'western_union_note','key'=>'','textarea'=>'1'),
-					'stanbic'=>array('merchant_id'=>'stanbic_merchant_ngn','uid'=>'stanbic_merchant_usd','key'=>''),
-					'paypal'=>array('merchant_id'=>'paypal_email','key'=>''),
-					'firstpay'=>array('merchant_id'=>'firstpay_merchant_id','key'=>''),
-					'skye'=>array('merchant_id'=>'skye_merchant_id','key'=>''),
-					'simplepay'=>array('merchant_id'=>'simplepay_username','key'=>''),
-					
-					'voguepay'=>array('merchant_id'=>'voguepay_merchant_id','key'=>''),
+			$this->payment_gateway_params=array(
+					'unifiedpurse'=>array(
+						'merchant_id'=>'unifiedpurse_username',
+						'key'=>'','url'=>'https://unifiedpurse.com/accept_payments',
+						'descr'=>"UnifiedPurse enables you to accept unified payments worldwide, from a single point. Providing over 80 popular payment alternatives (e.g PayPal, Bank, Perfectmoney...) to your payers, and collects your payments into a unified purse."
+					),
 				);
 			
 			$this->debugging=($this->input->get('debug')!='');			

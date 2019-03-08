@@ -5,17 +5,12 @@
 <div class='alert alert-danger'>
 	Payment gateway is not yet configured.
 </div>
-<?php } else { ?>
-
-<?php if(empty($transaction)){ ?>
+<?php } else {  ?>
 <div class='help-block'><strong class='text-warning'><i class='fa fa-info-circle'></i> You can purchase a minimum of <?php echo $configs['minimum_units']; ?> units at a time.</strong></div>
 
 <form method='post' role='form'>
-	<?php
-		$currencies=$this->general_model->get_currencies(true);
-	?>
-		
-		<div class='form-group col-md-6 col-sm-6'>
+		<?php $currencies=$this->general_model->get_currencies(true); ?>
+		<div class='form-group col-sm-4'>
 			<label>Amount <small>(+ <?php echo $configs['tax_percent']; ?>% VAT)</small> <span id='rate_span'></span></label>
 			<div class='input-group'>
 				<input type='number' name='amount'  id='amount' step='0.01' required onkeyup='amountChanged();' class='form-control input-sm'>
@@ -23,7 +18,7 @@
 			</div>
 		</div>
 	
-		<div class='form-group col-md-6 col-sm-6'>
+		<div class='form-group col-sm-4'>
 			<label>Select Currency</label>
 			<select name='payment_currency' id='payment_currency' class='form-control input-sm' onchange="currencyChanged()"  >
 				<?php
@@ -33,33 +28,14 @@
 					foreach($currencies as $currency_code=>$currency_data){
 						if(empty($currency_data['enabled']))continue;
 						$this_pms="";
-						foreach($this->general_model->payment_gateway_params as $apm=>$apmd)
-						{
-							
-							//if($apm=='jostpay'&&(@$my_profile['user_id']!=1&&@$my_profile['user_id']!=165))continue;
-							
-							if(empty($configs["{$apm}_enabled"]))continue;
-							$expcurr=explode(',',$configs["{$apm}_currencies"]);
-							if(!in_array($currency_code,$expcurr))continue;
-							$is_sel=(@$payment_method==$apm)?'selected':'';
-							
-							$pg_label=empty($configs["{$apm}_label"])?$this->general_model->split_format($apm):$configs["{$apm}_label"];
-						
-							$this_pms.="<option value='$apm' $is_sel >$pg_label</option>";
-						}
-						
-						if(empty($this_pms))continue;
-						if($configs['currency_code']==$currency_code)$default_pm_options=$this_pms;
-						elseif(empty($default_pm_options))$default_pm_options=$this_pms;
-						
 						$av_currencies[]=$currency_code;
 					?>
-					<option value='<?php echo $currency_code; ?>'  conv_value='<?php echo $currency_data['value']; ?>'  payment_methods="<?php echo $this_pms; ?>" ><?php echo "{$currency_data['currency_title']} ($currency_code) "; ?> </option>
+					<option value='<?php echo $currency_code; ?>'  conv_value='<?php echo $currency_data['value']; ?>'  ><?php echo "{$currency_data['currency_title']} ($currency_code) "; ?> </option>
 				<?php } ?>						
 			</select>
 		</div>
 		
-		<div class='form-group col-md-6 col-sm-6'>
+		<div class='form-group col-sm-4'>
 			<label>SMS Credits</label>
 			<div class='input-group'>
 				<span class='input-group-addon'> = </span>
@@ -68,18 +44,23 @@
 			</div>
 		</div>
 		
-		<div class='form-group col-md-6 col-sm-6 col-sm-6'>
-			<label>Payment Method</label>
-			<select required class='form-control input-sm' name='payment_method' id='payment_method'>
-				<option value=''>Select Payment Method</option>
-				<?php echo $default_pm_options; ?>
-			</select>
+		<input type='hidden' name='payment_method' value='unifiedpurse' />
+		
+		<div class='clearfix'></div>
+		<div style='font-weight:bold;text-align:center;'>
+			* Bitcoin * Perfectmoney * Bank/Wire Transfer * Western Union * TransferWise * Azimo * 3rd-Party Credit-Card Processors * Others
 		</div>
-		<div class='col-md-12 col-sm-12 text-right'>
-			<button class='btn btn-default btn-sm alone'>
-				Buy SMS Credits
+		<div class='clearfix'></div>
+		<div class='text-center'>
+			<?php if(empty($my_profile)){ ?>
+			<a class='btn btn-primary btn-lg alone' href='<?php echo $this->general_model->get_url('login?dest=pricing'); ?>'>
+				Login & Pay Via UnifiedPurse
+			</a>
+			<?php } else { ?>
+			<button class='btn btn-primary btn-lg alone before_submit' name='continue' value='Pay' id='normal_final_checkout_btn' type='button' onclick='submitForm();'>
+				Pay Via UnifiedPurse
 			</button>
-		</div>
+			<?php } ?>
 </form>
 <h3>SMS Price List</h3>
 <div class='table-responsive'>
@@ -159,8 +140,7 @@
 	}
 	
 	
-	function unitsChanged()
-	{
+	function unitsChanged(){
 		var new_amount=0;
 		var new_units=parse_int($('#units').val());
 		
@@ -195,8 +175,7 @@
 	}
 
 	
-	function amountChanged()
-	{
+	function amountChanged(){
 		var new_units=0;
 		var new_amount=parse_float($('#amount').val());
 		
@@ -205,8 +184,7 @@
 			var tax_amount=(new_amount/105)*5;
 			new_amount-=tax_amount;
 			
-			$.each(reverse_prices,function(price_name,price_data)
-			{
+			$.each(reverse_prices,function(price_name,price_data){
 				temp=Math.floor(new_amount/(price_data['price']*currency_value));
 				if(new_units==0){
 					new_units=temp;
@@ -228,105 +206,69 @@
 	}
 	
 	$(function(){ $('#units').val('50000'); currencyChanged(); });
-</script>
-<?php } else { ?>
-	<div class='col-md-6 col-sm-8 col-sm-offset-2  col-md-offset-3' style='border:1px solid #ccc;padding:25px 5px;border-radius:5px;display:table;'>
-		<div class='text-danger'>
-			PLEASE DO NOT PAY BELOW THE TOTAL AMOUNT PAYABLE OF <strong><?php  echo $transaction['amount']." ".$transaction['currency_code'];?></strong>
-		</div>
-		<div class='col-md-12'>
-			<ul class='list-group before_submit'>
-				<li class='list-group-item'><strong>DETAILS:</strong> <?php echo $transaction['details']; ?></li>
-				<li class='list-group-item'><strong>DATE:</strong> <?php echo date('d-m-Y g:i a',$transaction['time']); ?></li>
-				<li class='list-group-item'>
-					<strong>Amount:</strong> <?php  echo $json_details['original_amount']." ".$transaction['currency_code'];?>
-				</li>
-				<li class='list-group-item'>
-					<strong>TAX/VAT:</strong> <?php  echo $json_details['tax_amount']." ".$transaction['currency_code'];?> <i>(<?php echo $json_details['tax_percent']; ?> %)</i>
-				</li>
-				<li class='list-group-item'>
-					<strong>Payment Gateway Fee:</strong> <?php  echo $json_details['gateway_charges']." ".$transaction['currency_code'];?>
-				</li>
-				<?php if(!empty($json_details['payment_method_fixed_charges'])){ ?>
-				<li class='list-group-item'>
-					<strong>Payment Method's Fixed Charges:</strong> <?php  echo $json_details['payment_method_fixed_charges']." ".$transaction['currency_code'];?>
-				</li>
-				<?php } ?>
-				<li class='list-group-item'>
-					<strong>Total Amount Payable:</strong> <span style='font-weight:bold;color:#f00;font-style:italic;font-size:16px;' ><?php  echo $transaction['amount']." ".$transaction['currency_code'];?></span>
-				</li>
-				<li class='list-group-item'>
-					<strong>Payment Method:</strong> <?php echo $configs[$transaction['payment_method']."_label"];?>
-				</li>
-				<?php if($transaction['payment_method']=='bank_deposit'&&$transaction['amount']>=1000){ ?>
-				<li class='list-group-item list-group-item-warning'>
-					NOTE: There is a CBN directive of #50 <strong>fixed charges</strong> (stamp duty), levied on all payment that is up to #1000, made into any corporate accounts. 
-				</li>
-				<?php } ?>
-			</ul>
-			<?php if($transaction['payment_method']!='bank_deposit'&&$transaction['payment_method']!='pay_on_delivery'&&$transaction['payment_method']!='western_union'&&$transaction['payment_method']!='ussd_code'&&$transaction['currency_code']=='NGN'){ ?>
-				<div class='alert alert-warning'>
-					<span class='close' data-dismiss='alert'>&times;</span>
-					Please Note: If you are making any online payment via <i>interswitch</i>, you must either:<br/>
-					Be resistered for for interswitch <abbr title='one time password'>OTP</abbr>
-					(<a href="https://connect.interswitchng.com/documentation/safetoken-services/" target='_blank' class='alert-link'>see the simple steps</a>) <br/>
-					OR be given the token, for making online transactions from your bank.
-				</div>
-			<?php } ?>
-			<div id='info_holder' class='before_submit' ></div>
-			<form method="<?php echo $form_method;?>" id='payment_form' action="<?php echo $action;?>">
-				<div style='line-height:2;font-weight:bold;display:none;' class='text-warning after_submit' >
-				<?php echo $input_fields; ?>
-				</div>
-				
-				<span class='pull-right'>
-					<button class='btn btn-primary btn-sm before_submit' name='continue' value='Pay' type='button' onclick='submitForm();' >
-						Proceed
-					</button>
-					
-					<button class='btn btn-primary btn-sm after_submit' type='button' onclick='window.print();' style='display:none;' ><i class='fa fa-print'></i> Print</button>
-					<a class='btn btn-primary btn-sm after_submit'  style='display:none;' href='<?php echo $this->general_model->get_url('transaction');?>' >
-						View Transaction Log
-					</a>
-				</span>
-			</form>
-		</div>
-		<div class='clearfix'></div>
-		<script type='text/javascript'>
-			var payment_method='<?php echo $transaction['payment_method']; ?>';
-			var redirecting=false;
-			
-			function submitForm()
-			{
-				if(redirecting)return;
-				
-				$('#info_holder').addClass('text-success').removeClass('text-danger').html('Please wait...');
-				
-				var url=base_url+'ajax_processor';
-				$.post(url,{action:'commit_transaction'},function(response)
-					{
-						if(response=='success')
-						{
-							if(payment_method=='bank_deposit')
-							{
-								$('.after_submit').show();
-								$('.before_submit').hide();
-							}
-							else
-							{
-								showInfo('Redirecting to payment gateway...');
-								$('#payment_form').submit(); 
-								redirecting=true;
-							}
-						}
-						else showError(response);
-					}).error(function(xhr){
-						showError(xhr.statusText);
-						window.console&console.log("Ajax Error:"+xhr.statusText+", "+xhr.responseText);
-					});
+	
+	
+	var commiting_transaction=false;
+	function submitForm(){
+		if(commiting_transaction)return;
+		commiting_transaction=true;
+		$('#normal_final_checkout_btn').prop('disabled',true);
+		
+		$('#info_holder').addClass('text-success').removeClass('text-danger').html("<strong style='font-size:16px;'>Initiating... Please wait.</strong>");
+		var url=base_url+'ajax_processor';
+		var sms_units=$('#units').val();
+		var amount=$('#amount').val();
+		var payment_currency=$('#payment_currency').val();
+		
+		$.post(url,{action:'commit_transaction','units':sms_units,'payment_currency':payment_currency},function(response){
+			if(response.indexOf('success:')!=-1){
+				var temp=response.split(':');
+				var transaction_reference=temp[1];
+				var temp_amount=temp[2];
+				var temp_currency=temp[3];
+				var payment_memo=sms_units+" SMS Credits";
+				payWithUnifiedpurse(temp_currency,temp_amount,transaction_reference,payment_memo);
+				showInfo('Redirecting to payment gateway...');
 			}
-		</script>
-	</div>
-<?php } ?>
+			else showError(response);
+		}).error(function(xhr){
+			commiting_transaction=false;
+			$('#normal_final_checkout_btn').prop('disabled',false);
+			showError(xhr.statusText);
+			window.console&console.log("Ajax Error:"+xhr.statusText+", "+xhr.responseText);
+		});
+	}
+	
+</script>
+<?php
+	if(!empty($my_profile)){
+?>
+	<script src='//unifiedpurse.com/assets/js/payment.js' async defer></script>
+	<script>
+		function payWithUnifiedpurse(currency,amount,transaction_reference,payment_memo){
+			var notify_url=base_url+'transaction?confirm_trans='+transaction_reference;
+			
+			var paymentSettings={
+				receiver: 'tormuto',
+				currency: currency,
+				amount: amount,
+				ref:transaction_reference,
+				email:'<?php echo $my_profile['email']; ?>',
+				memo:payment_memo,
+				notification_url:notify_url,
+				onDone: function(response){
+					var str="<h4>Thank you very much</h4><p>Please while we confirm your payment...</p>";
+					showInfo(str);
+					window.location.href=base_url+'transaction?confirm_trans='+transaction_reference; //response.ref
+				},
+				onClose: function(msg){
+					window.console&&console.log('Payment widget closed. ',msg);
+					window.location.href=base_url+'pricing';
+				}
+			}
 
-<?php } ?>
+			var unifiedpurseHandler = Unifiedpurse.pay(paymentSettings);
+		}
+	</script>
+<?php }
+	} ?>

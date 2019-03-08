@@ -1,7 +1,11 @@
 <?php 
 
 	if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-	if(file_exists("config.php"))include('config.php');
+
+	$domain=$_SERVER['HTTP_HOST'];
+	if($domain=='[::1]')$domain='localhost';
+	if($domain=='localhost'&&file_exists('localhost_config.php'))include('localhost_config.php');
+	elseif(file_exists('config.php'))include('config.php');
 
 class Default_router extends CI_Controller{
 	
@@ -306,6 +310,7 @@ class Default_router extends CI_Controller{
 		if($this->input->post('logout')!=''||$this->input->get('logout')!=''){
 			$this->session->sess_destroy();
 			$this->general_model->unset_login_cookie();
+			$this->b_redirect();
 		}
 		if($this->general_model->logged_in()){
 			$this->load_client_views('dashboard.php',$data);
@@ -427,13 +432,19 @@ class Default_router extends CI_Controller{
 					*/
 				}
 
-				if($flag_level<2)
-				{
+				$reg_url="";
+				if($flag_level<2){
 					$cid=$this->general_model->insert_pending_email_data($presetData);
-					$msg="Please follow this link to complete your registration process: ".$this->general_model->get_url("registration/?cid=$cid&code=$code");
+					$reg_url=$this->general_model->get_url("registration/?cid=$cid&code=$code");
+					$msg="Please follow this link to complete your registration process: $reg_url";
 					$this->general_model->send_email($email,"Email Verification Link",$msg,'','');
 				}
+				
 				$data['Success']="Your email verification link has been sent to your email address ($email). This link will only be valid for 24 hours. Please check your email to complete the registration process. PLEASE CHECK THE SPAM FOLDER IF YOU COULDN'T SEE THE LINK IN YOUR INBOX.";
+				
+				if($this->general_model->on_localhost()){
+					$data['Success'].="<p>Localhost override link: <a href='$reg_url' class='alert-link'>$reg_url</a></p>";
+				}
 			}
 			else $data['signup_stage']=1;
 		}
@@ -2352,511 +2363,71 @@ class Default_router extends CI_Controller{
 
 	public function pricing(){
 		$data['page_title']='Pricing';
-
-		if($this->input->post('amount')=='')$data['section_title']='Buy SMS: Price Calculator';
-		else{
-			$this->check_login();			
-			$data['section_title']='Buy SMS: Payment';
-			$configs=$this->general_model->get_configs();
-			$data['configs']=$configs;
-			$data['currency_code']=$configs['currency_code'];
-			$data['type_title']="Account Funding";
-			$sms_units=$this->input->post('units',true);	
-			$payment_method=$this->input->post('payment_method',true);
-			$cur=$this->input->post('payment_currency',true);
-			$payment_methods=$this->general_model->get_available_payment_methods($configs);
-			$currencies=$this->general_model->get_currencies(true);
-			
-			$meth_curs=$configs["{$payment_method}_currencies"];
-			$expcurr=explode(',',$meth_curs);
-			
-			if(empty($payment_methods[$payment_method]))$data['Error']="Invalid payment method $payment_method";
-			elseif(!in_array($cur,$expcurr))$data['Error']="Selected currency $cur not a supported currency ($meth_curs) for $payment_method ";
-			elseif(empty($configs["{$payment_method}_enabled"]))$data['Error']="The selected payment method ($payment_method) is unavailable. ";
-			elseif(empty($currencies[$cur]))$data['Error']="Invalid currency $cur.";
-			elseif(empty($currencies[$cur]['enabled']))$data['Error']="Payment currency $cur is currently unavailable.";
-			elseif(!is_numeric($sms_units)||empty($sms_units))$data['Error']="Please supply a valid SMS credit units.";
-			elseif($sms_units<$configs['minimum_units'])$data['Error']="You can not buy less than {$configs['minimum_units']} SMS units";
-			else
-			{
-				$original_amount=$this->general_model->sms_units_to_price($sms_units,$currencies[$cur]['value'],!empty($user_data['reseller_account']));
-				
-				$amount=$original_amount;
-				$tax_amount=0;
-				if(!empty($configs['tax_percent']))
-				{
-					$tax_amount=$amount*0.01*$configs['tax_percent'];
-					$amount+=$tax_amount;
-				}
-				$charges=$amount*0.01*$configs[$payment_method.'_charge'];
-				$charge_cap=$configs[$payment_method.'_charge_cap'];
-				if($charge_cap>0&&$charge_cap<$charges)$charges=$charge_cap;
-				$variable_charges=$charges;
-				
-				if($payment_method=='bank_deposit'&&ceil($amount)<950)$apply_fixed_charge=false;
-				else $apply_fixed_charge=true;
-				
-				if($apply_fixed_charge&&!empty($configs[$payment_method.'_charge_fixed'])){
-					$fixed_charge=$configs[$payment_method.'_charge_fixed']*$currencies[$cur]['value'];
-					$charges+=$fixed_charge;
-				}
-				else $fixed_charge=0;
-				
-				$amount=$amount+$charges;				
-				$amount=number_format($amount,$currencies[$cur]['decimal_places'],'.','');
-
-				$payment_memo="$sms_units SMS Credits";
-				$login_data=$this->session->userdata('login_data');			
-				$user_id=$login_data['user_id'];			
-				$user_data=$this->general_model->get_user($user_id,'user_id');
-				$data['my_profile']=$user_data;
-				$time=time();
-				$curr_code=$currencies[$cur]['iso_code'];
-				$json_details=array('sms_units'=>$sms_units,'original_amount'=>$original_amount,'gateway_charges'=>$variable_charges,'payment_method_fixed_charges'=>$fixed_charge,'tax_amount'=>$tax_amount,'tax_percent'=>$configs['tax_percent']);
-				
-				$transaction=
-					array(
-							'user_id'=>$user_id,
-							'time'=>$time,
-							'transaction_reference'=>$time,
-							'amount'=>$amount,
-							'type'=>1, //account funding
-							'currency_code'=>$cur,
-							'details'=>$payment_memo,									
-							'payment_method'=>$payment_method,
-							'sms_units'=>$sms_units,
-							'net_amount_ngn'=>$original_amount/$currencies[$cur]['value'],
-							'json_details'=>json_encode($json_details)
-							);
-				$notify_url=$this->general_model->get_url("transaction");
-				
-				if($payment_method=='ucollect')
-				{	
-					if(!empty($transaction['transaction_reference'])&&!is_numeric($transaction['transaction_reference'])){
-						$returnCode=200;
-						$response=$transaction['transaction_reference'];
-					}
-					else{
-						$post2 = array
-						(
-							'merchantId' => $configs['ucollect_merchant_id'],
-							'description' =>$payment_memo,
-							'total' => $amount,
-							'date' =>date("d/m/Y H:i:s"),
-							'countryCurrencyCode' =>$curr_code,
-							'noOfItems' =>1,
-							'customerFirstName' =>$user_data['firstname'],
-							'customerLastname' =>$user_data['lastname'],
-							'customerEmail' =>$user_data['email'],
-							'customerPhoneNumber'=> $user_data['phone'],
-							'referenceNumber' =>$transaction['transaction_reference'],
-							'serviceKey' =>$configs['ucollect_service_key'],
-						);
-						
-						$ch = curl_init();
-						curl_setopt($ch, CURLOPT_URL, "https://ucollect.ubagroup.com/cipg-payportal/regptran");
-						curl_setopt($ch, CURLOPT_POST, true);
-						curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-						curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-						curl_setopt($ch, CURLOPT_POSTFIELDS, $post2);
-						curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-						$response = curl_exec($ch);
-						$returnCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-						if($returnCode != 200)$response=curl_error($ch);
-						curl_close($ch);
-					}
-					
-					if ($returnCode == 200){
-						$data['form_method']='get';
-						$data['action']='https://ucollect.ubagroup.com/cipg-payportal/paytran';						
-						$data['input_fields']="<input type='hidden' name='id' value='$response'/>";
-						
-						$responses=explode(' ',$response);
-						
-						if(count($responses)>1)$data['Error']="Error while registering transaction. $response";
-						else $transaction['transaction_reference']=$response;
-					}
-					else $data['Error'] = "An error occurred from UCollect. Please try again later. <br/>HTTP ERROR ->  $response ";
-				}
-				elseif($payment_method=='gtpay')
-				{
-					
-					$data['form_method']='post';
-					$data['action']='https://ibank.gtbank.com/GTPay/Tranx.aspx';
-					
-					
-					$gtpay_mert_id=$configs['gtpay_merchant_id'];
-					$gtpay_hash_key=$configs['gtpay_hash_key'];
-					
-					$gtb_amount=$amount*100;
-					$full_name=$user_data['firstname']." ".$user_data['lastname'];
-					$gtpay_cust_id=substr($user_data['email'],0,30);
-					
-					$gtpay_tranx_hash = hash ('sha512', $transaction['transaction_reference'] .$gtb_amount.$notify_url.$gtpay_hash_key );
-					$gtpay_hash = hash ('sha512', $gtpay_mert_id.$transaction['transaction_reference'].$gtb_amount.$curr_code.$gtpay_cust_id.$notify_url.$gtpay_hash_key );
-					
-					$data['input_fields']="
-					<input type='hidden' name='gtpay_mert_id' value='$gtpay_mert_id' />
-					<input type='hidden' name='gtpay_tranx_id' value='{$transaction['transaction_reference']}' />
-					<input type='hidden' name='gtpay_tranx_amt' value='$gtb_amount' />
-					<input type='hidden' name='gtpay_tranx_curr' value='$curr_code' />
-					<input type='hidden' name='gtpay_cust_id' value='$gtpay_cust_id' />
-					<input type='hidden' name='gtpay_cust_name' value='$full_name' />
-					<input type='hidden' name='gtpay_tranx_memo' value=\"$payment_memo\" />
-					<input type='hidden' name='gtpay_hash' value='$gtpay_hash' />
-					<input type='hidden' name='gtpay_tranx_hash' value='$gtpay_tranx_hash' />
-					<input type='hidden' name='gtpay_tranx_noti_url' value='$notify_url' />";
-						
-					if(!empty($configs['gtpay_direct_webpay']))
-						$data['input_fields'].="<input type='hidden' name='gtpay_gway_name' value='webpay' />
-									<input type='hidden' name='gtpay_gway_first' value='no' />";
-				}
-				elseif($payment_method=='interswitch')
-				{
-					$data['form_method']='post';					
-					$notify_url=$this->general_model->get_url('transaction');
-					$interswitch_product_id=$configs['interswitch_product_id'];
-					$interswitch_mac_key=$configs['interswitch_mac_key'];
-					
-					if($configs['interswitch_demo']==1){
-						$data['action']='https://sandbox.interswitchng.com/webpay/pay';
-					}
-					else{
-						$data['action']='https://webpay.interswitchng.com/collections/w/pay';
-					}
-					
-					$pay_item_id=101;
-					
-					$tranx_amt=$amount*100;
-					$full_name=$user_data['firstname']." ".$user_data['lastname'];
-					
-					$inter_hash_string=$transaction['transaction_reference'].$interswitch_product_id.$pay_item_id.$tranx_amt.$notify_url. $interswitch_mac_key;
-					$interswitch_hash=strtoupper(hash('sha512',$inter_hash_string));
-					
-					$data['input_fields']="
-					<input name='product_id' type='hidden' value='$interswitch_product_id'/>
-					<input name='pay_item_id' type='hidden' value='$pay_item_id'/>
-					<input name='amount' type='hidden' value='$tranx_amt'/>
-					<input name='currency' type='hidden' value='$curr_code'/>
-					<input name='cust_name' type='hidden' value='$full_name'/>
-					<input name='cust_id' type='hidden' value='{$user_data['email']}' />
-					<input name='site_redirect_url' type='hidden' value='$notify_url'/>
-					<input name='txn_ref' type='hidden' value='{$transaction['transaction_reference']}'/>
-					<input name='hash' type='hidden' value='$interswitch_hash'/>";
-				}
-				elseif($payment_method=='perfectmoney')
-				{
-					
-					$data['form_method']='post';
-					$data['action']='https://perfectmoney.is/api/step1.asp';
-					
-					$data['input_fields']="
-						<input type='hidden' name='PAYEE_ACCOUNT' value='{$configs['perfectmoney_account']}'>
-						<input type='hidden' name='PAYEE_NAME' value='{$configs['site_name']}'>
-						<input type='hidden' name='PAYMENT_AMOUNT' value='{$amount}'>
-						<input type='hidden' name='PAYMENT_UNITS' value='$cur'>
-						<input type='hidden' name='STATUS_URL'  value='$notify_url'>
-						<input type='hidden' name='PAYMENT_URL'  value='$notify_url'>
-						<input type='hidden' name='NOPAYMENT_URL' 	value='$notify_url'>
-						<input type='hidden' name='AVAILABLE_PAYMENT_METHODS' 	value='account'>
-						<input type='hidden' name='BAGGAGE_FIELDS' 	value='ORDER_NUM'>
-						<input type='hidden' name='ORDER_NUM' value='{$transaction['transaction_reference']}'>";
-				}
-				elseif($payment_method=='2checkout')
-				{
-					
-					$data['form_method']='post';
-					$data['action']='https://www.2checkout.com/checkout/purchase';
-					
-					$data['input_fields']="
-						<input type='hidden' name='sid' value='{$configs['2checkout_sid']}' >
-						<input type='hidden' name='cart_order_id' value='{$transaction['transaction_reference']}'>
-						<input type='hidden' name='total' value='{$amount}' >
-						<input type='hidden' name='id_type' value='1' />
-						<input type='hidden' name='x_receipt_link_url' value='$notify_url'>";
-				}
-				elseif($payment_method=='paypal')
-				{
-					$data['form_method']='post';
-					$data['action']='https://www.paypal.com/cgi-bin/webscr';
-					$notify_url.="?confirm_trans={$transaction['transaction_reference']}";
-					
-					$data['input_fields']="
-						<input type='hidden' name=cmd value='_xclick'>
-						<input type='hidden' name=business value='{$configs['paypal_email']}'>
-						<input type='hidden' name=item_name value=\"$payment_memo\">
-						<input type='hidden' name='no_shipping' value='1'>
-						<input type='hidden' name='currency_code' value='$cur'>
-						<input type='hidden' name='notify_url' value='$notify_url'>
-						<input type='hidden' name=return value='$notify_url'>
-						<input type='hidden' name=cancel_return value='$notify_url'>
-						<input type='hidden' name=no_note value='1'>
-						<input type='hidden' value='2' name='rm'>   
-						<input type='hidden' name=amount value='{$amount}'>";
-				}
-				elseif($payment_method=='remitia')
-				{
-					$data['form_method']='post';
-					$data['action']='http://www.remitademo.net/remita/ecomm/init.reg';
-					//$notify_url.="?confirm_trans={$transaction['transaction_reference']}";
-
-					$concatString =$configs['remitia_merchant_id'].$configs['remitia_servicetype_id'].$transaction['transaction_reference'].$amount.$notify_url.$configs['remitia_api_key'];
-					$hash = hash('sha512', $concatString);
-					
-					$data['input_fields']="
-						<input id='merchantId' name='merchantId' value='{$configs['remitia_merchant_id']}' type='hidden'/>
-						<input id='serviceTypeId' name='serviceTypeId' value='{$configs['remitia_servicetype_id']}' type='hidden'/>
-						<input id='amt' name='amt' value='{$amount}' type='hidden'/>
-						<input id='responseurl' name='responseurl' value='$notify_url' type='hidden'/>
-						<input id='hash' name='hash' value='$hash' type='hidden'/>
-						<input id='payerName' name='payerName' value='{$user_data['firstname']} {$user_data['lastname']}' type='hidden'/>
-						<input id='payerEmail' name='payerEmail' value='{$user_data['email']}' type='hidden'/>
-						<input id='payerPhone' name='payerPhone' value='{$user_data['phone']}' type='hidden'/>
-						<input id='orderId' name='orderId' value='{$transaction['transaction_reference']}' type='hidden'/>";
-
-				}
-				elseif($payment_method=='payza')
-				{
-					$data['form_method']='post';
-					$data['action']='https://secure.payza.com/checkout';
-					$notify_url2="$notify_url?confirm_trans={$transaction['transaction_reference']}";
-					
-					$data['input_fields']="
-						<input type='hidden' name='ap_merchant' value='{$configs['payza_email']}'/>
-						<input type='hidden' name='ap_itemname' value=\"$payment_memo\"/>
-						<input type='hidden' name='ap_amount' value='$amount'/>
-						<input type='hidden' name='ap_currency' value='$cur'/>
-						<input type='hidden' name='ap_purchasetype' value='item-goods'/>
-						<input type='hidden' name='ap_itemcode' value='{$transaction['transaction_reference']}' />
-						<input type='hidden' name='ap_cancelurl' value='$notify_url'  />
-						<input type='hidden' name='ap_returnurl' value='$notify_url' />
-						<input type='hidden' name='ap_ipnversion' value='2' />
-						<input type='hidden' name='ap_alerturl' value='$notify_url2' />";
-				}
-				elseif($payment_method=='quickteller')
-				{
-					$data['form_method']='post';
-					$data['action']='https://paywith.quickteller.com/';
-					$notify_url2="$notify_url?confirm_trans={$transaction['transaction_reference']}";
-					$interswitch_amount=$amount*100;
-
-					$data['input_fields']="
-					  <input type='hidden' name='amount' value='$interswitch_amount' />
-					  <input type='hidden' name='CustomerId' value='{$transaction['transaction_reference']}' >
-					 <input type='hidden' name='redirectUrl' value='$notify_url2' >
-					  <input type='hidden' name='paymentCode' value='{$configs['quickteller_payment_code']}'> 
-					  <input type='hidden' name='mobileNumber' value='{$user_data['phone']}'> 
-					  <input type='hidden' name='emailAddress' value='{$user_data['email']}'>";
-				}
-				elseif($payment_method=='stanbic')
-				{
-					$data['form_method']='post';
-					$data['action']='https://cipg.stanbicibtcbank.com/MerchantServices/MakePayment.aspx';
-					$stanbicibtc_merchant_id=($cur=='NGN')?$configs['stanbic_merchant_ngn']:$configs['stanbic_merchant_usd'];
-					
-					$data['input_fields']="
-						<input type='hidden' name='mercId' value='$stanbicibtc_merchant_id'>
-						<input type='hidden' name='currCode' value='$curr_code'>
-						<input type='hidden' name='amt' value='{$amount}'>
-						<input type='hidden' name='orderId' value='{$transaction['transaction_reference']}'>
-						<input type='hidden' name='prod' value=\"$payment_memo\">
-						<input type='hidden' name='email' value='{$user_data['email']}'>
-						<input type='hidden' name='submit' value='Pay'>";
-				}
-				elseif($payment_method=='firstpay')
-				{
-					$data['form_method']='post';
-					$data['action']='https://firstpaylink.firstbanknigeria.com:553/MerchantServices/MakePayment.aspx';
-
-					$data['input_fields']="
-						<input type='hidden' name='mercId' value='{$configs['firstpay_merchant_id']}'>
-						<input type='hidden' name='currCode' value='$curr_code'>
-						<input type='hidden' name='amt' value='{$amount}'>
-						<input type='hidden' name='orderId' value='{$transaction['transaction_reference']}'>
-						<input type='hidden' name='prod' value=\"$payment_memo\">
-						<input type='hidden' name='email' value='{$user_data['email']}'>
-						<input type='hidden' name='submit' value='Pay'>";
-				}
-				elseif($payment_method=='skye')
-				{
-					$data['form_method']='post';
-					$data['action']='https://skyecipg.skyebankng.com:5443/MerchantServices/MakePayment.aspx"';
-
-					$data['input_fields']="
-						<input type='hidden' name='mercId' value='{$configs['skye_merchant_id']}'>
-						<input type='hidden' name='currCode' value='$curr_code'>
-						<input type='hidden' name='amt' value='{$amount}'>
-						<input type='hidden' name='orderId' value='{$transaction['transaction_reference']}'>
-						<input type='hidden' name='prod' value=\"$payment_memo\">
-						<input type='hidden' name='email' value='{$user_data['email']}'>
-						<input type='hidden' name='submit' value='Pay'>";
-				}
-				elseif($payment_method=='voguepay')
-				{
-					$data['form_method']='post';
-					$data['action']="https://voguepay.com/pay/";$notify_url.="?confirm_trans={$transaction['transaction_reference']}";
-					
-					$data['input_fields']="
-						<input type='hidden' name='v_merchant_id' value='{$configs['voguepay_merchant_id']}' />
-						<input type='hidden' name='merchant_ref' value='{$transaction['transaction_reference']}' />
-						<input type='hidden' name='total' value='{$amount}' />
-						<input type='hidden' name='memo' value='Product' />
-						<input type='hidden' name='notify_url' value='$notify_url' />
-						<input type='hidden' name='success_url' value='$notify_url' />
-						<input type='hidden' name='fail_url' value='$notify_url' />						
-						<input type='hidden' name='developer_code' value='56695bd13fd5e' />";
-				}
-				elseif($payment_method=='simplepay')
-				{
-					$data['form_method']='post';
-					$data['action']='https://www.simplepay4u.com/process.php';
-					$notify_url.="?confirm_trans={$transaction['transaction_reference']}";
-					
-					$data['input_fields']="
-					<input type=hidden name=member value='{$configs['simplepay_username']}'>
-					<input type=hidden name=escrow value='N'>
-					<input type=hidden name=action value='payment'>
-					<input type=hidden name=product value=\"$payment_memo\" >
-					<input type=hidden name=price value='{$amount}'>
-					<input type=hidden name=quantity value='1'>
-					<input type=hidden name=ureturn value='$notify_url'>
-					<input type=hidden name=unotify value='$notify_url'>
-					<input type=hidden name=ucancel value='$notify_url'>
-					<input type=hidden name=comments value=''>
-					<input type=hidden name=customid value='{$transaction['transaction_reference']}'>
-					<input type=hidden name=freeclient value='Y'>
-					<input type=hidden name=site_logo value='{$configs['logo']}'>
-					";
-				}
-				elseif($payment_method=='bitcoin')
-				{
-						$transaction['amount']=$amount=$this->general_model->secure_btc_amount($amount);
-						$transaction['details'].=" (Currently $amount BTC)";
-						
-						$data['input_fields']="<h4 class='text-center'>IMPORTANT</h4>
-							<h3 style='line-height: normal;font-weight: normal;' class='text-success'>
-								Complete your transaction by transferring EXACTLY <strong>$amount</strong> to <code>{$configs['bitcoin_address']}</code><br/>
-							</h3>
-							<div class='alert alert-danger'>
-								If you send more than $amount BTC, <strong>you will lose your fund</strong></br>
-								If you send less than $amount BTC, <strong>you will lose your fund</strong>
-							</div>
-							<p>After your payment has reached 1 confirmation, Please supply your payment bitcoin transaction id on the transaction log.</p>";
-						$data['form_method']='get';
-						$data['action']=$this->general_model->get_url('transaction');
-				}
-				elseif($payment_method=='bank_deposit')
-				{
-						
-					$data['input_fields']="<h4 class='text-center'>IMPORTANT</h4>
-						<p style='line-height: normal;font-weight: normal;' class='text-danger'>
-							For Cash Deposit: use <strong><i>{$user_data['email']}</i></strong> as depositor's name.<br/>
-							For Internet Banking: include <strong><i>{$user_data['email']}</i></strong> in your remark.<br/>
-						</p>";
-					$data['input_fields'].=nl2br($configs['bank_account_details']);
-					$data['form_method']='post';
-					$data['action']=$this->general_model->get_url('transaction');
-				}
-				elseif($payment_method=='pay_on_delivery')
-				{
-					$data['form_method']='post';
-					$data['action']=$this->general_model->get_url('transaction');
-					$data['input_fields']=nl2br($configs['pay_on_delivery_note']);
-				}
-				elseif($payment_method=='jostpay')
-				{
-					if($user_id==165||$user_id==1)$temp_methods='card,perfectmoney,bitcoin,jostpay';
-					else $temp_methods='perfectmoney,bitcoin,jostpay';
-					
-					$data['form_method']='post';
-					$data['action']="//jostpay.com/sci";
-					$data['input_fields']="
-					<input type='hidden' name='amount' value='$amount' />
-					<input type='hidden' name='merchant' value='{$configs['jostpay_merchant']}' />
-					<input type='hidden' name='ref' value='{$transaction['transaction_reference']}' />
-					<input type='hidden' name='memo' value=\"$payment_memo\" />
-					<input type='hidden' name='notification_url' value='$notify_url' />
-					<input type='hidden' name='success_url' value='$notify_url' />
-					<input type='hidden' name='cancel_url' value='$notify_url' />	
-					<input type='hidden' name='payment_methods' value='$temp_methods' />	
-					";
-				}
-				elseif($payment_method=='ussd_code')
-				{
-					$data['form_method']='post';
-					$data['action']=$this->general_model->get_url('transaction');
-					$configs['ussd_code_details']=str_replace('[AMOUNT]',ceil($amount),$configs['ussd_code_details']);
-					$data['input_fields']=nl2br($configs['ussd_code_details']);
-				}
-				elseif($payment_method=='western_union')
-				{
-					$data['form_method']='post';
-					$data['action']=$this->general_model->get_url('transaction');
-					$data['input_fields']=nl2br($configs['western_union_note']);
-				}
-				elseif($payment_method=='free_checkout')
-				{
-					$data['form_method']='get';
-					$data['action']=$this->general_model->get_url('transaction');
-					$data['input_fields']='&nbsp;';
-				}
-				
-				if(empty($data['Error']))
-				{
-					$data['page_title']='Buy SMS: Payment';
-					$this->general_model->set_cache('transaction',$transaction);
-					$data['transaction']=$transaction;
-					$data['json_details']=$json_details;
-				}
-			}			
-		}
+		$data['section_title']='Buy SMS Credits';
 		$this->load_client_views('pricing.php',$data);
 	}
 	
 	function _commit_transaction(){
-		$transaction=$this->general_model->get_cache('transaction');
 		$response=array();
+		$sms_units=floatval($this->input->post_get('units',true));
+		if($sms_units<=0)return "Please supply a valid SMS credit units.";
+		
 		$user_id=$this->general_model->logged_in();
-		if($transaction=='')return 'No pending transaction found.';
-		elseif(!$user_id)return 'You need to login first.';
-		else{
+		if(!$user_id)return "You need to login first.";
+		
+		$configs=$this->general_model->get_configs();
+		if($sms_units<$configs['minimum_units'])return "You can not buy less than {$configs['minimum_units']} SMS units";
+
+		$cur=$this->input->post('payment_currency',true);
+		$currencies=$this->general_model->get_currencies(true);
+		
+		$original_amount=$this->general_model->sms_units_to_price($sms_units,$currencies[$cur]['value'],!empty($user_data['reseller_account']));
+		$amount=$original_amount;
+		$tax_amount=0;
+		if(!empty($configs['tax_percent'])){
+			$tax_amount=$amount*0.01*$configs['tax_percent'];
+			$amount+=$tax_amount;
+		}
+		$charges=0; $fixed_charge=0; $variable_charges=0;
+		$amount=$amount+$charges;				
+		$amount=number_format($amount,$currencies[$cur]['decimal_places'],'.','');
+
+		$payment_memo="$sms_units SMS Credits";
+		$time=time();
+		$curr_code=$currencies[$cur]['iso_code'];
+		$json_details=array('sms_units'=>$sms_units,'original_amount'=>$original_amount,'gateway_charges'=>$variable_charges,'payment_method_fixed_charges'=>$fixed_charge,'tax_amount'=>$tax_amount,'tax_percent'=>$configs['tax_percent']);
+		
+		$transaction=
+			array(
+					'user_id'=>$user_id,
+					'time'=>$time,
+					'transaction_reference'=>$time,
+					'amount'=>$amount,
+					'type'=>1, //account funding
+					'currency_code'=>$cur,
+					'details'=>$payment_memo,									
+					'payment_method'=>'unifiedpurse',
+					'sms_units'=>$sms_units,
+					'net_amount_ngn'=>$original_amount/$currencies[$cur]['value'],
+					'json_details'=>json_encode($json_details)
+					);
+		
+		{
+			
 			$this->general_model->insert_transaction($transaction);
-			$payment_method=$this->general_model->split_format($transaction['payment_method']);					
 			$payment_date=date('d-m-Y g:i a',$transaction['time']);
 			$notify_url=$this->general_model->get_url('transaction');
 			$user_data=$this->general_model->get_user($user_id,'user_id');
-
-			$str="";
-			if($transaction['payment_method']=='bank_deposit')
-			{
-				$bank_account_details=$this->general_model->get_config('bank_account_details');
-				$str="<h4 class='text-center'>IMPORTANT</h4>
-					<p style='line-height: normal;font-weight: normal;' class='text-danger'>
-						For Cash Deposit: use <strong><i>{$user_data['email']}</i></strong> as depositor's name.<br/>
-						For Internet Banking: include <strong><i>{$user_data['email']}</i></strong> in your remark.<br/>
-					</p>";
-				$str.=nl2br($bank_account_details);
-			}
-			elseif($transaction['payment_method']=='pay_on_delivery')
-				$str.=nl2br($this->general_model->get_config('pay_on_delivery_note'));
-			elseif($transaction['payment_method']=='western_union')
-				$str.=nl2br($this->general_model->get_config('western_union'));
-			elseif($transaction['payment_method']=='ussd_code'){
-				$ussd_code_details=$this->general_model->get_config('ussd_code_details');
-				$ussd_code_details=str_replace('[AMOUNT]',ceil($transaction['amount']),$ussd_code_details);
-				$str.=nl2br($ussd_code_details);
-			}
 			
 			$mail_message="Hello {$user_data['firstname']}<br/><br/>
 			Please find your transaction information below:<br/><br/>
 			Date: $payment_date<br/>
 			Amount: {$transaction['amount']} {$transaction['currency_code']}<br/>
-			Payment Method: $payment_method<br/>
-			Details: {$transaction['details']}<br/>$str<br/>
+			Payment Method: unifiedpurse.com<br/>
+			Details: {$transaction['details']}<br/><br/>
 			You can always confirm your transaction/payment status at $notify_url?confirm_trans={$transaction['transaction_reference']}<br/><br/>Regards.";
 			$this->general_model->send_email($user_data['email'],"Transaction Information",$mail_message);
-			$this->general_model->unset_cache('transaction');
-			return 'success';
+			return "success:{$transaction['transaction_reference']}:$amount:{$transaction['currency_code']}";
 		}
 	}
 	
@@ -2879,8 +2450,7 @@ class Default_router extends CI_Controller{
 			$configs=$this->general_model->get_configs();
 			$data['configs']=$configs;
 			if(empty($transaction))$Error="Transaction record ($trans_ref) not found.";
-			elseif(isset($_GET['receipt']))
-			{
+			elseif(isset($_GET['receipt'])){
 				if($this->general_model->valid_invoice_token($transaction,@$_GET['inv_tok']))$data['display_receipt']=true;
 				else
 				{
@@ -2888,527 +2458,82 @@ class Default_router extends CI_Controller{
 					$Error='ACCESS DENIED';
 				}
 			}
-			elseif($this->input->post('teller_info',true)&&$transaction['user_id']!=$this->get_login_data('user_id'))$Error="Transaction modification access denied.";
-			elseif($this->input->post('submit_teller'))
-			{
-				foreach($this->general_model->payment_bank_params as $pbp)
-				{
-					if(empty($_POST[$pbp])){ $data['Error']=$this->general_model->split_format($pbp)." is required."; break;}
-				}
-			}
-			elseif($this->input->post('submit_western_union'))
-			{
-				foreach($this->general_model->payment_western_union_params as $pbp)
-				{
-					if(empty($_POST[$pbp])){ $data['Error']=$this->general_model->split_format($pbp)." is required."; break;}
-				}
-			}
-			elseif($this->input->post('submit_ussd_code'))
-			{
-				foreach($this->general_model->payment_ussd_code_params as $pbp)
-				{
-					if(empty($_POST[$pbp])){ $data['Error']=$this->general_model->split_format($pbp)." is required."; break;}
-				}
-			}
 			
 			$bit_hash='';
 			
-			if($transaction['status']!=1&&empty($data['Error']))
-			{
+			if($transaction['status']!=1&&empty($data['Error'])){
 				$approved_amount='0.00';
 				$expected_deposit=$transaction['amount'] ;
-				$gtpay_amount=$expected_deposit*100;
 				$new_status=0;
-				$teller_info=$this->input->post('teller_info',true);
-				if(!empty($teller_info))
-				{
-					$json_data=array('info'=>$teller_info);
-					$force_list=true;
-					$data['Success']='Teller information has been successfully submitted, your account will be credited shortly, once we confirm your payment information. Thank you';
-					
-					$msg="Transaction Details<br/>";
-					$transaction['json_info']=json_encode($json_data);
-					foreach($transaction as $trk=>$trv)$msg.=strtoupper($trk)." = $trv<br/>";			
-					$this->general_model->send_email(_ADMIN_EMAIL_,'Submitted Simple Teller Information',$msg);
-				}
-				elseif($this->input->post('submit_teller'))
-				{
-					$json_data=$this->general_model->get_json($transaction['json_info']);
-
-					foreach($this->general_model->payment_bank_params as $pbp){
-						$json_data[$pbp]=$this->input->post($pbp,true); 
-					}
-					
-					$force_list=true;
-					$data['Success']='Teller information has been successfully submitted, your account will be credited shortly, once we confirm your payment information. Thank you.';
-					
-					$msg="Transaction Details<br/>";
-					$transaction['json_info']=json_encode($json_data);
-					foreach($transaction as $trk=>$trv)$msg.=strtoupper($trk)." = $trv<br/>";			
-					$this->general_model->send_email(_ADMIN_EMAIL_,'Submitted Teller Information',$msg);
-				}
-				elseif($this->input->post('submit_western_union'))
-				{
-					$json_data=$this->general_model->get_json($transaction['json_info']);
-
-					foreach($this->general_model->payment_western_union_params as $pbp){
-						$json_data[$pbp]=$this->input->post($pbp,true); 
-					}
-					
-					$force_list=true;
-					$data['Success']='Your western-union transfer information has been successfully submitted, your account will be credited shortly, once we confirm your payment information. Thank you.';
-					
-					$msg="Transaction Details<br/>";
-					$transaction['json_info']=json_encode($json_data);
-					foreach($transaction as $trk=>$trv)$msg.=strtoupper($trk)." = $trv<br/>";			
-					$this->general_model->send_email(_ADMIN_EMAIL_,'Submitted Western Union Transfer Information',$msg);
-				}
-				elseif($this->input->post('submit_ussd_code'))
-				{
-					$json_data=$this->general_model->get_json($transaction['json_info']);
-
-					foreach($this->general_model->payment_ussd_code_params as $pbp){
-						$json_data[$pbp]=$this->input->post($pbp,true); 
-					}
-					
-					$force_list=true;
-					$data['Success']='Your USSD bank transfer information has been successfully submitted, your account will be credited shortly, once we confirm your payment information. Thank you.';
-					
-					$msg="Transaction Details<br/>";
-					$transaction['json_info']=json_encode($json_data);
-					foreach($transaction as $trk=>$trv)$msg.=strtoupper($trk)." = $trv<br/>";			
-					$this->general_model->send_email(_ADMIN_EMAIL_,'Submitted USSD Bank Transfer Information',$msg);
-				}
-				elseif($transaction['payment_method']=='gtpay')
-				{
-					if(isset($_POST['gtpay_tranx_id'])&&($_POST['gtpay_tranx_status_code']!='00'||!empty($configs['gtpay_demo']))){
-						
-						$new_status=($_POST['gtpay_tranx_status_code']!='00')?-1:1;
-						$json_data=array(
-											'response_description'=>$_POST['gtpay_tranx_status_msg'],
-											'response_code'=>$_POST['gtpay_tranx_status_code'],
-											'approved_amount'=>$_POST['gtpay_tranx_amt']
-										);
-					}
-					else{
-						$hash=hash("sha512",$configs['gtpay_merchant_id'].$trans_ref.$configs['gtpay_hash_key']);
-						
-						$url="https://ibank.gtbank.com/GTPayService/gettransactionstatus.json?mertid={$configs['gtpay_merchant_id']}&amount=$gtpay_amount&tranxid=$trans_ref&hash=$hash";
-
-						$ch = curl_init();
-						curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);			
-						curl_setopt($ch, CURLOPT_AUTOREFERER, TRUE);
-						curl_setopt($ch, CURLOPT_HEADER, 0);
-						curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-						//curl_setopt( $ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; MS Web Services Client Protocol 4.0.30319.239)" );
-						curl_setopt($ch, CURLOPT_URL, $url);			
-						$response = @curl_exec($ch);
-						$response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-						if($response_code != 200)$response=curl_error($ch);
-						curl_close($ch);
-						$json=null;			
-						if($response_code == 200)$json=@json_decode($response,true);
-						else $response="HTTP Error $response_code: $response. ";
-						
-						if(!empty($json))
-						{		
-							$new_status=($json['ResponseCode']=='00')?1:-1;
-							$json_data=array(
-											'response_description'=>$json['ResponseDescription'],
-											'response_code'=>$json['ResponseCode'],
-											'approved_amount'=>$json['Amount']
-										);
-						}
-						else $json_data=array(
-											'info'=>$response,
-											'response_code'=>$response_code,
-										);
-					}
-				}
-				elseif($transaction['payment_method']=='interswitch')
-				{
-					$transaction_reference=$transaction['transaction_reference'];
-					
-					if($configs['interswitch_demo']==1){
-						$interswitch_product_id=6205;
-						$interswitch_mac_key='D3D1D05AFE42AD50818167EAC73C109168A0F108F32645C8B59E897FA930DA44F9230910DAC9E20641823799A107A02068F7BC0F4CC41D2952E249552255710';
-						$interswitch_url='https://sandbox.interswitchng.com/webpay/api/v1/gettransaction.json';
-					}
-					else{
-						$interswitch_product_id=$configs['interswitch_product_id'];
-						$interswitch_mac_key=$configs['interswitch_mac_key'];
-						$interswitch_url='https://webpay.interswitchng.com/collections/api/v1/gettransaction.json';
-					}
-
-					$hash=strtoupper(hash("sha512",$interswitch_product_id.$transaction_reference.$interswitch_mac_key));
-					$url="$interswitch_url?productid=$interswitch_product_id&transactionreference=$transaction_reference&amount=$gtpay_amount";
-					
-					$ch = curl_init();
-					curl_setopt($ch,CURLOPT_HTTPHEADER,array("Hash: $hash"));
-					curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);			
-					curl_setopt($ch, CURLOPT_AUTOREFERER, TRUE);
-					curl_setopt($ch, CURLOPT_HEADER, 0);
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-					curl_setopt($ch, CURLOPT_URL, $url);
-					
-					$response = @curl_exec($ch);
-					$returnCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-					if($returnCode != 200)$response=curl_error($ch);
-					curl_close($ch);	
-					$json=null;
-					
-					if($returnCode == 200)$json=@json_decode($response,true);
-					else $response="HTTP Error $returnCode: $response. ";
-
-					if(!empty($json))
-					{				
-						$json_data=array(
-											'response_description'=>$json['ResponseDescription'],
-											'response_code'=>$json['ResponseCode'],
-											'approved_amount'=>$json['Amount']
-										);
-						$new_status=($json['ResponseCode']=='00')?1:-1;	
-					}
-					else $json_data= $json_data=array(
-											'info'=>$response,
-											'response_code'=>$returnCode,
-										);
-				}
-				elseif($transaction['payment_method']=='ucollect')
-				{
-					$ubaurl="https://ucollect.ubagroup.com/cipg-payportal/confirmation/verify?cipgtxnref=$trans_ref&mytxnref={$transaction['time']}&cipgid={$configs['ucollect_mert_id']}";
-
-					$ch = curl_init();
-					curl_setopt($ch, CURLOPT_URL, $ubaurl);
-					curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-					curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					$response = @curl_exec($ch);
-					$response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-					if($response_code != 200)$response=curl_error($ch);
-					curl_close($ch);
-					
-					$json_data['response_code']=$response_code;
-					
-					if ($response_code != 200)$json_data['info']=$response;
-					else{
-						$json_data['response_description']=$response;
-						
-						if($response=="Approved Transaction")
-						{	
-							$json_data['approved_amount']=$expected_deposit;
-							$new_status=1;
-						}
-						else 	$new_status=-1;
-					}
-				}
-				elseif($transaction['payment_method']=='2checkout')
-				{
-					$ipnData=array();
-					foreach ($_POST as $field=>$value)$ipnData["$field"] = $value;
-					
-					$vendorNumber   = ($ipnData["vendor_number"] != '') ? $ipnData["vendor_number"] : $ipnData["sid"];
-					$orderNumber    = $ipnData["order_number"];
-					$orderTotal     = $ipnData["total"];
-					// If demo mode, the order number must be forced to 1
-					$demo="";
-					
-					if($ipnData['demo'] == 'Y'){
-						$orderNumber = "1";
-						$demo = "Y";
-					}
-					// Calculate md5 hash as 2co formula: md5(secret_word + vendor_number + order_number + total)
-					$key = strtoupper(md5($configs['2checkout_secret'] . $vendorNumber . $orderNumber . $orderTotal));
-					
-					$new_status=-1;
-					$json_data=$ipnData;
-					$json_data['approved_amount']=$orderTotal;
-					
-					if(floatval($orderTotal)<$expected_deposit)$json_data['response_description'] = "Incorrect deposit amount ($expected_deposit USD was expected, but $PAYMENT_AMOUNT USD found).";
-					elseif($vendorNumber!=$configs['2checkout_seller_id'])$json_data['response_description']="The payment was made into a different 2checkout sid $vendorNumber.";
-					elseif($demo == "Y"&&empty($configs['2checkout_demo']))$json_data['response_description'] = "This is a demo payment.";
-					elseif($ipnData["key"] == $key || $ipnData["x_MD5_Hash"] == $key){
-						$new_status=1;
-						$json_data['response_description'] = "Transaction Successfully Completed.";
-					}
-					else $json_data['response_description'] = "Verification failed: MD5 does not match!";
-				}
-				elseif($transaction['payment_method']=='bitcoin')
-				{
-					$bit_hash=$this->input->post('bit_hash',true);
-					$new_status=0;
-					
-					if(!preg_match("~^[a-zA-Z0-9]{64}$~",$bit_hash))$json_data['info']="Please supply your bitcoin payment transaction hash; it must be 64 characters";
-					elseif($this->general_model->is_duplicate_hash($bit_hash))$json_data['info']="This transaction hash has already been used to validate another payment";
-					else 
-					{
-						$address=$configs['bitcoin_address'];
-						$url="https://blockchain.info/tx/$bit_hash?format=json";
-						
-						$btc_trans=$this->general_model->_curl_json($url);
-						if(!empty($btc_trans['error']))$data['Error']=$btc_trans['error'];
-						if(empty($btc_trans['out']))$json_data['response_description']="No bitcoin payment record found on the supplied hash $bit_hash";
-						else
-						{
-							$same_addr=false;
-							foreach($btc_trans['inputs'] as $in){
-								if($in['prev_out']['addr']==$address){		
-									$same_addr=true;
-									break;
-								}
-							}
-							
-							if($same_addr)$json_data['response_description']="Suspicious: Re-query hash $bit_hash is from an outgoing transaction.";
-							else
-							{
-								$to_wrong_address=true;
-								
-								$outs=$btc_trans['out'];
-								$out=array();
-								foreach($outs as $out){
-									if($out['addr']==$address){
-										$to_wrong_address=false;
-										break;
-									}
-								}
-
-								if($to_wrong_address)$json_data['response_description']="Wrong receiving address from requery txn hash ";
-								else
-								{
-									$btc_amount=$this->general_model->shatoshi_to_btc($out['value']);
-									$json_data['approved_amount']=$btc_amount;
-									
-									if(floatval($btc_amount)!=floatval($expected_deposit))
-										$json_data['response_description']="In-correct BTC amount ($btc_amount != {$expected_deposit}) from the supplied hash $bit_hash";
-									else 
-									{
-										$json_data['supplied_hash']=$transaction_hash=$bit_hash;
-										$confs=$this->general_model->get_blockchain_confirmations($btc_trans);
-										
-										if(empty($confs))$json_data['response_description']="This Bitcoin Transaction is still unconfirmed ";
-										else
-										{
-											$new_status=1;
-											$json_data['response_description']="Bitcoin payment confirmed";
-											$batch_used=$bit_hash;
-											$json_data['checksum']=$bit_hash;
-										}
-									}
-								}
-							}
-						}				
-					}
-				}
-				elseif($transaction['payment_method']=='perfectmoney')
-				{					
-					$new_status=-1;
-					$PAYMENT_ID = $this->input->post('PAYMENT_ID');
-					$PAYEE_ACCOUNT  = $this->input->post('PAYEE_ACCOUNT');
-					$PAYMENT_AMOUNT=$this->input->post('PAYMENT_AMOUNT');
-					$PAYMENT_UNITS=$this->input->post('PAYMENT_UNITS');
-					$PAYMENT_BATCH_NUM=$this->input->post('PAYMENT_BATCH_NUM');
-					$PAYER_ACCOUNT=$this->input->post('PAYER_ACCOUNT');
-					$TIMESTAMPGMT=$this->input->post('TIMESTAMPGMT');
-					$V2_HASH=$this->input->post('V2_HASH');
-					$pm_pass=strtoupper(md5($configs['perfectmoney_paraphrase']));
-					
-					$string=
-						  $PAYMENT_ID.':'.$PAYEE_ACCOUNT.':'.$PAYMENT_AMOUNT.':'.$PAYMENT_UNITS.':'.
-						  $PAYMENT_BATCH_NUM.':'.$PAYER_ACCOUNT.':'.$pm_pass.':'.$TIMESTAMPGMT;
-						  
-					$hash=strtoupper(md5($string));
-					$json_data=@$_POST;
-					$json_data['approved_amount']=$PAYMENT_AMOUNT;
-					
-					if($hash!=$V2_HASH)$json_data['response_description']="Perfectmoney payment validation failed.";
-					elseif($pm_acc!=$PAYEE_ACCOUNT)$json_data['response_description']="The payment was made into another perfectmoney account $PAYEE_ACCOUNT not ours {$configs['perfectmoney_account']}";
-					elseif($PAYMENT_UNITS!="USD")$json_data['response_description']="Contradicting payment unit/currency. (USD was expected but '$PAYMENT_UNITS' was found).";
-					elseif(floatval($PAYMENT_AMOUNT)<$expected_deposit)$json_data['response_description']="Incorrect deposit amount ($expected_deposit USD was expected, but $PAYMENT_AMOUNT USD found). ";
-					else {
-						$new_status=1;
-						$json_data['checksum']=$hash;
-						$json_data['response_description']="Transaction successfully completed.";
-					}
-				}
-				elseif($transaction['payment_method']=='jostpay')
-				{
+				
+				if($transaction['payment_method']=='unifiedpurse'){
 					$post_data=array(
 						'action'=>'get_transaction',
-						'jostpay_id'=>$configs['jostpay_merchant'],
-						//'amount'=>'1000',  //the amount that you are expecting (this is optional but important)
+						'receiver'=>$configs['unifiedpurse_username'],
+						'original_amount'=>$expected_deposit,
+						'original_currency_code'=>$transaction['currency_code'],
 						'ref'=>$trans_ref,
 					);
+
+					if($this->general_model->on_localhost())$temp_url='https://localhost/unifiedpurse.com/api_v1';
+					else $temp_url='https://unifiedpurse.com/api_v1';
 					
-					$json=$this->general_model->_curl_json('https://jostpay.com/api_v1',$post_data,true);
+					$json=$this->general_model->_curl_json($temp_url,$post_data,true);
 					
 					if(!empty($json['error']))$json_data['info']=$json['error'];
-					else
-					{
+					else {
 						$json_data['approved_amount']=$json['amount'];
 						$json_data['response_description']=$json['info'];
-						
-						
+
 						if($json['status_msg']=='FAILED')$new_status=-1;
-						elseif($json['status_msg']=='COMPLETED')
-						{
-							if(floatval($json['amount'])<$expected_deposit){
-								$json_data['response_description']="Incorrect deposit amount ($expected_deposit NGN was expected, but {$json['amount']} NGN found). ";
+						elseif($json['status_msg']=='COMPLETED'){
+							if(isset($json['original_currency_code'])&&$json['original_currency_code']!=$transaction['currency_code']){
+							$json_data['response_description']="Incorrect deposit currency ({$transaction['currency_code']} was expected, but {$json['original_currency_code']} found). ";
 								$new_status=-1;
 							}
-							else $new_status=1;	
-						}
-					}
-				}
-				elseif($transaction['payment_method']=='paypal')
-				{
-					$req = 'cmd=_notify-validate';
-					foreach ($_POST as $key => $value){
-					  $value = urlencode (stripslashes ($value));
-					  $req .= '' . '&' . $key . '=' . $value;
-					}
+							elseif(floatval($json['original_amount'])<$expected_deposit){
+								$json_data['response_description']="Incorrect deposit amount ($expected_deposit {$transaction['currency_code']} was expected, but {$json['original_amount']} found). ";
+								$new_status=-1;
+							}
+							else {
+								$new_status=1;
+								
+								if(!empty($json['meta_info']['amount_received'])&&!empty($json['meta_info']['currency_received'])){
+									$approved_amount=floatval($json['meta_info']['amount_received']);
+									$currency_received=$json['meta_info']['currency_received'];
+									$payment_method_charges=floatval($json['meta_info']['payment_method_charges']);
+									/*
+									$expected_amount=floatval($json['meta_info']['amount_expected']);
+									$expected_currency=$json['meta_info']['currency_expected'];
+									*/
+									
+									$json_data['approved_amount']=$approved_amount;
+									$json_data['response_description']=$json['info'];
+									if($payment_method_charges<=0)$net_amount_receive=$approved_amount;
+									else $net_amount_receive=$approved_amount-$payment_method_charges;
+								
+									if($net_amount_receive!=$expected_deposit){
+										$temp_info=$json['info'];
+										$payment_info=array(
+											'amount_paid'=>$approved_amount,'currency_code'=>$currency_received,
+											'gateway_charges'=>$payment_method_charges,
+										);
 
-					$ch = curl_init ();
-					curl_setopt ($ch, CURLOPT_URL, 'https://www.paypal.com/cgi-bin/webscr');
-					curl_setopt ($ch, CURLOPT_POST, 1);
-					curl_setopt ($ch, CURLOPT_POSTFIELDS, $req);
-					curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-					curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-					$response = @curl_exec ($ch);
-					
-					$response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-					if($response_code != 200)$response=curl_error($ch);
-					else $new_status=-1;
-					curl_close ($ch);
-					
-					
-					$json_data=@$_POST;
-					$json_data['approved_amount']=$_POST['mc_gross'];
-					
-					if($response != 'VERIFIED')$json_data['response_description']="We could not verify your payment at paypal. ($response)";
-					elseif($_POST['payment_status'] != 'Completed')$json_data['response_description']="The payment status at paypal {$_POST['payment_status']} is not completed";
-					elseif($_POST['business'] != $configs['paypal_email'])$json_data['response_description']="The payee account {$_POST['business']} does not match our own paypal account {$configs['paypal_email']}.";
-					elseif($_POST['mc_currency'] != 'USD')$json_data['response_description']="We expected the payment in USD not {$_POST['mc_currency']}.";
-					elseif(floatval($_POST['mc_gross'])<$expected_deposit)$json_data['response_description']="The amount deposited {$_POST['mc_gross']} is lesser than the expected deposit of $expected_deposit USD";
-					else {
-						$new_status=1;
-						$json_data['response_description']="Transaction successfully completed.";
-					}
-						
-						/*
-					  $compound = sprintf ('%d', $_POST['compound']);
-					  $amount = $_POST['mc_gross'];
-					  $batch = $_POST['txn_id'];
-					  $account = $_POST['payer_email'];
-					  */
-					
-				}
-				elseif($transaction['payment_method']=='skye'||$transaction['payment_method']=='firstpay'||$transaction['payment_method']=='stanbic')
-				{
-					$stanbicibtc_merchant_id=($transaction['currency_code']=='NGN')?$configs['stanbic_merchant_ngn']:$configs['stanbic_merchant_usd'];
-					
-					if($transaction['payment_method']=="skye")$url="https://skyecipg.skyebankng.com:5443/MerchantServices/UpayTransactionStatus.ashx?MERCHANT_ID={$configs['skye_merchant_id']}&ORDER_ID=$trans_ref";
-					elseif($transaction['payment_method']=="stanbic")$url="https://cipg.stanbicibtcbank.com/MerchantServices/UpayTransactionStatus.ashx?MERCHANT_ID=$stanbicibtc_merchant_id&ORDER_ID=$trans_ref";
-					elseif($transaction['payment_method']=="firstpay")$url="https://firstpaylink.firstbanknigeria.com:553/MerchantServices/UpayTransactionStatus.ashx?MERCHANT_ID={$configs['firstpay_merchant_id']}&ORDER_ID=$trans_ref";
-					
-					$xml_string=file_get_contents($url);
-					$xml=@simplexml_load_string($xml_string,"SimpleXMLElement",LIBXML_NOCDATA);
-					if($xml!==false)$xml=json_decode(json_encode($xml));
-						
-					if($xml===false)$json_data['response_description']="Error accessing the gateway confirmation page.";
-					elseif(!isset($xml->StatusCode)){
-						if(!isset($xml->Error))$json_data['response_description']="Error interpreting response from confirmation page.";
-						else $json_data['response_description']=$json_data['response_description'];
-					}
-					else{
-						$new_status=-1;
-						$json_data['Transaction Reference']=$xml->TransactionRef;
-						$json_data['Transaction Status']=$xml->Status;
-						$json_data['Payment Reference']=$xml->PaymentRef;
-						$json_data['Order ID']=$xml->OrderID;
-						//$json_data['Response Description']=$xml->ResponseDescription;
-						$json_data['response_description']=@$xml->ResponseDescription;;
-						$json_data['approved_amount']=@$xml->Amount;;
-						$json_data['response_code']=$xml->StatusCode;
-						
-						if($xml->StatusCode=='00'){
-							$new_status=1;
-						}
-					}
-				}
-				elseif($transaction['payment_method']=='simplepay')
-				{
-					$comments= $_POST["comments"];
-
-					if(empty($configs['simplepay_demo']))$simplepay_url="https://simplepay4u.com/processverify.php";
-					else $simplepay_url= "http://sandbox.simplepay4u.com/processverify.php";
-					
-					$curldata["cmd"]="_notify-validate";
-					foreach ($_REQUEST as $key =>  $value){
-						if ($key!='view'&&$key!='layout')$curldata[$key]=urlencode ($value);
-					}
-					$handle=curl_init();
-					curl_setopt($handle, CURLOPT_URL, $simplepay_url);
-					curl_setopt($handle, CURLOPT_POST, 1);
-					curl_setopt($handle, CURLOPT_POSTFIELDS, $curldata);
-					curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, 0);
-					curl_setopt($handle, CURLOPT_RETURNTRANSFER, 1);
-					curl_setopt($handle, CURLOPT_TIMEOUT, 90);
-					$result=curl_exec($handle);
-					
-					$returnCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-					$total=floatval($_POST["total"]);
-					$json_data=$_POST;
-					$json_data['approved_amount']=$total;
-					$new_status=-1;
-					
-					if ($returnCode != 200){
-						$json_data['info'] = "HTTP ERROR while trying to verify your payment at simplepay4u: ".curl_error($ch);
-						$new_status=0;
-					}
-					elseif($total<$expected_deposit)$json_data['response_description']="The amount deposited ($total) is less thant the expect amount of ($expected_deposit).";
-					elseif( 'VERIFIED' != $result )$json_data['response_description']="Payment verification from simplepay4u failed.";
-					else $new_status=1;
-					
-					curl_close($handle);
-				}
-				elseif($transaction['payment_method']=='voguepay'&&!empty($_POST['transaction_id']))
-				{
-					$vjson = file_get_contents('https://voguepay.com/?v_transaction_id='.$_POST['transaction_id'].'&type=json');
-					//create new array to store our transaction detail
-					$vtransaction = json_decode($vjson, true);
-					
-					/*
-					Now we have the following keys in our $vtransaction array
-					$vtransaction['merchant_id'],
-					$vtransaction['transaction_id'],
-					$vtransaction['email'],
-					$vtransaction['total'],
-					$vtransaction['merchant_ref'],
-					$vtransaction['memo'],
-					$vtransaction['status'],
-					$vtransaction['date'],
-					$vtransaction['referrer'],
-					$vtransaction['method']
-					*/
-					$new_status=0;
-					$json_data=$vtransaction;
-					$json_data['approved_amount']=$vtransaction['total'];
-					if(empty($vtransaction))$json_data['info']="Invalid response from voguepay api";
-					else {
-						$new_status=-1;
-						if($vtransaction['status'] != 'Approved')$json_data['response_description']='Failed transaction';
-						elseif($vtransaction['merchant_id'] != $configs['voguepay_merchant_id'])$json_data['response_description']='Invalid merchant: '.$vtransaction['merchant_id'];
-						elseif($vtransaction['total'] <$expected_deposit)$json_data['response_description']="Invalid total {$vtransaction['total']}, the expected amount is $expected_deposit";
-						else{
-							$new_status=1;
-							$json_data['response_description']="Transaction successfully completed.";
+										$data=$this->_admin_complete_transaction($data,$transaction,$payment_info,$temp_info);
+										
+										$transaction=$this->general_model->get_transaction($trans_ref,true);
+										$json_data=$this->general_model->get_json($transaction);
+										$transaction_pre_completed=true;
+									}
+								}
+								
+							}
 						}
 					}
 				}
 				else $data['Error']="Requery not implemented for {$transaction['payment_method']} ";
 				
-				if(empty($data['Error']))
-				{
+				if(empty($data['Error'])){
 					//$new_status=1; //zombie payment confirmation:: do not uncomment.
 					if(empty($batch_used))$batch_used='';
 					$this->general_model->change_transaction_status($trans_ref,$new_status,$json_data,$batch_used);
@@ -3498,10 +2623,15 @@ class Default_router extends CI_Controller{
 		$this->load_admin_views('login.php',$data,true);
 	}
 	
-	public function admin_voguepay(){
+	public function admin_unifiedpurse_widget(){
 		$this->check_admin_logged_in();
-		$data['page_title']="Voguepay Webview | Admin Panel";		
-		$this->load_admin_views('voguepay.php',$data);
+		$temp_url=$this->input->post('unifiedpurse_widget_url',true);
+		if(!empty($temp_url)){
+			$this->general_model->update_config('unifiedpurse_widget_url',$temp_url);
+			$data['Success']="Widget URL has been saved";
+		}
+		$data['page_title']="Unifiedpurse Transaction Widget | Admin Panel";		
+		$this->load_admin_views('unifiedpurse_widget.php',$data);
 	}
 	
 	public function panel(){
@@ -3871,6 +3001,95 @@ class Default_router extends CI_Controller{
 		$this->load_admin_views('whitelisted_messages.php',$data);
 	}
 	
+	
+	function _admin_complete_transaction($data,$transaction,array $payment_info=array(),$teller_info='',$admin_login_data=''){
+		$json_info=$this->general_model->get_json($transaction['json_info']);
+		$trans_ref=$transaction['transaction_reference'];
+		
+		if(!empty($payment_info['amount_paid'])&&is_numeric($payment_info['amount_paid'])){
+			if(empty($data['configs']))$data['configs']=$configs=$this->general_model->get_configs();
+			else $configs=$data['configs'];
+			
+			$amount_paid=$payment_info['amount_paid'];
+			$ccode=@$payment_info['currency_code'];
+			if($ccode!='USD'&&$ccode!='NGN')$ccode=$transaction['currency_code'];
+			$currencies=$this->general_model->get_currencies();
+			
+			//$currency_value=1; for NGN
+			$currency_value=$currencies[$ccode]['value'];					
+			$payment_method=$transaction['payment_method'];
+			
+			//remove gateway charges
+			$charges=$amount_paid*0.01*$configs[$payment_method.'_charge'];
+			$charge_cap=$configs[$payment_method.'_charge_cap'];
+			if($charge_cap>0&&$charge_cap<$charges)$charges=$charge_cap;
+			if(!empty($payment_info['gateway_charges']))$charges+=$payment_info['gateway_charges'];
+			$variable_charges=$charges;
+			
+			if($payment_method=='bank_deposit'&&ceil($amount_paid)<950)$apply_fixed_charge=false;
+			else $apply_fixed_charge=true;
+
+			if($apply_fixed_charge&&!empty($configs[$payment_method.'_charge_fixed'])){
+				$fixed_charge=$configs[$payment_method.'_charge_fixed']*$currencies[$ccode]['value'];
+				$charges+=$fixed_charge;
+			}
+			else $fixed_charge=0;
+			
+			$net_amount_paid=$amount_paid-$charges;
+			
+			//remove tax_amount
+			$tax_amount=0;
+			
+			if(!empty($configs['tax_percent'])){
+				$percent_plus_tax=100+$configs['tax_percent'];
+				$tax_amount=($net_amount_paid/$percent_plus_tax)*$configs['tax_percent'];
+				$net_amount_paid-=$tax_amount;
+			}
+			
+			//calculate equivalent units.
+			$is_reseller=$this->general_model->get_user_data($transaction['user_id'],'reseller_account');
+			$new_sms_units=$this->general_model->sms_price_to_units($net_amount_paid,$currency_value,!empty($is_reseller));
+				
+			$json_details=$this->general_model->get_json($transaction['json_details']);					
+			$new_json_details=array('sms_units'=>$new_sms_units,'original_amount'=>$net_amount_paid,'gateway_charges'=>$variable_charges,
+			'payment_method_fixed_charges'=>$fixed_charge,'tax_amount'=>$tax_amount,'tax_percent'=>$configs['tax_percent'],'approved_amount'=>$amount_paid);
+			$json_details=array_merge($json_details,$new_json_details);
+			
+			//then re-update transaction
+			$update_data=array('json_details'=>json_encode($json_details),'amount'=>$amount_paid);
+			$update_data['sms_units']=$new_sms_units;
+			$update_data['net_amount_ngn']=$net_amount_paid/$currencies[$ccode]['value'];
+					
+			$this->general_model->update_transaction($transaction['transaction_reference'],$update_data,false);
+			
+			$sstr=($fixed_charge==0)?"":"Payment Portal Fixed Charges: $fixed_charge $ccode<br/>";
+			
+			$json_info['response_description']="
+			Payment Analysis.<br/>
+			Gross amount paid: $amount_paid $ccode<br/>
+			TAX/VAT: ".number_format($tax_amount,2)." $ccode ({$configs['tax_percent']}%)<br/>
+			Payment Portal Charges: ".number_format($variable_charges,2)." $ccode<br/>
+			$sstr
+			NET Amount Paid: ".number_format($net_amount_paid,2)." $ccode<br/>
+			SMS CREDITS: $new_sms_units Units";
+		}
+		
+		if(!empty($teller_info))$json_info['info']=$teller_info;
+		if(!empty($admin_login_data)){
+		$json_info['admin_email']=$admin_login_data['email'];
+		$json_info['admin_id']=$admin_login_data['admin_id'];
+		}
+
+		$trans_resp=$this->general_model->change_transaction_status($trans_ref,1,$json_info);
+
+		if(!empty($admin_login_data)){
+			if(!empty($trans_resp['user']['credit_notification'])&&!empty($trans_resp['user']['balance']))$this->_send_sms($trans_resp['user']['user_id'],array(0=>$trans_resp['user']),$trans_resp['sms_msg'],'CGSMS'); 
+		}
+		
+		$data['Success']="Transaction status has now been successfully changed";
+	
+		return $data;
+	}
 	
 	
 	public function admin_transaction_history(){

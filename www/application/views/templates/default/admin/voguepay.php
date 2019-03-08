@@ -1,1 +1,0 @@
-<iframe width="100%" height="700" frameborder="0" scrolling="auto" seamless="seamless" src="https://voguepay.com/webview_embed/webview_token/v9ZrfWyXXf2hUBc52hb.33220" bla='/width/800' ></iframe>
