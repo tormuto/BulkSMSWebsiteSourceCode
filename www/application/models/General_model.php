@@ -369,6 +369,13 @@ MTN Nigeria
 		}
 
 		function get_user_id(){return $this->get_login_data('user_id');}
+        
+		function set_cookie($ck,$cv,$duration=604800){
+			$accessRange=".{$_SERVER['HTTP_HOST']}"; 	$accessRange="";
+			setcookie($ck,$cv,time()+$duration,'/',$accessRange);
+		}		
+		
+		function get_cookie($ck){ return isset($_COOKIE[$ck])?$_COOKIE[$ck]:null;}
 		######################### END LOGIN RELATED FUNCTIONS ##################
 	 
 	   function format_message_input($message,$user='')

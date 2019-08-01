@@ -131,6 +131,9 @@
 					<?php } ?>
 				</div>
 				<div style='font-size:70%;'>Batch ID: <?php echo $sms['batch_id']; ?></div>
+                <?php if($sms['status']!=2){ ?>
+                    <div style='font-size:70%;' class='text-muted' ><?php echo @$sms['info']; ?></div>
+                <?php } ?>
 			</td>
 		</tr>	
 	<?php } ?>

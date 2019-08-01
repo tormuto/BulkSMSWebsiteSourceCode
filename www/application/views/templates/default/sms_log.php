@@ -212,6 +212,9 @@
 						<?php if(!empty($sms['units'])){ ?>
 						<span class='label label-default'><?php echo $sms['units'];  echo ($sms['units']>1)?' units':' unit'; ?></span>
 						<?php } ?>
+                        <?php if($sms['status']!=2){ ?>
+						<div style='font-size:70%;' class='text-muted' ><?php echo $sms['info']; ?></div>
+						<?php } ?>
 					</div>
 				</td>
 			</tr>	

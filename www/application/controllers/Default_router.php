@@ -54,6 +54,7 @@ class Default_router extends CI_Controller{
 		
 		$this->general_model->current_tzo=$tzo;
 		$this->general_model->current_tz=$tz;
+        $this->_set_prefered_language();
 		
 		date_default_timezone_set($tz);
 		$this->_try_relogin();
@@ -76,6 +77,52 @@ class Default_router extends CI_Controller{
 		}
 	}
 	
+    function _set_prefered_language() {
+		$browser_preferred_language=$this->general_model->get_cookie('browser_preferred_language');
+		if($browser_preferred_language!==null)return $browser_preferred_language;
+		
+		if(empty($_SERVER["HTTP_ACCEPT_LANGUAGE"])){
+			return null;
+		}
+		
+		$_SERVER["HTTP_ACCEPT_LANGUAGE"] = 'en-us,en;q=0.8,es-cl;q=0.5,zh-cn;q=0.3';
+		$http_accept_language=@$_SERVER["HTTP_ACCEPT_LANGUAGE"];
+		
+		// Languages we support
+		$available_languages="en,fr,es,ru,it,ar,ja,de,zh-cn,zh-tw,nl,pt,af,ga,sq,az,eu,ko,bn,be,lv,bg,lt,ca,mk,ms,mt,hr,no,cs,fa,da,pl,ro,et,sr,tl,sk,fi,sl,gl,sw,ka,sv,ta,el,th,ht,tr,iw,uk,hi,ur,hu,vi,is,cy,id";
+		$available_languages=explode(',',$available_languages);
+		
+		$available_languages = array_flip($available_languages);
+		$langs=array();
+		preg_match_all('~([\w-]+)(?:[^,\d]+([\d.]+))?~', strtolower($http_accept_language), $matches, PREG_SET_ORDER);
+		if(!empty($matches)){
+			foreach($matches as $match) {
+				list($a,$b)=explode('-',$match[1]) + array('','');
+				$value = isset($match[2])?(float)$match[2]:1.0;
+
+				if(isset($available_languages[$match[1]])) {
+					$langs[$match[1]] = $value;
+					continue;
+				}
+
+				if(isset($available_languages[$a])) {
+					$langs[$a] = $value - 0.1;
+				}
+			}
+		}
+		arsort($langs); /* Result Array([en] => 0.8 [es] => 0.4 [zh-cn] => 0.3 )*/
+
+		if(!empty($langs)){
+			$maxs = array_keys($langs, max($langs));
+			$pref_lang=$maxs[0];
+			$this->general_model->set_cookie('browser_preferred_language',$pref_lang);
+			return $pref_lang;
+		}
+		
+		return null;
+	}
+	
+    
 	private function get_request($key,$treat=true){
 		$val=$this->input->post($key,$treat);
 		if(!empty($val))return $val;
@@ -1561,7 +1608,7 @@ class Default_router extends CI_Controller{
 			$has_link=stripos($message_templates['default'],'http')!==false||stripos($message_templates['default'],'www.')!==false;
 			
 			if(!$has_link)$has_link=preg_match('/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/si',$message_templates['default']); //check email too
-			if(!$has_link)$has_link=preg_match('/\b[0-9]{11,}\b/si',$message_templates['default']); //check phones too
+			if(!$has_link)$has_link=preg_match('/\b[0-9\-\(\) ]{10,}\b/si',$message_templates['default']); //check phones too
 			
 			if($flag_level>=2){ //level two can not send link at all
 				if($has_link)$restrict=true;

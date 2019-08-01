@@ -22,6 +22,7 @@
 	<script src="<?php echo $this->general_model->get_url('assets/js/jquery.min.js');?>"></script>
 	
 	<link href="<?php echo $this->general_model->get_url('bootstrap/css/bootstrap.min.css');?>" rel="stylesheet">
+	<link href="<?php echo $this->general_model->get_url('assets/css/custom_bootstrap_header.css');?>" rel="stylesheet">
 	
 	<?php
 		if(!empty($configs['facebook_app_id']))
@@ -42,139 +43,39 @@
 	<?php
 		}
 	?>
-	<style type='text/css'>
-		.navbar-brand,.side-nav li a{
-			color: #3c763d;
-			font-weight: bold;
-		}
-
-		.side-nav,.navbar-ex1-collapse{ background-color:#eee; }
-	</style>
 	
 </head>
 <body style='background-color:#fff;' >
     <div id="wrapper">
-        <!-- Navigation -->
-        <nav class="navbar  navbar-fixed-top" role="navigation" style='background-color:rgba(0,0,0,.1);' >
-            <!-- Brand and toggle get grouped for better mobile display -->
+        <nav class="navbar navbar-inverse navbar-fixed-top-x" role="navigation" id='top_navbar'>
+        <div class="container container-fluid">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <i class='fa fa-bars'></i>
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span> 
                 </button>
-				<a href='<?php echo $this->general_model->get_url();?>' class='pull-left' style='display:none;' >
-					<img src='<?php echo $this->general_model->get_url('assets/images/cheap_global_sms_logo.png'); ?>' style='max-height:35px;background-color:#fff;'/>
-				</a>
-                <a class="navbar-brand" href="<?php echo $this->general_model->get_url();?>">
-					<?php echo $site_name; ?>
+				<a href='<?php echo $this->general_model->get_url();?>' class='navbar-brand <?php if($page_name=='dashboard')echo 'active'; ?>"'  >
+					<img src='<?php echo $this->general_model->get_url('assets/images/logo.png'); ?>' alt='<?php echo $site_name; ?>' style='max-height:50px;'/>
+                    <?php echo $site_name; ?>
 				</a>
             </div>
-            <!-- Top Menu Items -->
-            <ul class="nav navbar-right top-nav">
-				<?php if($this->general_model->logged_in() && !empty($my_profile)){ ?>
-				<li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user"></i> <?php echo $my_profile['default_sender_id']; ?> <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('pricing');?>"><i class="fa fa-fw fa-database"></i><?php echo $my_profile['balance']; ?> Units</a>
-                        </li>
-						<?php if(!empty($my_profile['reseller_account'])){ ?>
-                        <li>
-							<a href='<?php echo $this->general_model->get_url('?refill_surety=1');?>' >
-							<?php echo empty($my_profile['owing_surety'])?"<i class='fa fa-check text-success'></i>":"<i class='fa fa-warning-sign text-danger'></i>"; ?> Reseller Surety
-						   </a>
-                        </li>
-						<?php } ?>
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('sub_accounts');?>"><i class="fa fa-fw fa-cubes"></i> Sub Accounts</a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('transaction');?>" style='white-space:nowrap;'><i class="fa fa-fw fa-list"></i> My Transactions</a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('profile'); ?>"><i class="fa fa-fw fa-user"></i> Profile</a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('reset_password'); ?>"  style='white-space:nowrap;' ><i class="fa fa-fw fa-key"></i> Reset Password</a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('?logout=1'); ?>" style='color:#A94442;' ><i class="fa fa-fw fa-power-off"></i> Log Out</a>
-                        </li>
-                    </ul>
-                </li>
-				<li>
-					<a href="<?php echo $this->general_model->get_url('pricing');?>"><i class="fa fa-fw fa-database"></i> 	<?php 
-							if($my_profile['balance']<0&&$my_profile['flag_level']>0)echo "<span class='text-danger'>-0</span>"; 
-							else echo  $my_profile['balance'];
-						?>
-					</a>
-				</li>
-				<?php } else { ?>
-                    <li>
-                        <a href="javascript:void(0)" data-toggle='modal' data-target='#login'> Login</a>
-                    </li>
-                    <li>
-                        <a href="javascript:void(0)" data-toggle='modal' data-target='#signup' > Register</a>
-                    </li>
-				<?php } ?>
-				
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-question"></i> <b class="caret"></b></a>
-                    <ul class="dropdown-menu alert-dropdown">
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('faqs');?>">FAQs</a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('terms');?>">Terms & Condition</a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('privacy_policy');?>">Privacy</a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="<?php echo $this->general_model->get_url('contact_us');?>">Contact Us</a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-            <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
-            <div class="collapse navbar-collapse navbar-ex1-collapse">
-                <ul class="nav navbar-nav side-nav">
-                    <li class="<?php if($page_name=='dashboard')echo 'active'; ?>">
-                        <a href="<?php echo $this->general_model->get_url();?>">
-							<i class="fa fa-fw fa-dashboard"></i> Dashboard
-						</a>
-                    </li>
-                    <li  class="<?php if($page_name=='payment')echo 'active'; ?>">
-                        <a href="<?php echo $this->general_model->get_url('pricing');?>"><i class="fa fa-fw fa-database"></i> Buy SMS Credits</a>
+            <div class="collapse navbar-collapse" id='myNavbar'>
+                <ul class="nav navbar-nav">
+                    <li class="<?php if($page_name=='send_sms')echo 'active'; ?>">
+                        <a href="<?php echo $this->general_model->get_url('send_sms');?>"><i class="fa fa-fw fa-send"></i> Send SMS</a>
                     </li>
                     <li class="<?php if($page_name=='pricing')echo 'active'; ?>">
-                        <a href="<?php echo $this->general_model->get_url('pricing');?>"><i class="fa fa-fw fa-table"></i> Price List</a>
+                        <a href="<?php echo $this->general_model->get_url('pricing');?>"><i class="fa fa-fw fa-table"></i> Pricing</a>
                     </li>
                     <li  class="<?php if($page_name=='coverage_list')echo 'active'; ?>">
-                        <a href="<?php echo $this->general_model->get_url('coverage_list');?>"><i class="fa fa-fw fa-list-alt"></i> Coverage List</a>
+                        <a href="<?php echo $this->general_model->get_url('coverage_list');?>"><i class="fa fa-fw fa-globe"></i> Coverage</a>
                     </li>
-					<?php if(!$this->general_model->logged_in()){ ?>
-                    <li  class="<?php if($page_name=='registration')echo 'active'; ?>">
-                        <a href="<?php echo $this->general_model->get_url('registration/send_free_sms');?>"><i class="fa fa-fw fa-paper-plane"></i> Send Testing SMS</a>
-                    </li>
-					<?php } ?>
-				    <li  class="<?php if($page_name=='my_contacts')echo 'active'; ?>">
-                        <a href="<?php echo $this->general_model->get_url('my_contacts');?>">
-							<i class="fa fa-fw fa-mobile"></i> Contacts/Numbers
+                    <li  class="dropdown <?php if(!empty($current_tab)&&$current_tab=='sms_log')echo 'active'; ?>">
+                        <a href="#" class='dropdown-toggle' data-toggle='dropdown' role='button' aria-haspopup='true' aria-expanded='false' >
+							<i class="fa fa-fw fa-list"></i> Reports<i class="fa fa-fw fa-caret-down pull-right"></i>
 						</a>
-                    </li>
-                    <li  class="<?php if(!empty($current_tab)&&$current_tab=='sms')echo 'active'; ?>">
-                        <a href="javascript:;" data-toggle="collapse" data-target="#send_sms_menus">
-							<i class="fa fa-fw fa-paper-plane-o"></i> SMS Sending<i class="fa fa-fw fa-caret-down pull-right"></i>
-						</a>
-                        <ul id="send_sms_menus" class="collapse <?php if(!empty($current_tab)&&$current_tab=='sms')echo 'in'; ?>">
-                            <li>
-                                <a href="<?php echo $this->general_model->get_url('send_sms');?>">
-									<i class="fa fa-fw fa-paper-plane"></i> Send SMS
-								</a>
-                            </li>
+                        <ul class="dropdown-menu">                           
 							<li>
 								<a href="<?php echo $this->general_model->get_url('sms_log');?>">
 									<i class="fa fa-fw fa-list"></i> All Delivery Reports
@@ -190,20 +91,118 @@
 									<i class="fa fa-fw fa-envelope-o"></i> Sent Messages
 								</a>
 							</li>
+							<li>
+								<a href="<?php echo $this->general_model->get_url('sms_log?stage=failed');?>">
+									<i class="fa fa-fw fa-warning"></i> Undelivered Messages
+								</a>
+							</li>
                         </ul>
-                    </li>                    
-					<li  class="<?php if($page_name=='gateway_api')echo 'active'; ?>">
-                        <a href="<?php echo $this->general_model->get_url('gateway_api');?>"><i class="fa fa-fw fa-wrench"></i> Gateway API</a>
+                    </li>   
+                    <li  class='dropdown'>
+                        <a href="#" class='dropdown-toggle' data-toggle='dropdown' role='button' aria-haspopup='true' aria-expanded='false'>
+							<i class="fa fa-fw fa-wrench"></i> Tools<i class="fa fa-fw fa-caret-down pull-right"></i>
+						</a>
+                        <ul class="dropdown-menu">  
+                            <li  class="<?php if($page_name=='my_contacts')echo 'active'; ?>">
+                                <a href="<?php echo $this->general_model->get_url('my_contacts');?>">
+                                    <i class="fa fa-fw fa-mobile"></i> Contacts Manager
+                                </a>
+                            </li>
+							<li>
+                                <a href="<?php echo $this->general_model->get_url('gateway_api');?>"><i class="fa fa-fw fa-wrench"></i> Gateway API</a>
+							</li>
+							<li>
+								<a href="<?php echo $this->general_model->get_url('reseller');?>" style='font-weight:800;' ><i class="fa fa-fw fa-recycle"></i> Bulk SMS Reseller</a>
+							</li>
+                        </ul>
                     </li>
-					<li  class="<?php if($page_name=='reseller')echo 'active'; ?>" >
-                        <a href="<?php echo $this->general_model->get_url('reseller');?>" style='font-weight:800;' ><i class="fa fa-fw fa-recycle"></i> Bulk SMS Reseller</a>
-                    </li>
-					<li>
-						<div id='google_translate_element' style='display:inline-block;max-width:100%;overflow:auto;'></div>
+					<li>                        
+                        <div style='display:inline-block;float:right;margin:10px;margin-top:15px;'>
+                            <span class='dropdown' >
+                                <a href='#' class='dropdown-toggle' data-toggle='dropdown' role='button' aria-haspopup='true' aria-expanded='false' title='Change Langugage'>
+                                    <i class='fa fa-language' style='color:#ffffff;'></i>
+                                    <img src='//:0' alt='' class='flag flag_GBR' id='google_translate_flags_main_img' />
+                                </a>
+                                <ul class='dropdown-menu' style='max-height:400px;overflow:auto;' id='google_translate_flags_container'></ul>
+                            </span>
+                          </div>
 					</li>
 				</ul>
+            
+                <ul class="nav navbar-nav navbar-right">
+                    <?php if($this->general_model->logged_in() && !empty($my_profile)){ ?>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-user"></i> <?php echo $my_profile['default_sender_id']; ?> <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('pricing');?>"><i class="fa fa-fw fa-database"></i><?php echo $my_profile['balance']; ?> Units</a>
+                            </li>
+                            <?php if(!empty($my_profile['reseller_account'])){ ?>
+                            <li>
+                                <a href='<?php echo $this->general_model->get_url('?refill_surety=1');?>' >
+                                <?php echo empty($my_profile['owing_surety'])?"<i class='fa fa-check text-success'></i>":"<i class='fa fa-warning-sign text-danger'></i>"; ?> Reseller Surety
+                               </a>
+                            </li>
+                            <?php } ?>
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('sub_accounts');?>"><i class="fa fa-fw fa-cubes"></i> Sub Accounts</a>
+                            </li>
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('transaction');?>" style='white-space:nowrap;'><i class="fa fa-fw fa-list"></i> My Transactions</a>
+                            </li>
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('profile'); ?>"><i class="fa fa-fw fa-user"></i> Profile</a>
+                            </li>
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('reset_password'); ?>"  style='white-space:nowrap;' ><i class="fa fa-fw fa-key"></i> Reset Password</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('?logout=1'); ?>" style='color:#A94442;' ><i class="fa fa-fw fa-power-off"></i> Log Out</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="<?php echo $this->general_model->get_url('pricing');?>"><i class="fa fa-fw fa-database"></i> 	<?php 
+                                if($my_profile['balance']<0&&$my_profile['flag_level']>0)echo "<span class='text-danger'>-0</span>"; 
+                                else echo  $my_profile['balance'];
+                            ?>
+                        </a>
+                    </li>
+                    <?php } else { ?>
+                        <li>
+                            <a href="javascript:void(0)" data-toggle='modal' data-target='#login'> Login</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" data-toggle='modal' data-target='#signup' > Register</a>
+                        </li>
+                    <?php } ?>
+                    
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-question"></i> <b class="caret"></b></a>
+                        <ul class="dropdown-menu alert-dropdown">
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('faqs');?>">FAQs</a>
+                            </li>
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('terms');?>">Terms & Condition</a>
+                            </li>
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('privacy_policy');?>">Privacy</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
+                                <a href="<?php echo $this->general_model->get_url('contact_us');?>">Contact Us</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                
+            
             </div>
-            <!-- /.navbar-collapse -->
+        </div>
         </nav>
 <?php  if(!$this->general_model->logged_in()){ ?>
 <form action='<?php echo $this->general_model->get_url('login'); ?>' role='form' method='post'>
@@ -334,11 +333,10 @@
   <!-- End code for Login / Signup Popup -->
   </form>
  <?php } ?>
-        <div id="page-wrapper">
-            <div class="container-fluid" style='min-height:680px;padding-bottom:50px;'>
-				<?php if(!empty($this->general_model->flash_message)){ ?>
-						<div class='alert alert-info fade in'>
-							<span class='close' data-dismiss='alert'>&times;</span>
-							<?php echo $this->general_model->flash_message;?>
-						</div>
-				<?php } ?>
+    <div class="container" style='min-height:680px;padding-bottom:50px;margin-top:10px;'>
+        <?php if(!empty($this->general_model->flash_message)){ ?>
+                <div class='alert alert-info fade in'>
+                    <span class='close' data-dismiss='alert'>&times;</span>
+                    <?php echo $this->general_model->flash_message;?>
+                </div>
+        <?php } ?>

@@ -24,15 +24,17 @@
                 }
                 
                 if($is_image){ //distort the image to prevent exploit
+                    $has_alpha=true;
                     if($ftype=='image/png'){
                         if (!$image = @imagecreatefrompng($sourceImage))return false;
                     } elseif($ftype=='image/gif'){
                         if (!$image = @imagecreatefromgif($sourceImage))return false;
                     } else {
                         if (!$image = @imagecreatefromjpeg($sourceImage))return false;
+                        $has_alpha=false;
                     }
 
-                    $quality=99; //99%
+                    $quality=100; //99%
                     list($origWidth,$origHeight)=getimagesize($sourceImage);
                     $newWidth=$origWidth; $newHeight=$origHeight;
                     
@@ -43,8 +45,18 @@
                     $newHeight = (int)$origHeight * $ratio;
                     
                     $newImage = imagecreatetruecolor($newWidth, $newHeight);
+                    if($has_alpha)imagesavealpha($newImage , true);
                     imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
                     $targetImage=$sourceImage;
+                    
+                    
+                    if($has_alpha){
+                        imagealphablending($newImage,false);
+                        imagesavealpha($newImage,true);
+                        //convert quality to compression. (inverse)
+                        if($quality==0||$quality==100)$quality=0;
+                        else { $quality=floor((100-$quality)/100); }
+                    }
 
                     if($ftype=='image/png')imagepng($newImage, $targetImage, $quality);
                     elseif($ftype=='image/gif')imagegif($newImage, $targetImage, $quality);
