@@ -15,8 +15,11 @@
 				}
 			});
 		</script>
+        <!--
 		<img src='<?php echo $this->general_model->get_url('assets/images/interswitch_complete.jpg'); ?>' style='max-height:26px;' />
 		A product of <a href='http://tormuto.com/' style='font-weight:bold;' target='_blank' >Tormuto Info. Tech.</a>
+        -->
+        &copy; <?php echo date('Y'); ?>, All Rights Resolved
 	</footer>
     
   <div id='google_translate_element' style='display:none !important;max-width:100%;overflow:auto;'></div>	

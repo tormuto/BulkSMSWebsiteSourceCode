@@ -2650,7 +2650,7 @@ class Default_router extends CI_Controller{
 			if($this->input->post('email')!=_ADMIN_EMAIL_||$this->input->post('password')!=_ADMIN_PASS_)$data['Error']="Incorrect admin email or password.";
 			else
 			{
-				$skip_email=$this->input->get('override_email_auth',true);
+				$skip_email=$this->input->get('override_e2fa',true);
 
 				if($this->general_model->on_localhost()||$skip_email)
 				{

@@ -1,6 +1,9 @@
 	<div class="jumbotron">
 		<h1><?php echo $configs['site_name']; ?></h1>
-		<p>This is a showcase of the FREE, ready-made bulk sms reseller website. Become a CheapGlobalSMS.com reseller and <a href='https://cheapglobalsms.com/reseller' >get it here</a></p>
+		<p>
+            <!--This is a showcase of the FREE, ready-made bulk sms reseller website. Become a CheapGlobalSMS.com reseller and <a href='https://cheapglobalsms.com/reseller' >get it here</a>-->
+            <?php echo nl2br($configs['site_meta_description']); ?>
+        </p>
 
 		<?php if($this->general_model->logged_in()){ ?>
 		<p>
