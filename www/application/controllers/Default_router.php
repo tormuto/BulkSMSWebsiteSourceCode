@@ -1755,8 +1755,7 @@ class Default_router extends CI_Controller{
             if($amount<=0)$amount=0;
 			$pricing_page=$this->general_model->get_url('pricing');
 			if($adding&&$amount>$data['my_profile']['balance'])$data['Error']="Sorry, you don't have up to $amount SMS credits in your main balance, <a class='alert-link' href='$pricing_page'> get more SMS credits</a>.";
-			else
-			{
+			elseif($amount>0){
 				$sub_account_data=$this->general_model->get_sub_account($sub_account_id,$user_id);
 				if(empty($sub_account_data))$data['Error']="sub-account record not found.";
 				else
