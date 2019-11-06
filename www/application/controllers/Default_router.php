@@ -1751,7 +1751,8 @@ class Default_router extends CI_Controller{
 		if($this->input->post('add_credits')||$this->input->post('remove_credits')){
 			$adding=$this->input->post('add_credits');
 			$sub_account_id=$this->input->post('sub_account_id');
-			$amount=$this->input->post('amount');
+			$amount=floatval($this->input->post('amount',true));
+            if($amount<=0)$amount=0;
 			$pricing_page=$this->general_model->get_url('pricing');
 			if($adding&&$amount>$data['my_profile']['balance'])$data['Error']="Sorry, you don't have up to $amount SMS credits in your main balance, <a class='alert-link' href='$pricing_page'> get more SMS credits</a>.";
 			else
