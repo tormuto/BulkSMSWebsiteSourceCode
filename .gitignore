@@ -48,3 +48,4 @@ Temporary Items
 
 # Project-declared local testing config file
 /www/config.php
+/www/localhost_config.php
