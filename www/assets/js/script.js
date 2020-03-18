@@ -20,18 +20,15 @@ function showError(msg){
 }
 */
 	
-function runAjax(params,callbackFunction)
-{
+function runAjax(params,callbackFunction){
 	var url=base_url+'ajax_processor';
 	
 	
-	$.post(url,params,function(response)
-	{
+	$.post(url,params,function(response){
 		var response_json={};
 		
 		if(!response||response=='')response_json.response_error='Empty response from server';
 		else {
-				
 			var json;
 			try
 			{
@@ -64,8 +61,7 @@ function runAjax(params,callbackFunction)
 		});
 	}
 
-	function ui_confirm(msg,callback_function,action,title,callback_function_cancel)
-	{
+	function ui_confirm(msg,callback_function,action,title,callback_function_cancel){
 		if(typeof title === 'undefined')title='CGSMS Confirm';
 		if(typeof btn_text === 'undefined')btn_text='OK';
 		
@@ -87,8 +83,7 @@ function runAjax(params,callbackFunction)
 	}
 
 
-	$(function()
-	{
+	$(function(){
 		window.infoHolder=$('#info_holder');
 		
 		$('body').on('focus','.autocomplete_contact',
@@ -133,7 +128,16 @@ function runAjax(params,callbackFunction)
 		monitor_sms_characters();
 		
 		impose_textarea_maxlength();
-		$('[data-toggle="tooltip"]').tooltip();
+		if($.fn.tooltip)$('[data-toggle="tooltip"]').tooltip();
+        
+        if($.fn.summernote){
+		$('.textarea').summernote({
+			onChange: function(text,editing) {
+					$(editing.context).val(text);
+                }
+			}
+		);
+        }
 		
 	});
 

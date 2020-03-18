@@ -81,16 +81,20 @@ class Default_router extends CI_Controller{
 		$browser_preferred_language=$this->general_model->get_cookie('browser_preferred_language');
 		if($browser_preferred_language!==null)return $browser_preferred_language;
 		
+		// Languages we support
+		$available_languages="en,fr,es,ru,it,ar,ja,de,zh-cn,zh-tw,nl,pt,af,ga,sq,az,eu,ko,bn,be,lv,bg,lt,ca,mk,ms,mt,hr,no,cs,fa,da,pl,ro,et,sr,tl,sk,fi,sl,gl,sw,ka,sv,ta,el,th,ht,tr,iw,uk,hi,ur,hu,vi,is,cy,id";
+		$available_languages=explode(',',$available_languages);
+        
+        $force_default_lang=$this->general_model->get_config('force_default_lang');
+        if(!empty($force_default_lang)&&in_array($force_default_lang,$available_languages))$_SERVER["HTTP_ACCEPT_LANGUAGE"]="$force_default_lang";
+        
 		if(empty($_SERVER["HTTP_ACCEPT_LANGUAGE"])){
 			return null;
 		}
 		
-		$_SERVER["HTTP_ACCEPT_LANGUAGE"] = 'en-us,en;q=0.8,es-cl;q=0.5,zh-cn;q=0.3';
+		//$_SERVER["HTTP_ACCEPT_LANGUAGE"] = 'en-us,en;q=0.8,es-cl;q=0.5,zh-cn;q=0.3';
 		$http_accept_language=@$_SERVER["HTTP_ACCEPT_LANGUAGE"];
 		
-		// Languages we support
-		$available_languages="en,fr,es,ru,it,ar,ja,de,zh-cn,zh-tw,nl,pt,af,ga,sq,az,eu,ko,bn,be,lv,bg,lt,ca,mk,ms,mt,hr,no,cs,fa,da,pl,ro,et,sr,tl,sk,fi,sl,gl,sw,ka,sv,ta,el,th,ht,tr,iw,uk,hi,ur,hu,vi,is,cy,id";
-		$available_languages=explode(',',$available_languages);
 		
 		$available_languages = array_flip($available_languages);
 		$langs=array();
@@ -434,8 +438,11 @@ class Default_router extends CI_Controller{
 			$this->form_validation->set_rules($rules); 
 			$this->form_validation->set_message('is_unique',"The %s is already registered to an account. Please <a href='".$this->general_model->get_url('login')."' class='alert-link' >login instead</a> if you are the owner of this email address, or simply <a href='".$this->general_model->get_url('reset_password')."' class='alert-link' >reset your password</a> if you've forgot.");
 			$data['countries']=$this->general_model->get_countries(false);
-			if($this->form_validation->run())
-			{
+            
+            if(empty($data['configs']['allowed_signup_email_domains']))$data['allowed_signup_email_domains']=array();
+            else $data['allowed_signup_email_domains']=explode(',',$data['configs']['allowed_signup_email_domains']);
+            
+			if($this->form_validation->run()){
 				$email=$this->input->post('email',true);
 				$code=mt_rand(10000,999999);
 				$phone=$this->input->post('phone',true);
@@ -457,42 +464,59 @@ class Default_router extends CI_Controller{
 					);
 					
 				$flag_level=0;
-				if(!empty($data['configs']['blacklisted_names'])){
-					$blacklisted_combination=explode(',',$data['configs']['blacklisted_names']);
-					foreach($blacklisted_combination as $black)
-					{
-						if(stristr(strtolower($firstname),$black)!==FALSE){$flag_level++; break;}
-					}
-					foreach($blacklisted_combination as $black)
-					{
-						if(stristr(strtolower($lastname),$black)!==FALSE){$flag_level++; break;}
-					}
-					foreach($blacklisted_combination as $black)
-					{
-						if(stristr(strtolower($default_sender_id),$black)!==FALSE){$flag_level++; break;}
-					}
-					
-					/*
-					if(in_array(trim(strtolower($firstname)),$blacklisted_combination))$flag_level++;
-					if(in_array(trim(strtolower($lastname)),$blacklisted_combination))$flag_level++;
-					if(in_array(trim(strtolower($default_sender_id)),$blacklisted_combination))$flag_level++;
-					*/
-				}
+                if(!empty($data['allowed_signup_email_domains'])){
+                    $match_allowed=false;
+                    foreach($data['allowed_signup_email_domains'] as $ased){
+                        if(stristr($email,$ased)){
+                            $match_allowed=true;
+                            break;
+                        }
+                    }
+                    
+                    if(!$match_allowed){
+                        $data['signup_stage']=1;
+                        $data['Error']="Due to massive abuse of platform by creating multiple accounts with disposable/temporary emails, only the following popular email domains are allowed for registration <strong>".implode(', ',$allowed_signup_email_domains)."</strong>. <br/>For special consideration to register with your webmail, please chat with live support for whitelisting your web domain.";;
+                    }                    
+                }
+            
+                if(empty($data['Error'])){
+                    if(!empty($data['configs']['blacklisted_names'])){
+                        $blacklisted_combination=explode(',',$data['configs']['blacklisted_names']);
+                        foreach($blacklisted_combination as $black)
+                        {
+                            if(stristr(strtolower($firstname),$black)!==FALSE){$flag_level++; break;}
+                        }
+                        foreach($blacklisted_combination as $black)
+                        {
+                            if(stristr(strtolower($lastname),$black)!==FALSE){$flag_level++; break;}
+                        }
+                        foreach($blacklisted_combination as $black)
+                        {
+                            if(stristr(strtolower($default_sender_id),$black)!==FALSE){$flag_level++; break;}
+                        }
+                        
+                        /*
+                        if(in_array(trim(strtolower($firstname)),$blacklisted_combination))$flag_level++;
+                        if(in_array(trim(strtolower($lastname)),$blacklisted_combination))$flag_level++;
+                        if(in_array(trim(strtolower($default_sender_id)),$blacklisted_combination))$flag_level++;
+                        */
+                    }
 
-				$reg_url="";
-				if($flag_level<2){
-					$cid=$this->general_model->insert_pending_email_data($presetData);
-					$reg_url=$this->general_model->get_url("registration/?cid=$cid&code=$code");
-					$msg="Please follow this link to complete your registration process: $reg_url";
-					$this->general_model->send_email($email,"Email Verification Link",$msg,'','');
-				}
-				
-				$data['Success']="Your email verification link has been sent to your email address ($email). This link will only be valid for 24 hours. Please check your email to complete the registration process. PLEASE CHECK THE SPAM FOLDER IF YOU COULDN'T SEE THE LINK IN YOUR INBOX.";
-				
-				if($this->general_model->on_localhost()){
-					$data['Success'].="<p>Localhost override link: <a href='$reg_url' class='alert-link'>$reg_url</a></p>";
-				}
-			}
+                    $reg_url="";
+                    if($flag_level<2){
+                        $cid=$this->general_model->insert_pending_email_data($presetData);
+                        $reg_url=$this->general_model->get_url("registration/?cid=$cid&code=$code");
+                        $msg="Please follow this link to complete your registration process: $reg_url";
+                        $this->general_model->send_email($email,"Email Verification Link",$msg,'','');
+                    }
+                    
+                    $data['Success']="Your email verification link has been sent to your email address ($email). This link will only be valid for 24 hours. Please check your email to complete the registration process. PLEASE CHECK THE SPAM FOLDER IF YOU COULDN'T SEE THE LINK IN YOUR INBOX.";
+                    
+                    if($this->general_model->on_localhost()){
+                        $data['Success'].="<p>Localhost override link: <a href='$reg_url' class='alert-link'>$reg_url</a></p>";
+                    }
+                }
+            }
 			else $data['signup_stage']=1;
 		}
 		elseif(empty($data['Error']))
@@ -2681,8 +2705,7 @@ class Default_router extends CI_Controller{
 		$this->load_admin_views('unifiedpurse_widget.php',$data);
 	}
 	
-	public function panel(){
-	
+	public function panel(){	
 		if($this->input->get('logout'))$this->general_model->log_admin_out();		
 		$this->check_admin_logged_in();
 		ini_set('error_reporting',E_WARNING|E_ERROR|E_PARSE);
@@ -2700,10 +2723,14 @@ class Default_router extends CI_Controller{
 						'cgsms_sub_account'=>$this->input->post('cgsms_sub_account',true),
 						'cgsms_sub_account_password'=>$this->input->post('cgsms_sub_account_password',true),
 						'max_linked_sms'=>$this->input->post('max_linked_sms',true),
+						'force_default_lang'=>$this->input->post('force_default_lang',true),
 						'site_meta_title'=>$this->input->post('site_meta_title',true),
 						'site_meta_copyright'=>$this->input->post('site_meta_copyright',true),
 						'site_meta_keywords'=>$this->input->post('site_meta_keywords',true),
 						'site_meta_description'=>$this->input->post('site_meta_description',true),
+						'home'=>$this->input->post('home'),
+						'snippets_in_header'=>$this->input->post('snippets_in_header'),
+						'snippets_in_footer'=>$this->input->post('snippets_in_footer'),
 						'site_vertical_banner'=>$this->input->post('site_vertical_banner'),
 						'site_vertical_long_banner'=>$this->input->post('site_vertical_long_banner'),
 						'site_horizontal_banner'=>$this->input->post('site_horizontal_banner'),
@@ -2715,9 +2742,13 @@ class Default_router extends CI_Controller{
 						'facebook_page_id'=>$this->input->post('facebook_page_id',true),
 						'facebook_app_id'=>$this->input->post('facebook_app_id',true),
 					);
+
+            if(empty(trim(strip_tags($presetData['home']))))$presetData['home']='';
+            
+			$allowed_signup_email_domains=preg_replace("~\s*,\s*~",',',$this->input->post('allowed_signup_email_domains',true));
+			$presetData['allowed_signup_email_domains']=strtolower(trim($allowed_signup_email_domains,', '));
 					
-			$blacklisted_names=$this->input->post('blacklisted_names',true);
-			$blacklisted_names=preg_replace("~\s*,\s*~",',',$blacklisted_names);
+			$blacklisted_names=preg_replace("~\s*,\s*~",',',$this->input->post('blacklisted_names',true));
 			$presetData['blacklisted_names']=strtolower(trim($blacklisted_names,', '));
 		}
 		$rules=		

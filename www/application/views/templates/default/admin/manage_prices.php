@@ -42,16 +42,17 @@
             </div>            
             <form role='form ' method='post'>
                 <div id='price_divs'></div>
+                
+                <div id='actions_div' style='margin-top:20px;'>
+                    <input type='hidden' name='num_prices' id='num_prices' />
+                    <a href='javascript:addNewFields()' class='btn btn-default' title='add new fields'>
+                        <i class='fa fa-plus'></i> Add Pricing
+                    </a>
+                    <button class='btn btn-primary pull-right' value='save' name='save'>
+                        <i class='fa fa-save'></i> SAVE
+                    </button>
+                </div>
             </form>
-            <div id='actions_div' style='margin-top:20px;'>
-                <input type='hidden' name='num_prices' id='num_prices' />
-                <a href='javascript:addNewFields()' class='btn btn-default' title='add new fields'>
-                    <i class='fa fa-plus'></i> Add Pricing
-                </a>
-                <button class='btn btn-primary pull-right' value='save' name='save'>
-                    <i class='fa fa-save'></i> SAVE
-                </button>
-            </div>
         </div>
     </div>
 <hr/>

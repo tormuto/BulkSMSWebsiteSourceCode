@@ -43,15 +43,26 @@
 		</label>
 		<input type='number' name='cron_mails_per_minute' min='1' max='10' placeholder='2' value="<?php echo $presetData['cron_mails_per_minute'];?>" class='form-control input-sm' required>
 	</div>
-	<div class='form-group col-md-3 col-sm-4'>
+	<div class='form-group col-md-2 col-sm-4'>
 		<label for='minimum_units'>
 			Minimum Units
 		</label>
 		<input type='number' name='minimum_units' value="<?php echo $presetData['minimum_units'];?>" class='form-control input-sm' placeholder='1' required>
 	</div>
-	<div class='form-group col-md-3 col-sm-4'>
-		<label for='max_linked_sms'>Max hyperlinked bulk SMS</label>
+	<div class='form-group col-md-2 col-sm-2'>
+		<label for='max_linked_sms' class='small'>Max hyperlinked bulk SMS</label>
 		<input type='number' name='max_linked_sms' value="<?php echo $presetData['max_linked_sms'];?>" class='form-control input-sm' placeholder='50' required>
+	</div>
+	<div class='form-group col-md-2 col-sm-2'>
+		<label for='force_default_lang'>Force Default Lang</label>
+		<select name='force_default_lang' class='form-control input-sm'>
+            <option value=''>English (Default)</option>
+            <?php foreach($this->general_model->languages as $lang =>$lang_name){
+                    if($lang=='en')continue;
+                    $is_sel=($presetData['force_default_lang']==$lang)?'selected':'';
+                    echo "<option value='$lang' $is_sel>$lang_name</option>";
+                } ?>
+        </select>
 	</div>
 
 	<div class='clearfix'></div>
@@ -71,6 +82,14 @@
 	</div>
 	<div class='clearfix'></div>
 	<hr/>
+    
+    <div class='form-group col-md-12' data-toggle='tooltip' title='E.g @gmail.com,@yahoo.com, ... If supplied, only those email containing these will be allowed'>
+        <label for=''>Allowed Signup Email Domains</label>
+        <?php 
+            $temp_default="@yahoo.,@gmail.,@googlemail.,@aol.,@yandex.,@live.,@outlook.,@hotmail.,@ymail.,@mail.,@gmx.,@rocketmail.,@protonmail.,@hushmail.,@foxmail.,@vfemail.net,@pophorn.,@puxmail.,@qq.,@msn.";
+            if(!isset($presetData['allowed_signup_email_domains']))$presetData['allowed_signup_email_domains']=$temp_default; ?>
+        <textarea name='allowed_signup_email_domains' class='form-control'  placeholder='<?php echo $temp_default; ?>' rows=2><?php echo $presetData['allowed_signup_email_domains'];?></textarea>
+    </div>
 	<div class='form-group col-md-12'>
 		<label for=''>Blacklisted Names</label>
 		<textarea name='blacklisted_names' class='form-control'  placeholder='Blacklist malicious user names/ sender_ids; these ids will not be allowed to register' rows=2><?php echo $presetData['blacklisted_names'];?></textarea>
@@ -135,10 +154,119 @@ i want to send bulk sms,sms gateway,sms marketing,bulk sms,send bulk sms,cheap b
 		<label for='site_meta_description'>Website Meta Description</label>
 		<textarea name='site_meta_description' class='form-control'  placeholder='The fastest and most reliable Bulk SMS service provider to all networks worldwide. With robust SMS gateway API for developers' rows='2' required><?php echo $presetData['site_meta_description'];?></textarea>
 	</div>
-	
+    
+    
 	<div class='clearfix'></div>
-	<div>
-		<button class='btn btn-primary pull-right' value='save' name='save_configs'><span class='glyphicon glyphicon-save'> SAVE</button>
+	<h3> Snippets </h3>
+	<hr/>	
+	<div class='form-group col-md-6 col-sm-6'>
+		<label for='snippets_in_header'>To Be Inserted Before &lt;/HEAD&gt;</label>
+		<textarea name='snippets_in_header' class='form-control'  placeholder='Optional extra JS/CSS' rows='3' ><?php echo $presetData['snippets_in_header'];?></textarea>
+	</div>
+	<div class='form-group col-md-6 col-sm-6'>
+		<label for='snippets_in_footer'>To Be Inserted Before &lt;/BODY&gt;</label>
+		<textarea name='snippets_in_footer' class='form-control'  placeholder='Optional extra JS/html' rows='3'><?php echo $presetData['snippets_in_footer'];?></textarea>
+        <span class='btn-link' onclick="$('#sample_snippet_div').toggle();" >E.g, a Tawk Chat Snippet like this</span>
+        <div id='sample_snippet_div'style='display:none;' >
+        <pre>
+        &lt;script type="text/javascript">
+        var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+        if(typeof my_email!=='undefined'&&my_email){
+            Tawk_API.visitor = {email:my_email,name:my_name};
+        }
+        
+        (function(){
+        var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+        s1.async=true;
+        s1.src='https://embed.tawk.to/YOUR-TAWK-CODE/default';
+        s1.charset='UTF-8';
+        s1.setAttribute('crossorigin','*');
+        s0.parentNode.insertBefore(s1,s0);
+        })();
+        &lt;/script>
+        </pre>
+        </div>
+	</div>
+
+    
+    <div class='clearfix'></div>
+<?php 
+{
+    $base_url=$this->general_model->get_url();
+    $descr=nl2br($configs['site_meta_description']);
+
+$home_default="
+	<div class='jumbotron'>
+		<h1>{$configs['site_name']}</h1>
+		<p>
+            $descr
+        </p>
+
+		<p>
+			<a class='btn btn-success btn-lg' href='{$base_url}pricing' role='button' style='margin-top:8px;'>
+				Get SMS Credits
+			</a> 
+			<a class='btn btn-primary btn-lg' href='{$base_url}send_sms' role='button' style='margin-top:8px;'>
+				Send SMS
+			</a>
+		</p>
+	</div>
+	<h2>Highlights</h2>
+	<ul class='list-group' style='font-size:18px;'>
+		<li class='list-group-item'>			
+			<h3 class='list-group-item-heading'>
+				1. Instant SMS delivery at the lowest rates <strong>worldwide</strong>
+			</h3>
+			<p class='list-group-item-text'>
+				Two factors determines the <strong>actual</strong> cost of a bulk SMS.<br/>
+				Cost = <a href='{$base_url}pricing' >Price per units</a> <strong>X</strong> <a href='{$base_url}coverage_list' >Units per SMS</a>
+			</p>			
+		</li>
+		<li class='list-group-item'>
+			<h3 class='list-group-item-heading'>
+				2. Well Structured <a href='{$base_url}my_contacts'>Contacts Manager</a>
+			</h3>
+			<p class='list-group-item-text'>
+				Import and backup your phone contact; or<br/>
+				upload & download multiple contacts files for bulk messaging.
+			</p>
+		</li>
+		<li class='list-group-item'>
+			<h3 class='list-group-item-heading'>
+				3. SMS Log & Scheduler
+			</h3>
+			<p class='list-group-item-text'>
+				Access & manage your SMS <a href='{$base_url}sms_log'>delivery reports</a> in real-time
+			</p>
+		</li>
+		<li class='list-group-item'>
+			<h3 class='list-group-item-heading'>
+				4. Fully featured developers API
+			</h3>
+			<p class='list-group-item-text'>
+				You can do everything programatically.<br/> From SMS sending/scheduling, to contacts manager. <a href='{$base_url}gateway_api'>have a look</a>
+			</p>
+		</li>
+	</ul>";
+    
+    if(!isset($presetData['home']))$presetData['home']=$home_default;
+    $presetData['home']='';
+}
+?>
+    <div class='form-group'>
+        <label>HomePage/Dashboard Content  <span class='btn btn-xs btn-default' onclick='resetDefaultHompage()' >reset default</span></label>
+        <div>
+            For this to reflect on frontend; the the file at:
+            <code>/application/views/template/{current-template-folder}/dashboard.php</code>
+            contains this code:<code>&lt;?php echo $configs['home']; ?></code>
+        </div>
+        <textarea class='form-control input-sm textarea' name='home' id='home_text_field'><?php echo $presetData['home'];?></textarea>
+    </div>
+    
+    
+	<div class='clearfix'></div>
+	<div class='text-center'>
+		<button class='btn btn-lg btn-primary' value='save' name='save_configs'><span class='fa fa-save'> SAVE</button>
 	</div>	
 </form>
 <div class='clearfix'></div>
@@ -152,3 +280,13 @@ i want to send bulk sms,sms gateway,sms marketing,bulk sms,send bulk sms,cheap b
 	<pre> */15 * * * * curl <?php echo $this->general_model->get_url('run_mail_queue'); ?> >/dev/null 2>&amp;1 </pre>
 	<p>i.e, run this command "<i>curl <?php echo $this->general_model->get_url('run_mail_queue'); ?> >/dev/null 2>&amp;1</i>" once every 15 minutes</p>
 </div>
+
+<div style='display:none;' id='home_default_content'><?php echo $home_default; ?></div>
+
+<script type='text/javascript'>
+    function resetDefaultHompage(){
+        var temp_html=$('#home_default_content').html();
+        $('#home_text_field').closest('.form-group').find('.note-codable,.note-editable').html(temp_html);
+        $('#home_text_field').trigger('change');
+    }
+</script>

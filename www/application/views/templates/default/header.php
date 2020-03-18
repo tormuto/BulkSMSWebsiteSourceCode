@@ -42,8 +42,9 @@
 		<?php }?>
 	<?php
 		}
-	?>
-	
+        
+        echo @$configs['snippets_in_header'];
+	?>	
 </head>
 <body style='background-color:#fff;' >
     <div id="wrapper">

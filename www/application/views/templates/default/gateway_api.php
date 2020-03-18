@@ -1360,8 +1360,10 @@
 	$(function(){
 		$("a[href^='#']").on('click',function(e){
 			var this_attr=$(this).attr('href');
-			$('html, body').animate({ scrollTop: $(this_attr).offset().top-125 }, 2000);
-			e.preventDefault();
+            if(this_attr!='#'){
+                $('html, body').animate({ scrollTop: $(this_attr).offset().top-125 }, 2000);
+                e.preventDefault();
+            }
 		});
 	});
 </script>

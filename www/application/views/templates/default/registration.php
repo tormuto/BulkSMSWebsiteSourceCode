@@ -32,8 +32,7 @@
 						<?php
 						if(empty($countries))$countries=$this->general_model->get_countries(false);
 						
-						foreach($countries as $country_id=>$country)
-						{
+						foreach($countries as $country_id=>$country){
 					?>
 						<option <?php
 						echo " value='$country_id' ";
@@ -64,7 +63,7 @@
 		<div class='row'>
 			<div class='form-group  col-xs-6 col-md-6'>
 				<label>Email</label>
-				<input placeholder="example@gmail.com" name='email' type="email" value="<?php echo set_value('email');?>"  class='form-control input-sm' required onchange="email_available(this.value,'email_info');" >
+				<input placeholder="example@gmail.com" name='email' type="email" value="<?php echo set_value('email');?>" id='email_field' class='form-control input-sm' required>
 				<div class='help-block'><em class='text-warning' id='email_info' style='font-size:11px;'></em></div>
 			</div>
 			<div class='form-group  col-xs-6 col-md-6'>
@@ -89,6 +88,50 @@
 			SIGN UP
 		</button>
 	</form>
+    <script type='text/javascript'>
+        var allowed_signup_email_domains=<?php 
+            if(empty($allowed_signup_email_domains))$allowed_signup_email_domains=array();
+            echo json_encode($allowed_signup_email_domains);
+        ?>
+        
+        var email_regex=/(.+)@(.+){2,}\.(.+){2,}/;
+        
+        function disallowedEmailMsg(val){
+            if(!email_regex.test(val))return '';
+            val=val.toLowerCase();
+            if(allowed_signup_email_domains.length){
+                for(var i in allowed_signup_email_domains){
+                    var temp=allowed_signup_email_domains[i];
+                    if(val.indexOf(temp)!==-1)return '';
+                }
+                
+                return "Only the popular (or pre-whitelisted) email domains are allowed. Please chat now with support to whitelist your domain, otherwise, use any email that you have from the following: <small><i>"+(allowed_signup_email_domains.join(', '))+"</i></small>";
+            }
+            return '';
+        }
+    
+        $(function(){
+            $('#email_field').on('keyup change',function(){
+                var val=$(this).val();
+                if(!email_regex.test(val)){
+                    $('#email_info').html('');
+                    return;
+                }
+                
+                var resp=disallowedEmailMsg(val);
+                if(resp)$('#email_info').html("<div class='text-danger bold'>"+resp+"</div>");
+                else $('#email_info').html('');
+            });
+            
+            $('#email_field').on('change',function(){
+                var val=$(this).val();
+                if(email_regex.test(val)&&!disallowedEmailMsg(val)){
+                    //email_available(val,'email_info'); //undefined
+                }
+            });            
+        });
+    </script>
+	
 	
 		<?php
 			}

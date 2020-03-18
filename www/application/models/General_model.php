@@ -64,6 +64,9 @@
 			
 			$this->date_time_patern_php='~'.$this->date_time_patern.'~';
 			$this->db->query("SET sql_mode=''");
+            
+            $this->languages=array('en'=>'English','fr'=>'French','es'=>'Spanish','ru'=>'Russian','it'=>'Italian','ar'=>'Arabic','ja'=>'Japanese','de'=>'German','zh-CN'=>'Chinese Simplified','zh-TW'=>'Chinese Traditional','nl'=>'Dutch','pt'=>'Portuguese','af'=>'Afrikaans','ga'=>'Irish','sq'=>'Albanian','az'=>'Azerbaijani','kn'=>'Kannada','eu'=>'Basque','ko'=>'Korean','bn'=>'Bengali','la'=>'Latin','be'=>'Belarusian','lv'=>'Latvian','bg'=>'Bulgarian','lt'=>'Lithuanian','ca'=>'Catalan','mk'=>'Macedonian','ms'=>'Malay','mt'=>'Maltese','hr'=>'Croatian','no'=>'Norwegian','cs'=>'Czech','fa'=>'Persian','da'=>'Danish','pl'=>'Polish','ro'=>'Romanian','eo'=>'Esperanto','et'=>'Estonian','sr'=>'Serbian','tl'=>'Filipino','sk'=>'Slovak','fi'=>'Finnish','sl'=>'Slovenian','gl'=>'Galician','sw'=>'Swahili','ka'=>'Georgian','sv'=>'Swedish','ta'=>'Tamil','el'=>'Greek','te'=>'Telugu','gu'=>'Gujarati','th'=>'Thai','ht'=>'Haitian Creole','tr'=>'Turkish','iw'=>'Hebrew','uk'=>'Ukrainian','hi'=>'Hindi','ur'=>'Urdu','hu'=>'Hungarian','vi'=>'Vietnamese','is'=>'Icelandic','cy'=>'Welsh','id'=>'Indonesian',
+            );
 		}
 		
 		
@@ -316,24 +319,22 @@ MTN Nigeria
 					'user_id'=>$user_id,
 					'default_sender_id'=>$row->default_sender_id,
 					'email'=>$row->email,'time'=>time(),
+                    //'name'=>ucwords(strtolower($this->firstname.' '.$this->lastname)),
 					'timezone_offset'=>$row->timezone_offset,
 					'default_dial_code'=>$row->default_dial_code,
 					'default_sender_id'=>$row->default_sender_id,
 				);
 
-				if($row->temp_password!='')
-				{
+				if($row->temp_password!=''){
 					if($row->temp_password==$encpass)$login_data['must_reset_password']=true;
 					else $this->db->where('user_id',$row->user_id)->update('users',array('temp_password'=>''));
 				}
 				
-				if(date('Y-m-d')!=date('Y-m-d',$row->last_seen))
-				{
+				if(date('Y-m-d')!=date('Y-m-d',$row->last_seen)){
 					//$this->db->where('user_id',$row->user_id)->update('users',array('free_sms_sent'=>0));
 				}
 				
-				if($row->email==$this->session->userdata('pending_login_email'))
-				{
+				if($row->email==$this->session->userdata('pending_login_email')){
 					$pending_facebook_user_id=$this->session->userdata('pending_facebook_user_id');
 					if(!empty($pending_facebook_user_id))$this->db->where('user_id',$row->user_id)->update('users',array('facebook_user_id'=>$pending_facebook_user_id));
 				}
@@ -346,6 +347,10 @@ MTN Nigeria
 			return false;
 		}
 		
+        function get_full_login_data(){
+            $login_data=$this->session->userdata('login_data');
+			return empty($login_data['user_id'])?array():$login_data;
+        }
 		
 		function update_login_data($key,$value=''){
 			$login_data=$this->session->userdata('login_data');
@@ -515,7 +520,9 @@ MTN Nigeria
 			return "";
 		}
 
-		function get_configs($keys=''){
+        function get_configs($keys='',$raw=false){
+            if(!empty($keys))$raw=true;
+			if(empty($keys)&&empty($raw)&&!empty($this->configs))return $this->configs;
 			if(!empty($keys)){
 				$keys=explode(',',$keys);
 				$this->db->where_in('config_name',$keys);
@@ -523,13 +530,15 @@ MTN Nigeria
 			$query=$this->db->get('website_configuration');
 			$results=array();
 			foreach($query->result() as $row)$results[$row->config_name]=$row->config_value;
+            if($raw&&empty($this->configs))return $results;
+
+            $results_f=array();
 			if(isset($results['reseller_highest_price']))$this->reseller_highest_price=$results['reseller_highest_price'];
 			if(!defined('_CURRENCY_CODE_'))$currency_code='NGN'; else $currency_code=_CURRENCY_CODE_;
-			
-			$results['currency_code']=$currency_code;
-			if(empty($results['site_name']))$results['site_name']=$_SERVER['HTTP_HOST'];
-			$this->configs=$results;
-			return $results;
+			$results_f['currency_code']=$currency_code;
+            if(empty($results['site_name']))$results_f['site_name']=$_SERVER['HTTP_HOST']; //or _DEFAULT_MAIL_SENDER_
+            if(empty($keys))$this->configs=array_merge($results,$results_f);
+			return $raw?$results:$this->configs;
 		}
 		
 		

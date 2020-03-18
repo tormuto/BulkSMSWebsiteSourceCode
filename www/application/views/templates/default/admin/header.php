@@ -9,6 +9,7 @@
 <link href="<?php echo $home_url;?>bootstrap/css/bootstrap.min.css" rel="stylesheet">  
 <link rel="stylesheet" type="text/css" href="<?php echo $home_url;?>assets/css/jquery-ui.css" />  
 <link rel='stylesheet' type='text/css' href='<?php echo $this->general_model->get_url('assets/css/bootstrap-datetimepicker.min.css');?>' />
+<link rel='stylesheet' type='text/css' href='<?php echo $this->general_model->get_url('assets/css/summernote.css');?>' />
 		
 <script src="<?php echo $this->general_model->get_url('assets/js/modernizr-inputtypes.js');?>"></script>
 <script src="<?php echo $home_url;?>assets/js/jquery.min.js"></script>  
@@ -17,6 +18,7 @@
 <script src="<?php echo $this->general_model->get_url('assets/js/moment.min.js');?>"></script>
 <script src="<?php echo $this->general_model->get_url('assets/js/moment_locales_en_gb.js');?>"></script>
 <script src="<?php echo $this->general_model->get_url('assets/js/bootstrap-datetimepicker.min.js');?>"></script>
+<script src="<?php echo $this->general_model->get_url('assets/js/summernote.min.js');?>"></script>
 
 <script src="<?php echo $home_url;?>bootstrap/js/bootstrap.min.js"></script>  
 <script type='text/javascript'>var base_url='<?php echo base_url();?>';</script>	  

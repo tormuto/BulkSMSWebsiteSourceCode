@@ -37,7 +37,21 @@
 	<script src="<?php echo $this->general_model->get_url('assets/js/bootstrap-datetimepicker.min.js');?>"></script>
 	<script src="<?php echo $this->general_model->get_url('bootstrap/js/bootstrap.min.js');?>"></script>
 			
-	<script type='text/javascript'> var base_url='<?php echo base_url(); ?>'; </script>
+	<script type='text/javascript'>
+        var base_url='<?php echo base_url(); ?>';
+        <?php
+            if(!empty($my_profile)){
+                echo "
+                var my_email='{$my_profile['email']}';
+                var my_name='{$my_profile['firstname']} {$my_profile['lastname']}';
+                ";
+            }
+            else { ?>
+                var my_email='';
+                var my_name='';
+            <?php }
+        ?>
+    </script>
     <script src="<?php echo $this->general_model->get_url('assets/js/script.js');?>"></script>
 	<script src='<?php echo $this->general_model->get_url('assets/js/jquery.autovalidate.js');?>'></script>
 	
@@ -53,5 +67,6 @@
 			$('body').append("<scr"+"ipt "+src+"></scri"+"pt>");
         });
 	</script>
+    <?php echo @$configs['snippets_in_footer']; ?>
 </body>
 </html>

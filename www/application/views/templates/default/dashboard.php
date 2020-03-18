@@ -1,3 +1,4 @@
+<?php if(!empty($configs['home']))echo $configs['home']; else { ?>
 	<div class="jumbotron">
 		<h1><?php echo $configs['site_name']; ?></h1>
 		<p>
@@ -61,3 +62,4 @@
 			</p>
 		</li>
 	</ul>
+<?php } ?>
