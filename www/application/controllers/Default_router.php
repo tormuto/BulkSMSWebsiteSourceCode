@@ -475,7 +475,7 @@ class Default_router extends CI_Controller{
                     
                     if(!$match_allowed){
                         $data['signup_stage']=1;
-                        $data['Error']="Due to massive abuse of platform by creating multiple accounts with disposable/temporary emails, only the following popular email domains are allowed for registration <strong>".implode(', ',$allowed_signup_email_domains)."</strong>. <br/>For special consideration to register with your webmail, please chat with live support for whitelisting your web domain.";;
+                        $data['Error']="Due to massive abuse of platform by creating multiple accounts with disposable/temporary emails, only the following popular email domains are allowed for registration <strong>".implode(', ',$data['allowed_signup_email_domains'])."</strong>. <br/>For special consideration to register with your webmail, please chat with live support for whitelisting your web domain.";;
                     }                    
                 }
             
