@@ -385,6 +385,9 @@ $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = FALSE;
 
+if($config['sess_driver']=='database'){
+    $config['sess_save_path']=$config['sess_cookie_name'];
+}
 /*
 |--------------------------------------------------------------------------
 | Cookie Related Variables
