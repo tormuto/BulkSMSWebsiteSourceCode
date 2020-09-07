@@ -377,7 +377,13 @@ class Default_router extends CI_Controller{
 		if(!empty($cid)){
 			$code=$this->input->get('code');
 			$pendingEmailData=$this->general_model->get_pending_email_data($cid,$code);
-			if(!$pendingEmailData)$data['Error']="Incorrect or expired email verification link. ";
+			if(!$pendingEmailData){
+				$temp=$this->session->userdata('pendingEmailData');
+				if(empty($temp)||$temp['id']==$cid){
+					$data['Error']="Incorrect or expired email verification link.";
+					$this->session->unset_userdata('pendingEmailData');
+				}
+			}
 			else $this->session->set_userdata('pendingEmailData',$pendingEmailData);	
 		}
 		$data['configs']=$this->general_model->get_configs();
@@ -534,7 +540,7 @@ class Default_router extends CI_Controller{
 				'password'=>md5($pendingEmailData['password'])
 				);
 			$this->general_model->signup($signup_data);
-			$this->session->set_userdata('pendingEmailData','');
+			$this->session->unset_userdata('pendingEmailData');
 			$this->general_model->log_user_in($pendingEmailData['email'],$pendingEmailData['password']);
 			$this->b_redirect();
 		}
