@@ -1,6 +1,5 @@
 <form role='form' method='post' class='autovalidate' id='password_form' >
-	<h3><i class='fa fa-unlock'></i> Reset Password</h3>
-	<hr/>
+	<div class='default_breadcrumb'><h3><i class='fa fa-unlock'></i> Reset Password</h3><hr/></div>
 	<?php
 		if(empty($Error)&&validation_errors()!='')$Error=validation_errors();
 		if(!empty($Error))

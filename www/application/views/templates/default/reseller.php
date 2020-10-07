@@ -1,5 +1,4 @@
-<h2>Reseller Account</h2>
-<hr/>
+<div class='default_breadcrumb'><h2>Reseller Account</h2><hr/></div>
 <?php echo $this->general_model->display_bootstrap_alert(@$Success,@$Error,@$Warning,@$Info); ?>
 <div class='row'>
 	<?php

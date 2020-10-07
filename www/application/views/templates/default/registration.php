@@ -1,4 +1,4 @@
-<h3>Registration</h3><hr/>	
+<div class='default_breadcrumb'><h3>Registration</h3><hr/></div>
 <div class='col-md-8 col-md-offset-2'>
 	<?php if(!empty($Error)){ ?>
 		<div class='alert alert-danger'>
@@ -32,12 +32,12 @@
 						<?php
 						if(empty($countries))$countries=$this->general_model->get_countries(false);
 						
-						foreach($countries as $country_id=>$country){
+						foreach($countries as $country_code=>$country){
 					?>
 						<option <?php
-						echo " value='$country_id' ";
+						echo " value='{$country['country_code']}' ";
 						echo " dial_code='{$country['dial_code']}' ";
-						echo set_select('country',$country_id,$country_id==37);
+						echo set_select('country',$country['country_code'],$country['country_code']==$configs['default_country_code']);
 						?> ><?php echo $country['country'];?></option>
 					<?php
 						}
@@ -46,7 +46,7 @@
 				</div>
 				<div class='form-group col-xs-4 col-md-2'>
 					<label>Code</label>
-					<input placeholder="+234" name="default_dial_code"  type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g 234" value='<?php echo set_value('default_dial_code','+234'); ?>'  class='form-control input-sm default_dial_code' required >
+					<input placeholder="+<?php echo $configs['default_dial_code']; ?>" name="default_dial_code"  type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g <?php echo $configs['default_dial_code']; ?>" value='<?php echo set_value('default_dial_code',"+{$configs['default_dial_code']}"); ?>'  class='form-control input-sm default_dial_code' required >
 				</div>
 				<div class='form-group col-xs-12 col-md-3'>
 					<label>Timezone <a href='https://wikipedia.org/wiki/List_of_time_zones_by_country' title='Supplying the timezone offset of your country ensures that any information you recieve carries accurate timestamp' target='_blank' style='cursor:help;'>?</a></label>
@@ -68,7 +68,7 @@
 			</div>
 			<div class='form-group  col-xs-6 col-md-6'>
 				<label>Phone</label>
-				<input placeholder="+23480XXXXXXXX" name="phone" type='text' pattern="^\+?[0-9]{7,}$"  value='<?php echo set_value('phone','+234');?>'  class='form-control input-sm default_dial_code' required >
+				<input placeholder="+<?php echo $configs['default_dial_code']; ?>80XXXXXXXX" name="phone" type='text' pattern="^\+?[0-9]{7,}$"  value='<?php echo set_value('phone',"+{$configs['default_dial_code']}");?>'  class='form-control input-sm default_dial_code' required >
 			</div>
 		</div>
 		
@@ -84,7 +84,7 @@
 		</div>
 
 		<div class='clearfix'></div>
-		<button class='btn btn-success btn-lg pull-right' >
+		<button class='btn btn-primary btn-lg pull-right' >
 			SIGN UP
 		</button>
 	</form>

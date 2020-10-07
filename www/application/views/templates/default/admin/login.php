@@ -83,7 +83,7 @@
 					<button class='btn btn-primary pull-right' style='margin-right:10px;'> Login</button>
 					<div class='clearfix'></div>
 					<hr style='margin:10px 0px;'/>
-					<a href='#' style='float:right;margin-right:10px;'>I forgot my password</a>
+					<a href='#' style='float:right;margin-right:10px;' onclick="alert('Please retrieve your password from the config file on the server.'); return false;">I forgot my password</a>
 				</div>		
 			</form>
 		</div>

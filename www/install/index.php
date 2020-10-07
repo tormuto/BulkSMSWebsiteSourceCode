@@ -27,7 +27,7 @@ if(file_exists($config_file)&&!isset($_POST['install'])){
 
 if(empty($_POST['db_host']))$_POST['db_host']='localhost';
 if(empty($_POST['template']))$_POST['template']='default';
-if(empty($_POST['currency_code']))$_POST['currency_code']='NGN';
+$_POST['currency_code']=empty($_POST['currency_code'])?'USD':strtoupper($_POST['currency_code']);
 
 $sample_host="mail.$domain";
 $sample_user="no_reply@$domain";
@@ -46,8 +46,7 @@ if(empty($_POST['smtp_host']))$_POST['smtp_host']=$sample_host;
 if(empty($_POST['smtp_user']))$_POST['smtp_user']=$sample_user;
 if(empty($_POST['smtp_port']))$_POST['smtp_port']=587;
 
-if(isset($_POST['install']))
-{
+if(isset($_POST['install'])){
 	$cid=@mysqli_connect('localhost', $_POST['db_user'], $_POST['db_pass'],$_POST['db_name']);	
 	
 	if(!$cid)$Error=mysqli_connect_error()." Please make sure you have already created the database and assigned a user to it.";	
@@ -59,6 +58,7 @@ if(isset($_POST['install']))
 		"<?php\n".
 		"define('_DB_HOST_','{$_POST['db_host']}');\n".
 		"define('_CURRENCY_CODE_','{$_POST['currency_code']}');\n".
+		"define('_TEMPLATE_','{$_POST['template']}');\n".
 		"define('_DB_NAME_','{$_POST['db_name']}');\n".
 		"define('_DB_PREFIX_','{$_POST['db_prefix']}');\n".
 		"define('_DB_USERNAME_','{$_POST['db_user']}');\n".
@@ -79,17 +79,13 @@ if(isset($_POST['install']))
 		mysqli_set_charset($cid,'utf8');
 		
 		$lines = file('install.sql');
-		if ($lines) 
-		{
+		if($lines){
 			mysqli_query($cid,"SET sql_mode = ''");
 			$sql = '';
-			foreach($lines as $line) 
-			{
-				if ($line && (substr($line, 0, 2) != '--') && (substr($line, 0, 1) != '#')) 
-				{
+			foreach($lines as $line){
+				if($line && (substr($line, 0, 2) != '--') && (substr($line, 0, 1) != '#')){
 					$sql .= $line;
-					if (preg_match('/;\s*$/', $line)) 
-					{
+					if (preg_match('/;\s*$/', $line)){
 						$sql = str_replace("DROP TABLE IF EXISTS `gm_", "DROP TABLE IF EXISTS `" .$_POST['db_prefix'], $sql);
 						$sql = str_replace("CREATE TABLE IF NOT EXISTS `gm_", "CREATE TABLE IF NOT EXISTS `" .$_POST['db_prefix'], $sql);
 						$sql = str_replace("INSERT INTO `gm_", "INSERT INTO `" .$_POST['db_prefix'], $sql);
@@ -108,7 +104,9 @@ if(isset($_POST['install']))
 		$sql2="SELECT * FROM {$_POST['db_prefix']}currencies WHERE 1 LIMIT 1";
 		$res2=mysqli_query($cid,$sql2);
 		if(mysqli_num_rows($res2)==0){
-			$sql2="INSERT INTO `{$_POST['db_prefix']}currencies`(`currency`,`iso_code`,`symbol`,`currency_title`,`value`) VALUES ('NGN','566','₦','Nigerian Naira',1),('USD','840','$','US Dollars','0.0050'),('EUR','978','€','Euro','0.0046'),('GBP','826','£','Great Britain Pounds','0.0032'),('BTC','100','Ƀ','Bitcoin','0.0000025');";
+			$cur=$_POST['currency_code'];
+			$usd_ins=($cur=='USD')?"":",('USD','840','$','US Dollars','0.0018')";
+			$sql2="INSERT INTO `{$_POST['db_prefix']}currencies`(`currency`,`iso_code`,`symbol`,`currency_title`,`value`) VALUES ('$cur','000','$cur','$cur',1)$usd_ins;";
 			$res2=mysqli_query($cid,$sql2);
 		}
 		
@@ -144,34 +142,20 @@ if(isset($_POST['install']))
 				Configuration Settings
 			</h3>
 			<form role='form' method='post'>
-				<?php
-					if(!empty($Error))
-					{
-				?>
+				<?php if(!empty($Error)){ ?>
 					<div class='alert alert-warning'>
 						<button class='close' data-dismiss='alert'>&times;</button>
 						<?php echo $Error;?>
 					</div>
-				<?php
-					}
-				?>
+				<?php } ?>
 				
 				<div class='row'>
 				<div class='form-group col-md-3'>
 					<label for='currency_code'>Currency</label>
-					<select name='currency_code' class='form-control' required>
-						<?php
-						$currency_codes=array('NGN','USD');
-						foreach($currency_codes as $currency_code)
-						{
-						?>
-							<option <?php echo "value='$currency_code'"; if($_POST['currency_code']==$currency_code)echo 'selected';?> >
-								<?php echo $currency_code; ?>
-							</option>
-						<?php
-						}
-						?>
-					</select>
+					<input type='text' minlength='3' maxlength='3' required class='form-control' value="<?php echo $_POST['currency_code'];?>" list='currency_codes'/>
+					<datalist id='currency_codes'>
+						<option value='USD' /><option value='NGN' />
+					</datalist>
 				</div>
 				<div class='form-group col-md-5'>
 					<label for='db_host'>

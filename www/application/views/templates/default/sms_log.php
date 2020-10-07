@@ -1,10 +1,12 @@
-<h3><?php
- if($filter['stage']==='pending')echo "<i class='fa fa-clock-o'></i> Scheduled SMS Log";
- elseif($filter['stage']==='sent')echo "<i class='fa fa-envelope'></i> Sent SMS Log";
- elseif($filter['stage']==='failed')echo "<i class='fa fa-times-circle'></i> Failed SMS Log";
- else echo "<i class='fa fa-list'></i> SMS Log";
-?></h3>
-<hr/>
+<div class=''>
+	<h3><?php
+	 if($filter['stage']==='pending')echo "<i class='fa fa-clock-o'></i> Scheduled SMS Log";
+	 elseif($filter['stage']==='sent')echo "<i class='fa fa-envelope'></i> Sent SMS Log";
+	 elseif($filter['stage']==='failed')echo "<i class='fa fa-times-circle'></i> Failed SMS Log";
+	 else echo "<i class='fa fa-list'></i> SMS Log";
+	?></h3>
+	<hr/>
+</div>
 <?php if(!empty($Error)){ ?>
 		<div class='alert alert-danger fade in'>
 			<span class='close' data-dismiss='alert'>&times;</span>
@@ -122,7 +124,7 @@
 				</div>
 				
 				
-				<?php if($my_profile['country_id']==37){ ?>
+				<?php if($my_profile['country_code']==$configs['default_country_code']){ ?>
 				<div class='form-group'>
 					<label style='color:#990000;'>Standard or Corporate(DND Bypass) Route</label>
 					<select class='form-control input-sm' id='route' name='route' data-toggle='tooltip' title="TIPS: While using CORPORATE ROUTE helps your budget (economizing by sending through standard channel if the destination has already been found to be unrestrictive). FINANCIAL ROUTE doesn't do such fallback (typically used for OTP/Transactional messages)." >

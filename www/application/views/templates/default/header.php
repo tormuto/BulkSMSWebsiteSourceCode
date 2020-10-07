@@ -25,23 +25,23 @@
 	<link href="<?php echo $this->general_model->get_url('assets/css/custom_bootstrap_header.css');?>" rel="stylesheet">
 	
 	<?php
-		if(!empty($configs['facebook_app_id']))
-		{
-			if(empty($og_image))$og_image=$this->general_model->get_url('cheap_global_sms_image1.jpg');
+		if(empty($og_image))$og_image=$this->general_model->get_url('logo-sharable.png');
+		if(!empty($configs['facebook_app_id'])){
 	?>
+		<meta property='fb:app_id' content='<?php echo $configs['facebook_app_id'];?>' />
+		<?php } ?>
+		
 		<meta property='og:title' content="<?php echo $page_title;?>" />
 		<meta property='og:type' content="business" />
 		<meta property='og:url' content="<?php echo "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];?>" />
 		<meta property='og:site_name' content="<?php echo $configs['site_name']; ?>" />
 		<meta property='og:image' content='<?php echo $og_image;?>' />
-		<meta property='fb:app_id' content='<?php echo $configs['facebook_app_id'];?>' />
 		<?php
 		if(!empty($og_description)){
 		?>
 		<meta property='og:description' content="<?php echo str_replace('"',' ',$og_description);?>" />
 		<?php }?>
 	<?php
-		}
         
         echo @$configs['snippets_in_header'];
 	?>	
@@ -270,14 +270,14 @@
 					<select name="country" class='form-control input-sm' required onchange="$('div.form-group .default_dial_code').val($(this).find('option:selected').attr('dial_code'))" >
 						<?php
 						if(empty($countries))$countries=$this->general_model->get_countries(false);
+						$D_DIAL_CODE=$configs['default_dial_code'];
 						
-						foreach($countries as $country_id=>$country)
-						{
+						foreach($countries as $country_code=>$country){
 					?>
 						<option <?php
-						echo " value='$country_id' ";
+						echo " value='{$country['country_code']}' ";
 						echo " dial_code='{$country['dial_code']}' ";
-						echo set_select('country',$country_id,$country_id==37);
+						echo set_select('country',$country['country_code'],$country['country_code']==$configs['default_country_code']);
 						?> ><?php echo $country['country'];?></option>
 					<?php
 						}
@@ -286,7 +286,7 @@
 				</div>
 				<div class='form-group col-sm-4 col-md-2'>
 					<label>Prefix</label>
-					<input placeholder="+234" name="default_dial_code" type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g 234" value='<?php echo set_value('default_dial_code','+234'); ?>'  class='form-control input-sm default_dial_code' required >
+					<input placeholder="+<?php echo $D_DIAL_CODE; ?>" name="default_dial_code" type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g <?php echo $D_DIAL_CODE; ?>" value='<?php echo set_value('default_dial_code',"+$D_DIAL_CODE"); ?>'  class='form-control input-sm default_dial_code' required >
 				</div>
 				<div class='form-group col-sm-12 col-md-3'>
 					<label>Timezone <a href='https://wikipedia.org/wiki/List_of_time_zones_by_country' title='Supplying the timezone offset of your country ensures that any information you recieve carries accurate timestamp' target='_blank' style='cursor:help;'>?</a></label>
@@ -308,7 +308,7 @@
 				</div>
 				<div class='form-group  col-sm-6 col-md-6'>
 					<label>Phone</label>
-					<input placeholder="+23480XXXXXXXX" name="phone" type="text" title='+XXXXXXXXXXXX'  pattern="^\+?[0-9]{7,}$" value='<?php echo set_value('phone','+234');?>'  class='form-control input-sm default_dial_code' required >
+					<input placeholder="+<?php echo $D_DIAL_CODE; ?>80XXXXXXXX" name="phone" type="text" title='+XXXXXXXXXXXX'  pattern="^\+?[0-9]{7,}$" value='<?php echo set_value('phone',"+$D_DIAL_CODE");?>'  class='form-control input-sm default_dial_code' required >
 				</div>
 			</div>
 			<div class='row'>

@@ -5,11 +5,10 @@
 				<div class='form-group'>
 					<select name='country' class='form-control input-sm'>
 						<option value='' >--Country--</option>
-							<?php foreach($countries as $country_id=>$country)
-								{
-									$isel=($country_id==$filter['country'])?'selected':'';
+							<?php foreach($countries as $country_code=>$country){
+									$isel=($country_code==$filter['country'])?'selected':'';
 							?>
-								<option value='<?php echo $country_id; ?>' <?php echo $isel; ?> ><?php echo $country; ?>
+								<option value='<?php echo $country_code; ?>' <?php echo $isel; ?> ><?php echo $country; ?>
 							<?php } ?>
 					</select>
 				</div>
@@ -75,11 +74,27 @@
 									</div>
 								<?php } ?>
 							</td>
-							<td ><?php echo $row['balance']; ?></td>
+							<td ><?php echo $row['balance']; ?>
+								<span onclick="$(this).closest('td').find('.topup_units_form').slideToggle();" style='cursor:pointer;' >Add Units <i class='fa fa-chevron-down'></i></span>
+								<form method='post' style='margin-top:5px;display:none;' class='form-inline topup_units_form' >
+									<input type='hidden' name='topup_user_id' value='<?php echo $row['user_id']; ?>' />
+									<div class='form-group' >
+										<div class='input-group' >
+											<span class='input-group-addon' style='padding:0 4px;' title="Log Transaction">
+												<input type='checkbox' name='log_transaction' value='1' >
+											</span>
+											<input type='number' pattern='[0-9]*' class='form-control input-xs' name='topup_units'  />
+										</div>
+									</div>
+									<button class='btn btn-xs btn-info'>Add / Remove Units</button>
+									<div class='clearfix'></div>
+									<hr/>
+								</form>
+							</td>
 							<td ><?php echo $row['firstname']; ?></td>
 							<td ><?php echo $row['lastname']; ?></td>
 							<td ><a href='<?php echo $this->general_model->get_url("send_sms?recp={$row['phone']}"); ?>' target='_blank'><?php echo $row['phone']; ?></a></td>
-							<td ><?php echo $countries[$row['country_id']]; ?></td>
+							<td ><?php echo @$countries[$row['country_code']]; ?></td>
 							<td>
 								<?php echo date('D jS M. Y g:i a',$row['last_seen']); ?>
 								<form method='post' >

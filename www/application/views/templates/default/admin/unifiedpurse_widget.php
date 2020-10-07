@@ -14,7 +14,7 @@
 		</div>	
 	</form>
 	<i>
-		To easily monitor your UnifiedPurse transactions here, <a href='https://unifiedpurse.com/docs#transaction_widget' target='_blank'>Generate your transaction widget URL</a> from UnifiedPurse, or <a href='https://unifiedpurse.com/docs#transaction_widget' target='_blank'>see how it's generated here</a>.
+		To easily monitor your UnifiedPurse transactions here, <a href='https://unifiedpurse.com/accept_payments#transaction_widget' target='_blank'>Generate your transaction widget URL</a> from UnifiedPurse, or <a href='https://unifiedpurse.com/accept_payments#transaction_widget' target='_blank'>see how it's generated here</a>.
 	</i>
 </div>
 <?php if(!empty($configs['unifiedpurse_widget_url'])){ ?>

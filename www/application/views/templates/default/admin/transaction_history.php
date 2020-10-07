@@ -183,22 +183,7 @@
 									</form>
 									<?php
 									}
-									elseif($row['status']==0){
-									
-									if($row['payment_method']=='bitcoin'){ ?>
-										<form method='post' action="<?php echo $this->general_model->get_url('transaction'); ?>" target='_blank' >
-											<input type='hidden' name='confirm_trans' value='<?php echo $row['transaction_reference']; ?>' />
-											<div class='form-group'>
-												<label>Bitcoin TX Hash</label>
-												<input name='bit_hash' type='text' class='form-control input-sm'  minlength='64' maxlength='64' pattern='^[a-z0-9]{64}$' required />
-											</div>
-											<button class='btn btn-default btn-xs pull-right' value='requery' >Requery</button>
-										</form>
-										<?php
-										}
-									//elseif($row['status']==0&&in_array($row['payment_method'],$this->general_model->payment_methods_no_requery))
-									
-									?>
+									elseif($row['status']==0){ ?>
 									<form method='post'>
 										<div class='form-group'>
 											<label>Payment Note</label>
@@ -210,33 +195,11 @@
 									</form>
 									<?php
 									}
-									else
-									{
-									
-										if(!empty($json_info['mtcn'])){ ?>
-										<strong>Western Union Information</strong><br/>
-										<?php 
-											foreach($this->general_model->payment_western_union_params as $pbp)
-												echo $this->general_model->split_format($pbp).': '.$json_info[$pbp].'<br/>';
-										?>
-										<br/>
-										<?php 
-										}
-										
+									else{										
 										if(!empty($json_info['teller_number'])){ ?>
 										<strong>Teller Information</strong><br/>
 										<?php 
 											foreach($this->general_model->payment_bank_params as $pbp)
-												echo $this->general_model->split_format($pbp).': '.$json_info[$pbp].'<br/>';
-										?>
-										<br/>
-										<?php 
-										}
-										
-										if(!empty($json_info['bank_phone_number'])){ ?>
-										<strong>USSD Information</strong><br/>
-										<?php 
-											foreach($this->general_model->payment_ussd_code_params as $pbp)
 												echo $this->general_model->split_format($pbp).': '.$json_info[$pbp].'<br/>';
 										?>
 										<br/>
@@ -265,7 +228,7 @@
 						</td>
 						
 							<td >
-								<?php if(!in_array($row['payment_method'],$this->general_model->payment_methods_no_requery))echo $trans_action; ?>
+								<?php echo $trans_action; ?>
 							<?php
 								if($row['status']==-1)echo "<div><span class='btn btn-xs text-danger'><i class='fa fa-times'></i> Failed</span></div>";
 								elseif($row['status']==1)echo "<div><span class='btn btn-xs text-success'><i class='fa fa-check'></i> Completed</span></div>";

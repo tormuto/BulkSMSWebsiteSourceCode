@@ -1,5 +1,4 @@
-<h2><?php echo $section_title; ?></h2>
-<hr/>
+<div class='default_breadcrumb'><h2><?php echo $section_title; ?></h2><hr/></div>
 <?php echo $this->general_model->display_bootstrap_alert(@$Success,@$Error,@$Warning,@$Info); ?>
 <?php if(!isset($configs['tax_percent'])){ ?>
 <div class='alert alert-danger'>
@@ -48,7 +47,7 @@
 		
 		<div class='clearfix'></div>
 		<div style='font-weight:bold;text-align:center;'>
-			* Bitcoin * Perfectmoney * Bank/Wire Transfer * Western Union * TransferWise * Azimo * 3rd-Party Credit-Card Processors * Others
+			<?php echo (strtolower($configs["unifiedpurse_label"])=='unifiedpurse')?'':$configs["unifiedpurse_label"]; ?>
 		</div>
 		<div class='clearfix'></div>
 		<div class='text-center'>
@@ -61,7 +60,38 @@
 				Pay Via UnifiedPurse
 			</button>
 			<?php } ?>
+		</div>
 </form>
+<hr/>
+<h3 style='color:#777;font-weight:bold;'>
+    <i class='fa fa-calculator'></i> SMS Credits Calculator
+</h3>
+<form action='<?php echo $this->general_model->get_url('coverage_list'); ?>' method='get' class='form-inline'>
+	<strong style='color:#777;font-size:20px;'>
+		<i class='fa fa-question-circle'></i>  I want to send
+	</strong>
+	<div class='form-group'>
+        <div class='input-group'>
+            <input type='number' min='1' class='form-control input-lg' required placeholder='Number of messages' name='traffic_volume' value='50000' />
+            <span class='input-group-addon'>SMS</span>
+        </div>
+    </div>
+    <div class='form-group form-group-lg'>
+        <div class='input-group'>
+            <span class='input-group-addon'>TO</span>
+            <select class='form-control input-lg basic_select2' required  name='country' >
+                <option value=''>Country</option>
+                <?php 
+                $countries=$this->general_model->get_coverage_countries();
+                foreach($countries as $country_code=>$country){ 
+				?><option value='<?php echo $country_code;?>' ><?php echo $country;?></option><?php } ?>
+            </select>
+        </div>
+    </div>
+    <button class='btn btn-info btn-lg'><i class='fa fa-calculator'></i> How Much Will It Cost?</button>
+</form>
+<div class='clearfix'></div><hr/>
+
 <h3>SMS Price List</h3>
 <div class='table-responsive'>
 	<table class='table table-bordered table-striped'>
@@ -81,8 +111,7 @@
 
 		$size=count($prices);
 		
-		for($sn=0;$sn<$size;$sn++)
-		{
+		for($sn=0;$sn<$size;$sn++){
 		?>
 		<tr>
 			<td><?php echo $sn+1; ?>.</td>
@@ -100,11 +129,8 @@
 			<td><?php echo $prices[$sn]['price']*$currencies[$av_currency]['value']; ?></td>
 			<?php } ?>
 		</tr>	
-		<?php
-		}
-	?>
+	<?php } ?>
 	</table>
-
 </div>
 <div >
 	Two factors determines the <strong>actual</strong> cost of a bulk SMS.<br/>
@@ -205,7 +231,15 @@
 		$('#units').val(new_units);
 	}
 	
-	$(function(){ $('#units').val('50000'); currencyChanged(); });
+	$(function(){
+		var temp=window.location.hash;
+        if(temp.substring(0,11)=='#pre_units='){
+            temp=temp.substring(11);
+        } else temp=50000;
+		
+		$('#units').val(temp).trigger('focus');
+		currencyChanged();
+	});
 	
 	
 	var commiting_transaction=false;
@@ -249,7 +283,7 @@
 			var notify_url=base_url+'transaction?confirm_trans='+transaction_reference;
 			
 			var paymentSettings={
-				receiver: 'tormuto',
+				receiver: '<?php echo $configs["unifiedpurse_username"]; ?>',
 				currency: currency,
 				amount: amount,
 				ref:transaction_reference,

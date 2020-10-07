@@ -1,4 +1,4 @@
-	<h3><i class='fa fa-paper-plane'></i> Send SMS</h3><hr/>
+<div class='default_breadcrumb'><h3><i class='fa fa-paper-plane'></i> Send SMS</h3><hr/></div>
 	<?php if(!empty($Error)){ ?>
 		<div class='alert alert-danger fade in'>
 			<span class='close' data-dismiss='alert'>&times;</span>
@@ -50,10 +50,9 @@
 					<input type='checkbox' name='unicode' value='1' />
 					Preserve Unicode <i>(e.g Chinese, Russian or other special symbols) <strong>72 chars/page</strong></i>
 				</label>			
-			</div>
+			</div>			
 			
-			
-			<?php if($my_profile['country_id']==37){ ?>
+			<?php if($my_profile['country_code']==$configs['default_country_code']){ ?>
 				<div>Sending to Nigerian networks on corporate/financial route charges 2 units per SMS page</div>
 			<?php } ?>
 			<div class='form-group' data-toggle='tooltip' title="TIPS: While using CORPORATE ROUTE helps your budget (economizing by sending through standard channel if the destination has already been found to be unrestrictive). FINANCIAL ROUTE doesn't do such fallback (typically used for OTP/Transactional messages)." >
@@ -62,29 +61,28 @@
 					<select class='form-control input-sm' name='route' >
 						<option value='0' <?php if(isset($_POST['route'])&&$_POST['route']==0)echo 'selected'; ?> >Standard Route</option>
 						<option value='1' <?php if(@$_POST['route']=='1')echo 'selected'; ?> >Financial Route</option>
-						<option value='2' <?php if(@$_POST['route']=='2'||(!isset($_POST['route'])&&$my_profile['country_id']==37))echo 'selected'; ?> >Corporate Route</option>
+						<option value='2' <?php if(@$_POST['route']=='2'||(!isset($_POST['route'])&&$my_profile['country_code']==$configs['default_country_code']))echo 'selected'; ?> >Corporate Route</option>
 					</select>
 				</div>
 			</div>
-			
-			
 		</div>
 		<div class='col-md-6 col-sm-6'>
 			<div class='form-group'>
 				<label for='phone_numbers' style='display:block;' >Paste Recipient Phone Numbers <span style='float:right;cursor:help;' class='btn-link' onclick="$('#recipients_format_help').slideToggle(200);">Help</span></label>
+				<?php $D_DIAL_CODE=$configs['default_dial_code']; ?>
 				<div style='display:none;' id='recipients_format_help' class='alert alert-warning' >
 					Multiple recipient's phone numbers can be separated by comma (,) e.g.<br/>
-					<i>+2348094309926,447828383732,+14472829929</i><br/>
+					<i>+<?php echo $D_DIAL_CODE; ?>8094309926,447828383732,+14472829929</i><br/>
 						or separate by space, e.g:<br/>
-						2348094309926 447828383732 14472829929<br/><br/>
+						<?php echo $D_DIAL_CODE; ?>8094309926 447828383732 14472829929<br/><br/>
 
 					Please Note that it's <strong>NOT</strong> compulsory to start a phone number with '+'.<br/> 
 					Also, any mobile numbers starting with zero will have the zero stripped and replaced with your default prefix (<?php echo $my_profile['default_dial_code']; ?>).<br/>
 					E.G:<br/>
-					<i>08086689567,+2348094309926,4478128372838</i> will be automatically converted to, <i><?php echo $my_profile['default_dial_code']; ?>8086689567,2348094309926,4478128372838</i><br/><br/>	
+					<i>08086689567,+<?php echo $D_DIAL_CODE; ?>8094309926,4478128372838</i> will be automatically converted to, <i><?php echo $my_profile['default_dial_code']; ?>8086689567,<?php echo $D_DIAL_CODE; ?>8094309926,4478128372838</i><br/><br/>	
 					If you have any plain text file that contiains phone numbers in the format described above, you can as well upload the file.
 				</div>
-				<textarea name='phone_numbers' placeholder='+2348094309926,+2348086689567' class='form-control input-sm'><?php if(!empty($prefill_recp))echo $prefill_recp; ?></textarea>
+				<textarea name='phone_numbers' placeholder='+<?php echo $D_DIAL_CODE; ?>8094309926,+<?php echo $D_DIAL_CODE; ?>8086689567' class='form-control input-sm'><?php if(!empty($prefill_recp))echo $prefill_recp; ?></textarea>
 			</div>
 			
 			<div class='form-group'>

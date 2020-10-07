@@ -1,9 +1,11 @@
+<div class='default_breadcrumb'>
 	<h3>
 		<a href='<?php echo $this->general_model->get_url('sub_accounts'); ?>' style='color:#333;text-decoration:none;' >
 			<i class='fa fa-list-ul'></i>  Sub Accounts
 		</a>
 	</h3>
 	<hr/>
+</div>
 	<?php if(!empty($Error)){ ?>
 		<div class='alert alert-warning'>
 			<button class='close' data-dismiss='alert'>&times;</button>
@@ -46,7 +48,7 @@
 			<div  class='row'>
 				<div class='form-group col-xs-12 col-md-4 col-sm-4'>
 					<label>Default Prefix</label>
-					<input placeholder="+234" name="default_dial_code"  type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g 234" value='<?php  echo set_value('default_dial_code',$default_params['default_dial_code']); ?>'  class='form-control input-sm default_dial_code' required >
+					<input placeholder="+<?php echo $configs['default_dial_code']; ?>" name="default_dial_code"  type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g <?php echo $configs['default_dial_code']; ?>" value='<?php  echo set_value('default_dial_code',$default_params['default_dial_code']); ?>'  class='form-control input-sm default_dial_code' required >
 				</div>
 				<div class='form-group col-xs-12 col-md-4 col-sm-4'>
 					<label>Default Timezone</label>
@@ -88,7 +90,7 @@
 			<div  class='row'>
 				<div class='form-group col-xs-12 col-md-4 col-sm-4'>
 					<label>Default Prefix</label>
-					<input placeholder="+234" name="default_dial_code"  type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g 234" value='<?php  echo set_value('default_dial_code',$edit_sub_account_data['default_dial_code']); ?>'  class='form-control input-sm default_dial_code' required >
+					<input placeholder="+<?php echo $configs['default_dial_code']; ?>" name="default_dial_code"  type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g <?php echo $configs['default_dial_code']; ?>" value='<?php  echo set_value('default_dial_code',$edit_sub_account_data['default_dial_code']); ?>'  class='form-control input-sm default_dial_code' required >
 				</div>
 				<div class='form-group col-xs-12 col-md-4 col-sm-4'>
 					<label>Default Timezone</label>

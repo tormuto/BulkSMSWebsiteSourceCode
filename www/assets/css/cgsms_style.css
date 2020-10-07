@@ -1,9 +1,3 @@
-body{
-	font-family:"Rockwel";
-	font-size:16px;
-}
-
-
 .ui-dialog{max-width:95%;}
 .ui-dialog-titlebar{}
 	.ui-dialog-title{}
@@ -11,11 +5,15 @@ body{
 .ui-dialog-content{}
 .ui-dialog-buttonpane{}
 	.ui-dialog-buttonset{}
-	
-.alert,pre
-{
-	word-break: break-all;
-}
+
+
+.alert{ word-wrap: break-word; }
+.alert-sm{padding:5px;margin-bottom:3px;}
+.alert-sm .alert-link{font-weight:normal;}
+.alert-sm .close{font-size:12px;}
+.alert,pre{	word-break: break-all;}
+.well,.wrap{word-wrap: break-word;max-width:100%;}
+
 
 code {
 word-break: break-all;
@@ -40,10 +38,7 @@ display: inline-block;
     line-height: 1.5;
 }
 
-.input-group-addon select{
-border: 0px;
-background-color: #EEE;
-}
+.input-group-addon select{border: 0px;background-color: #EEE;}
 
 .light-fancy-gray{
 background-color: #f2f2f2;
@@ -51,3 +46,14 @@ border-radius: 6px;
 padding: 6px;
 padding-top:10px;
 }
+
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;margin: 0;
+}
+input[type=number] {-moz-appearance: textfield; }
+
+/*Responsive Table CSS*/
+table.responsive span[data-type=responsive]{display:none}@media only screen and (max-width:768px){table.responsive span[data-type=responsive]{display:inline-block;width:45%;color:#a8a8a8;vertical-align:top}table.responsive,table.responsive tbody,table.responsive td,table.responsive th,table.responsive thead,table.responsive tr{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;display:block}html.ie9 table.responsive,html.ie9 table.responsive tbody,html.ie9 table.responsive td,html.ie9 table.responsive th,html.ie9 table.responsive thead,html.ie9 table.responsive tr{float:left;clear:both;width:100%}table.responsive tr{border:1px solid #ccc}table.responsive td{border:none}table.responsive th{display:none}}
+/*End Responsive Table CSS*/

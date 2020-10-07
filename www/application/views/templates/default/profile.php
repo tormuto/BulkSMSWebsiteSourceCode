@@ -1,4 +1,4 @@
-<h3>My Profile</h3><hr/>	
+<div class='default_breadcrumb'><h3>My Profile</h3><hr/></div>
 <div class='col-md-8 col-sm-8 col-md-offset-2'>
 	<?php if(!empty($Error)){ ?>
 		<div class='alert alert-danger'>
@@ -29,13 +29,12 @@
 						<?php
 						if(empty($countries))$countries=$this->general_model->get_countries(false);
 						
-						foreach($countries as $country_id=>$country)
-						{
+						foreach($countries as $country_code=>$country){
 					?>
 						<option <?php
-						echo " value='$country_id' ";
+						echo " value='{$country['country_code']}' ";
 						echo " dial_code='{$country['dial_code']}' ";
-						echo set_select('country',$country_id,$country_id==$my_profile['country_id']);
+						echo set_select('country',$country['country_code'],$country['country_code']==$my_profile['country_code']);
 						?> ><?php echo $country['country'];?></option>
 					<?php
 						}
@@ -44,7 +43,7 @@
 				</div>
 				<div class='form-group col-xs-4 col-md-2 col-sm-6'>
 					<label>Prefix</label>
-					<input placeholder="+234" name="default_dial_code"  type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g 234" value='<?php echo set_value('default_dial_code',$my_profile['default_dial_code']); ?>'  class='form-control input-sm default_dial_code' required >
+					<input placeholder="+<?php echo $configs['default_dial_code']; ?>" name="default_dial_code"  type='text' maxlength='5' pattern='^\+?[0-9]{1,5}$' title="Country/Network's default dial code, e.g <?php echo $configs['default_dial_code']; ?>" value='<?php echo set_value('default_dial_code',$my_profile['default_dial_code']); ?>'  class='form-control input-sm default_dial_code' required >
 				</div>
 				<div class='form-group col-xs-12 col-md-3 col-sm-6'>
 					<label>Timezone <a href='https://wikipedia.org/wiki/List_of_time_zones_by_country' title='Supplying the timezone offset of your country ensures that any information you recieve carries accurate timestamp' target='_blank' style='cursor:help;'>?</a></label>
@@ -66,7 +65,7 @@
 			</div>
 			<div class='form-group  col-md-6 col-sm-6'>
 				<label>Phone</label>
-				<input placeholder="+23480XXXXXXXX" name="phone" type='text' pattern="^\+?[0-9]{7,}$"  value='<?php echo set_value('phone',$my_profile['phone']);?>'  class='form-control input-sm default_dial_code' <?php echo empty($my_profile['flag_level'])?'required':'disabled'; ?>  >
+				<input placeholder="+<?php echo $configs['default_dial_code']; ?>80XXXXXXXX" name="phone" type='text' pattern="^\+?[0-9]{7,}$"  value='<?php echo set_value('phone',$my_profile['phone']);?>'  class='form-control input-sm default_dial_code' <?php echo empty($my_profile['flag_level'])?'required':'disabled'; ?>  >
 			</div>
 		</div>
 		<?php if(empty($my_profile['verification_file'])||$my_profile['flag_level']>=2){ ?>

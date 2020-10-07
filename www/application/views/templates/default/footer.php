@@ -25,7 +25,7 @@
   <div id='google_translate_element' style='display:none !important;max-width:100%;overflow:auto;'></div>	
 	
 	<link href="<?php echo $this->general_model->get_url('assets/css/jquery-ui.css');?>" rel="stylesheet">
-	<link href='<?php echo $this->general_model->get_url('assets/css/font-awesome.min.css');?>' rel='stylesheet' type='text/css'>	
+	<link href='<?php echo $this->general_model->get_url('assets/css/font-awesome.min.css');?>' rel='stylesheet' type='text/css'>
 	
 	<link href='<?php echo $this->general_model->get_url('assets/css/cgsms_style.css');?>' rel='stylesheet'>
 	<link rel='stylesheet' type='text/css' href='<?php echo $this->general_model->get_url('assets/css/bootstrap-datetimepicker.min.css');?>' />

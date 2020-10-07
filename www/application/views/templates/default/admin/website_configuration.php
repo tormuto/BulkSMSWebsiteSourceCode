@@ -1,11 +1,8 @@
 <h3 class='breadcrumb'>
-	Configuration
-	
+	Configuration	
 	<a href='?show_balance=1' class='pull-right' title='Show balances' ><i class='fa fa-database'></i></a>
 </h3>
-<?php	
-	if(!empty($Error)){
-?>
+<?php if(!empty($Error)){ ?>
 	<div class='alert alert-warning'>
 		<button class='close' data-dismiss='alert'>&times;</button>
 		<?php echo $Error;?>
@@ -31,29 +28,22 @@
 <hr/>
 <form role='form' method='post'>
 	<div class='form-group col-md-3 col-sm-4'>
-		<label for='site_name'>
-			Website Name
-		</label>
+		<label for='site_name'>Website Name</label>
 		<input type='text' name='site_name' value="<?php echo $presetData['site_name'];?>" class='form-control input-sm' placeholder='' required>
-	</div>
-	
+	</div>	
 	<div class='form-group col-md-2 col-sm-4'>
-		<label for='cron_mails_per_minute'>
-			CronMails per Minute
-		</label>
+		<label for='cron_mails_per_minute'>CronMails per Minute</label>
 		<input type='number' name='cron_mails_per_minute' min='1' max='10' placeholder='2' value="<?php echo $presetData['cron_mails_per_minute'];?>" class='form-control input-sm' required>
 	</div>
 	<div class='form-group col-md-2 col-sm-4'>
-		<label for='minimum_units'>
-			Minimum Units
-		</label>
+		<label for='minimum_units'>Minimum Units</label>
 		<input type='number' name='minimum_units' value="<?php echo $presetData['minimum_units'];?>" class='form-control input-sm' placeholder='1' required>
 	</div>
-	<div class='form-group col-md-2 col-sm-2'>
+	<div class='form-group col-sm-2'>
 		<label for='max_linked_sms' class='small'>Max hyperlinked bulk SMS</label>
 		<input type='number' name='max_linked_sms' value="<?php echo $presetData['max_linked_sms'];?>" class='form-control input-sm' placeholder='50' required>
 	</div>
-	<div class='form-group col-md-2 col-sm-2'>
+	<div class='form-group col-sm-3'>
 		<label for='force_default_lang'>Force Default Lang</label>
 		<select name='force_default_lang' class='form-control input-sm'>
             <option value=''>English (Default)</option>
@@ -64,16 +54,34 @@
                 } ?>
         </select>
 	</div>
-
+	
+	
+	<div class='form-group col-sm-2'>
+		<label for='default_dial_code' class='small'>Default Dial Code</label>
+		<input type='number' min='1' max='9999' name='default_dial_code' value="<?php echo $presetData['default_dial_code'];?>" class='form-control input-sm' placeholder='234' required>
+	</div>
+	<?php $countries=$this->general_model->get_countries(); ?>
+	<div class='form-group col-md-3 col-sm-3'>
+		<label>Default Country</label>
+		<select name='default_country_code' class='form-control input-sm' required >
+			<option value=''>Select countries</option>
+			<?php foreach($countries as $country_code=>$country){ ?>
+				<option value='<?php echo $country_code;?>'  <?php if($country_code!=''&&$country_code==$presetData['default_country_code'])echo 'selected'; ?> >
+					<?php echo $country;?> 
+				</option>
+			<?php } ?>
+		</select>
+	</div>
+	
 	<div class='clearfix'></div>
 	<h3>CheapGlobalSMS.com Account Configuration</h3>
 	<hr/>
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='cgsms_sub_account'>CheapGlobalSMS Sub-Account</label>
 		<input type='text' name='cgsms_sub_account' class='form-control' value="<?php echo $presetData['cgsms_sub_account'];?>" placeholder='001_subaccountname' required pattern='[0-9]+_[a-zA-Z0-9_]+' />
 	</div>
 	
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='cgsms_sub_account_password'>CheapGlobalSMS Sub-Account Password</label>
 		<input type='text' name='cgsms_sub_account_password' class='form-control' value="<?php echo $presetData['cgsms_sub_account_password'];?>" placeholder='password' required />
 	</div>
@@ -98,27 +106,23 @@
 	<div class='clearfix'></div>
 	<h3> Website Notice </h3>
 	<hr/>	
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='site_notice_logged_in'>When Logged In</label>
 		<textarea name='site_notice_logged_in' class='form-control'  placeholder='Enjoy your stay' rows=2><?php echo $presetData['site_notice_logged_in'];?></textarea>
 	</div>
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='site_notice_logged_out'>When Logged Out</label>
 		<textarea name='site_notice_logged_out' class='form-control'  placeholder='Please login to enjoy' rows=2><?php echo $presetData['site_notice_logged_out'];?></textarea>
 	</div>
 
 	<div class='clearfix'></div>
-	<h3>SOCIAL</h3>
+	<h3>SOCIAL <small>(optional)</small></h3>
 	<hr/>
 	<div class='form-group col-md-3 col-sm-3'>
 		<label for='facebook_url'>Facebook Url</label>
 		<input type='text' name='facebook_url' class='form-control' value="<?php echo $presetData['facebook_url'];?>" placeholder='http://facebook.com/username'/>
 	</div>
 	
-	<div class='form-group col-md-3 col-sm-3'>
-		<label for='facebook_page_id'>FB Page ID</label>
-		<input type='text' name='facebook_page_id' class='form-control' value="<?php echo $presetData['facebook_page_id'];?>" placeholder='311923839017947'/>
-	</div>
 	<div class='form-group col-md-3 col-sm-3'>
 		<label for='facebook_app_id'>FB App ID</label>
 		<input type='text' name='facebook_app_id' class='form-control' value="<?php echo $presetData['facebook_app_id'];?>" placeholder='311923839017947'/>
@@ -133,24 +137,24 @@
 		SEO PARAMETERS
 	</h3>
 	<hr/>
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='site_meta_title'>Website Meta Title</label>
 		<input type='text' name='site_meta_title' class='form-control' required value="<?php echo $presetData['site_meta_title'];?>" placeholder='Customized International SMS'/>
 	</div>
 	
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='site_meta_copyright'>Website Meta Copyright</label>
 		<input type='text' name='site_meta_copyright' class='form-control' required value="<?php echo $presetData['site_meta_copyright'];?>" placeholder='&copy; <?php echo date('Y'); ?> all rights reserved'/>
 	</div>
 	
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='site_meta_keywords'>Website Meta Keywords</label>
 		<textarea name='site_meta_keywords' class='form-control'  placeholder='bulk sms international,	
 i want to send bulk sms,sms gateway,sms marketing,bulk sms,send bulk sms,cheap bulk sms,cheap sms,sms provider,worldwide sms,sms via internet,sms web service,send sms online,php sms,low cost sms,send sms from pc,send text message' rows=2 required><?php echo $presetData['site_meta_keywords'];?></textarea>
 	</div>
 	
 	
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='site_meta_description'>Website Meta Description</label>
 		<textarea name='site_meta_description' class='form-control'  placeholder='The fastest and most reliable Bulk SMS service provider to all networks worldwide. With robust SMS gateway API for developers' rows='2' required><?php echo $presetData['site_meta_description'];?></textarea>
 	</div>
@@ -159,11 +163,11 @@ i want to send bulk sms,sms gateway,sms marketing,bulk sms,send bulk sms,cheap b
 	<div class='clearfix'></div>
 	<h3> Snippets </h3>
 	<hr/>	
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='snippets_in_header'>To Be Inserted Before &lt;/HEAD&gt;</label>
 		<textarea name='snippets_in_header' class='form-control'  placeholder='Optional extra JS/CSS' rows='3' ><?php echo $presetData['snippets_in_header'];?></textarea>
 	</div>
-	<div class='form-group col-md-6 col-sm-6'>
+	<div class='form-group col-sm-6'>
 		<label for='snippets_in_footer'>To Be Inserted Before &lt;/BODY&gt;</label>
 		<textarea name='snippets_in_footer' class='form-control'  placeholder='Optional extra JS/html' rows='3'><?php echo $presetData['snippets_in_footer'];?></textarea>
         <span class='btn-link' onclick="$('#sample_snippet_div').toggle();" >E.g, a Tawk Chat Snippet like this</span>

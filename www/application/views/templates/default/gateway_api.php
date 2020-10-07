@@ -4,10 +4,12 @@
 		$bexp=explode(':',$base_url,2);
 		return 'http:'.$bexp[1].'api_v1'.$uri;
 	}
+	
+	$D_DIAL_CODE=$configs['default_dial_code'];
 ?>
 
 <div class="panel panel-default">
-	<div class="panel-heading">
+	<div class="panel-heading default_breadcrumb">
 		<h3 style='margin:0px;'>SMS Gateway Developers' API</h3>
 	</div>
 	<div class="panel-body">
@@ -105,11 +107,11 @@
 					<br/>
 					Any mobile numbers starting with zero will have the zero stripped and replaced with the sub-account's default dial code.<br/>
 					If the mobile number does not start with a zero, the default dial code will <strong>not</strong> be applied.<br/><br/>
-					E.G if the sub-account's default dial code is '+234', <br/>
-					<i>08086689567,+2348094309926,4478128372838</i> will be converted to,
-					<i>2348086689567,2348094309926,4478128372838</i>
+					E.G if the sub-account's default dial code is '+<?php echo $D_DIAL_CODE; ?>', <br/>
+					<i>08086689567,+<?php echo $D_DIAL_CODE; ?>8094309000,4478128372838</i> will be converted to,
+					<i><?php echo $D_DIAL_CODE; ?>8086689567,<?php echo $D_DIAL_CODE; ?>8094309000,4478128372838</i>
 				</td>
-				<td>+2348094309926</td>
+				<td>+<?php echo $D_DIAL_CODE; ?>8094309926</td>
 			</tr>
 			<tr>
 				<td style='font-weight:bold;' colspan='3'>Optional Fields</td>
@@ -148,7 +150,7 @@
 				<td>The number that will replace the leading-zero on the recipient's phone number.<br/>
 					<i>If this was not supplied, the sub-account's default_dial_code will be used.</i>
 				</td>
-				<td>234</td>
+				<td><?php echo $D_DIAL_CODE; ?></td>
 			</tr>
 			<tr>
 				<td>send_at</td>
@@ -184,11 +186,11 @@
 				<td>contacts</td>
 				<td>
 					A  JSON Array of contacts, E.G:<br/>
-					<?php 
+					<?php
 						$demo_contacts=array(
-							0=>array('phone'=>'+2348093216754','firstname'=>'Pearl'),
-							1=>array('phone'=>'08086689567','firstname'=>'Ibukun','lastname'=>'Oladipo','group_name'=>'Client','extra_data'=>'USER001'),
-							2=>array('phone'=>'+2348094309926','override_message'=>'Hello, bro. Please be around before 11:00am','override_date_time'=>'2016-04-22 09:30'),
+							0=>array('phone'=>"+{$D_DIAL_CODE}8093216754",'firstname'=>'Pearl'),
+							1=>array('phone'=>'08086689567','firstname'=>'John','lastname'=>'Doe','group_name'=>'Client','extra_data'=>'USER001'),
+							2=>array('phone'=>"+{$D_DIAL_CODE}8094309926",'override_message'=>'Hello, bro. Please be around before 11:00am','override_date_time'=>'2016-04-22 09:30'),
 						);
 						echo json_encode($demo_contacts);
 					?>
@@ -232,7 +234,7 @@
 					);
 					
 					$query_string=http_build_query($params);
-					$url=get_api_url("?$query_string&recipients=08086689567,2348094309926");
+					$url=get_api_url("?$query_string&recipients=08086689567,{$D_DIAL_CODE}8094309926");
 				?>
 				<code><?php echo $url; ?></code>
 			</div>
@@ -245,7 +247,7 @@
 		'sub_account_pass'=>'pa55w0Rd',
 		'action'=>'send_sms',
 		'sender_id'=>'President',
-		'recipients'=>'08086689567,2348094309926',
+		'recipients'=>'08086689567,<?php echo $D_DIAL_CODE; ?>8094309926',
 		'message'=>"Hello, there will be a meeting today by 12 noon."
 	);
 	
@@ -357,8 +359,8 @@
 			</tr>
 			<tr>
 				<td>recipient</td>
-				<td>The recipient number, to which the SMS had been sent, e.g 08094309926 or 2348094309926 or +2348094309926</td>
-				<td>2348094309926</td>
+				<td>The recipient number, to which the SMS had been sent, e.g 08094309926 or <?php echo $D_DIAL_CODE; ?>8094309926 or +<?php echo $D_DIAL_CODE; ?>8094309926</td>
+				<td><?php echo $D_DIAL_CODE; ?>8094309926</td>
 			</tr>
 			<tr>
 				<td>sender_id</td>
@@ -368,7 +370,7 @@
 			<tr>
 				<td>search_term</td>
 				<td>If supplied, the records that contains either the recipient, sender_id or message body that 'roughly' matches the supplied value will be returned</td>
-				<td>President 2348094309926</td>
+				<td>President <?php echo $D_DIAL_CODE; ?>8094309926</td>
 			</tr>
 			<tr>
 				<td>start_date</td>
@@ -502,7 +504,7 @@
 		"sent_at":"2015-11-22 20:35",
 		"extra_data":""
 		},
-		{"sms_id":"67","sender":"ibukun","recipient":"2348094309926","message":"hello; how're you doing","sub_account_id":"1","user_id":"1","time_scheduled":"1448223878","batch_id":"1_1_1448223878","status":"2","type":"0","units":"2","reference":"","time_submitted":"1448223878","time_sent":"1448223878","units_confirmed":"1","locked":"0","info":"Message delivered to handset","firstname":null,"lastname":null,"group_name":null,"status_msg":"DELIVERED","submitted_at":"2015-11-22 20:24","scheduled_to":"2015-11-22 20:24","sent_at":"2015-11-22 20:24","extra_data":""},
+		{"sms_id":"67","sender":"ibukun","recipient":"<?php echo $D_DIAL_CODE; ?>8094309926","message":"hello; how're you doing","sub_account_id":"1","user_id":"1","time_scheduled":"1448223878","batch_id":"1_1_1448223878","status":"2","type":"0","units":"2","reference":"","time_submitted":"1448223878","time_sent":"1448223878","units_confirmed":"1","locked":"0","info":"Message delivered to handset","firstname":null,"lastname":null,"group_name":null,"status_msg":"DELIVERED","submitted_at":"2015-11-22 20:24","scheduled_to":"2015-11-22 20:24","sent_at":"2015-11-22 20:24","extra_data":""},
 		...
 		,"filter":{"sub_account_id":"1","batch_id":"","sms_id":"","sms_ids":"","type":"","recipient":"","search_term":"","sender_id":"","stage":"","start_date":"","end_date":"","p":"","perpage":100,"offset":0}
 }
@@ -629,7 +631,7 @@
 		The response to a <b>successful</b> 'account_info' request will be a JSON Object, containing the sub-account's full information, <br/>
 		Below is a sample successful process's response.
 
-<pre>{"sub_account_id":"1","sub_account":"mysub1","user_id":"1","balance":"1209","notification_email":"example@gmail.com","default_dial_code":"234","timezone_offset":"1","default_sender_id":"tormuto"}</pre>
+<pre>{"sub_account_id":"1","sub_account":"mysub1","user_id":"1","balance":"1209","notification_email":"example@gmail.com","default_dial_code":"<?php echo $D_DIAL_CODE; ?>","timezone_offset":"1","default_sender_id":"tormuto"}</pre>
 		Below is a sample response to a failed process, a JSON <strong>Object</strong>
 <pre>{"error":"Incorrect sub_account name or password","error_code":"4"}</pre>
 		<hr/> 
@@ -693,8 +695,8 @@
 			</tr>
 			<tr>
 				<td>recipient</td>
-				<td>The recipient number, to which the SMS had been sent, e.g 08094309926 or 2348094309926 or +2348094309926</td>
-				<td>2348094309926</td>
+				<td>The recipient number, to which the SMS had been sent, e.g 08094309926 or <?php echo $D_DIAL_CODE; ?>8094309926 or +<?php echo $D_DIAL_CODE; ?>8094309926</td>
+				<td><?php echo $D_DIAL_CODE; ?>8094309926</td>
 			</tr>
 			<tr>
 				<td>sender_id</td>
@@ -838,10 +840,10 @@
 				<td>
 					A string of phone numbers (multiple numbers can be separated by comma)
 					<br/>
-					E.G: <i>08086689567,+2348094309926,4478128372838</i> 
+					E.G: <i>08086689567,+<?php echo $D_DIAL_CODE; ?>8094309926,4478128372838</i> 
 					<div class='help-block'>Any mobile numbers starting with zero will have the zero stripped and replaced with the sub-account's default dial code. </div>
 				</td>
-				<td>+2348094309926</td>
+				<td>+<?php echo $D_DIAL_CODE; ?>8094309926</td>
 			</tr>
 			<tr>
 				<td>contacts</td>
@@ -849,8 +851,8 @@
 					A  JSON Array of contacts, E.G:<br/>
 					<?php 
 						$demo_contacts=array(
-							0=>array('phone'=>'08086689567','firstname'=>'Ibukun','lastname'=>'Oladipo','group_name'=>'Client'),
-							1=>array('phone'=>'+2348094309926','firstname'=>'Pearl'),
+							0=>array('phone'=>'08086689567','firstname'=>'John','lastname'=>'Doe','group_name'=>'Client'),
+							1=>array('phone'=>"+{$D_DIAL_CODE}8094309926",'firstname'=>'Pearl'),
 						);
 						echo json_encode($demo_contacts);
 					?>
@@ -887,7 +889,7 @@
 					);
 					
 					$query_string=http_build_query($params);
-					$url=get_api_url("?$query_string&contacts=08086689567,2348094309926");
+					$url=get_api_url("?$query_string&contacts=08086689567,{$D_DIAL_CODE}8094309926");
 				?>
 				<code><?php echo $url; ?></code>
 			</div>
@@ -897,7 +899,7 @@
 &lt;?php
 	$contacts=array(
 		0=>array('phone'=>'08086689567','firstname'=>'Ibukun','lastname'=>'Oladipo','group_name'=>'Client'),
-		1=>array('phone'=>'+2348094309926','firstname'=>'Pearl'),
+		1=>array('phone'=>'+<?php echo $D_DIAL_CODE; ?>8094309926','firstname'=>'Pearl'),
 	);
 
 	$post_data=array(
@@ -988,7 +990,7 @@
 			<tr>
 				<td>search_term</td>
 				<td>This can be any of phone number, firstname, lastname  to find, e.g: <i>08094309926</i> or <i>ibukun</i> or <i>08094309926 ibukun</i></td>
-				<td>2348094309926</td>
+				<td><?php echo $D_DIAL_CODE; ?>8094309926</td>
 			</tr>
 			<tr>
 				<td>contact_ids</td>
@@ -1094,8 +1096,8 @@
 {
   "filter":{"user_id":"1","sub_account_id":"1","perpage":10,"group_name":"My Customers","search_term":null,"offset":0},
   "total":2,"p":1,"totalpages":1,
-  "records":[{"contact_id":"20","user_id":"1","sub_account_id":"1","phone":"2348086689567","firstname":"","lastname":"","group_name":"My Customers","time":"1445721399"},
-  {"contact_id":"21","user_id":"1","sub_account_id":"1","phone":"2348094309926","firstname":"","lastname":"","group_name":"My Customers","time":"1445721399"}
+  "records":[{"contact_id":"20","user_id":"1","sub_account_id":"1","phone":"<?php echo $D_DIAL_CODE; ?>8086689567","firstname":"","lastname":"","group_name":"My Customers","time":"1445721399"},
+  {"contact_id":"21","user_id":"1","sub_account_id":"1","phone":"<?php echo $D_DIAL_CODE; ?>8094309926","firstname":"","lastname":"","group_name":"My Customers","time":"1445721399"}
   ]
 }
 </pre>
@@ -1237,7 +1239,7 @@
 			<tr>
 				<td>search_term</td>
 				<td>This can be any of phone number, firstname, lastname  to find, e.g: <i>08094309926</i> or <i>ibukun</i> or <i>08094309926 ibukun</i></td>
-				<td>2348094309926</td>
+				<td><?php echo $D_DIAL_CODE; ?>8094309926</td>
 			</tr>
 			<tr>
 				<td>contact_ids</td>

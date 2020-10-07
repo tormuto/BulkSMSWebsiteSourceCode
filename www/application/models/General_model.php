@@ -34,17 +34,15 @@
 				'2'=>array('title'=>'delivered','css'=>'success','msg'=>'Message is delivered to destination.','cgsms'=>'DELIVERED')
 				);
 			
-			$this->payment_ussd_code_params=array('bank_phone_number','amount_transfered');
 			$this->payment_bank_params=array('bank_name','depositor_name','teller_number','amount_transfered','payment_date');
-			$this->payment_western_union_params=array('senders_firstname','senders_lastname','senders_country','mtcn','security_answer','amount_transfered');
+			$this->payment_methods_no_requery=array('bank_deposit');
 				
 			$this->payment_methods=array(
 				'unifiedpurse'=>'UnifiedPurse',
+				//'bank_deposit'=>'Bank Transfer Deposit',
 				'free_checkout'=>'FREE'
 				);
-			
-			$this->payment_methods_no_requery=array('perfectmoney','bitcoin','bank_deposit','pay_on_delivery','ussd_code','western_union','2checkout','paypal','free_checkout','simplepay','voguepay');
-			
+
 			
 			$this->payment_gateway_params=array(
 					'unifiedpurse'=>array(
@@ -52,6 +50,7 @@
 						'key'=>'','url'=>'https://unifiedpurse.com/accept_payments',
 						'descr'=>"UnifiedPurse enables you to accept unified payments worldwide, from a single point. Providing over 80 popular payment alternatives (e.g PayPal, Bank, Perfectmoney...) to your payers, and collects your payments into a unified purse."
 					),
+					//'bank_deposit'=>array('merchant_id'=>'bank_account_details','key'=>'','textarea'=>'1'),
 				);
 			
 			$this->debugging=($this->input->get('debug')!='');			
@@ -77,42 +76,8 @@
 			if($len<=160)return 1;
 			return 1+ceil(($len-160)/145);
 		}
-		/*
-Multi-Links
-07027,0709
-
-Starcomms
-07028,07029,0819
-
-Visafone
-07025,07026,0704
-
-0707 	ZoomMobile (formerly Reltel)
-
-0804 	MTEL
-
-Airtel Nigeria
-0701x,0708,0802,0808,0812,0902 
-
-Globacom
-0705,0805,0807,0811,0815,0905
-
-Etisalat Nigeria
-0909,0908,0817,0818,0809
-
-
-MTN Nigeria
-0706,0703,0803 ,0806 ,0810 ,0816 ,0813 ,0814 ,0903 
-*/
 		
 		function get_cgsms_coverage_cost($phone){
-			if(strlen($phone)==13){ //handle nigeria here
-				$temp_pref=substr($phone,0,6);
-				if(in_array($temp_pref,array('234702','234704','234819','234709')))return 3;
-				if(in_array($temp_pref,array('234706','234703,0803','234806','234810','234816','234813','234814','234903')))return 1.5;
-				if(substr($phone,0,3)=='234')return 1;
-			}
-
 			if(empty($this->unique_coverage_list)){
 				$result=$this->db->select_max('units')->select('dial_code')->group_by('dial_code')->get('coverage_list')->result();
 				$records=array();
@@ -125,7 +90,7 @@ MTN Nigeria
 				if(isset($this->unique_coverage_list[$substr]))return $this->unique_coverage_list[$substr];
 			}
 			
-			return 6; //arbitarily high value until determined
+			return 10; //arbitarily high value until determined
 		}
 		
 		
@@ -260,16 +225,7 @@ MTN Nigeria
 			$methods=array();
 
 			foreach($this->payment_methods as $pm_key=>$pm_val){
-				if(!empty($configs['currency_code']))
-				{
-					$currency_code=$configs['currency_code'];
-					if($currency_code=='USD'&&($pm_key=='gtpay'||$pm_key=='interswitch'))continue;
-					elseif($currency_code!='USD'&&$pm_key=='perfectmoney')continue;
-					//elseif($currency_code!='BTC'&&$pm_key=='bitcoin')continue;
-				}
-
-				if(!empty($configs[$pm_key."_enabled"]))
-				{
+				if(!empty($configs[$pm_key."_enabled"])){
 					$methods[$pm_key]=$pm_val;
 				}
 			}
@@ -492,7 +448,10 @@ MTN Nigeria
 		
 
 		function admin_filter_recipients($filters,$field_key='',$index_field='user_id'){
-			if(!empty($filters['country_id']))$this->db->where('country_id',$filters['country_id']);
+			if(!empty($filters['country_code'])){
+				if(is_array($filters['country_code']))$this->db->where_in('country_code',$filters['country_code']);
+				else $this->db->where('country_code',$filters['country_code']);
+			}
 			
 			if($field_key!='')$this->db->select($field_key.',user_id');
 
@@ -534,7 +493,7 @@ MTN Nigeria
 
             $results_f=array();
 			if(isset($results['reseller_highest_price']))$this->reseller_highest_price=$results['reseller_highest_price'];
-			if(!defined('_CURRENCY_CODE_'))$currency_code='NGN'; else $currency_code=_CURRENCY_CODE_;
+			$currency_code=_CURRENCY_CODE_;
 			$results_f['currency_code']=$currency_code;
             if(empty($results['site_name']))$results_f['site_name']=$_SERVER['HTTP_HOST']; //or _DEFAULT_MAIL_SENDER_
             if(empty($keys))$this->configs=array_merge($results,$results_f);
@@ -558,11 +517,10 @@ MTN Nigeria
 		
 		function get_users($only_count=false,$filter=''){
 			if(!empty($filter['user_id']))$this->db->where('user_id',$filter['user_id']);
-			if(!empty($filter['country']))$this->db->where('country_id',$filter['country']);
+			if(!empty($filter['country']))$this->db->where('country_code',$filter['country']);
 			if(!empty($filter['search_term'])){
 				$like_query=$this->generate_like_query($filter['search_term'],'firstname,lastname,email,default_sender_id',false,true);
-				if(!empty($like_query))
-				{
+				if(!empty($like_query)){
 					$like_query="($like_query)";
 					$this->db->where($like_query,null,true);
 				}
@@ -670,7 +628,10 @@ MTN Nigeria
 				if(!empty($filter['country_code']))$this->db->where('country_code',$filter['country_code']);
 				if(!empty($filter['prefix']))$this->db->where('dial_code',$filter['prefix']);
 				if(!empty($filter['units']))$this->db->where('units >',$filter['units'])->where('units <=',$filter['units']);
-				if(!empty($filter['continent']))$this->db->where('continent',$filter['continent']);
+				if(!empty($filter['continent'])){
+					if(stristr($filter['continent'],'-'))$this->db->where('continent',$filter['continent']);
+					else $this->db->like('continent',"{$filter['continent']} -",'after');
+				}
 			}
 			
 			return $this->db->order_by('country')->order_by('units')->get('coverage_list')->result_array();
@@ -1182,25 +1143,10 @@ MTN Nigeria
 		function get_countries($simple_name_value=true){
 			$query=$this->db->order_by('country','asc')->get('countries');
 			$records=array();
-			if($simple_name_value)foreach($query->result() as $row)$records[$row->country_id]=$row->country;
-			else foreach($query->result() as $row)$records[$row->country_id]=(array)$row;
+			if($simple_name_value)foreach($query->result() as $row)$records[$row->country_code]=$row->country;
+			else foreach($query->result() as $row)$records[$row->country_code]=(array)$row;
 			return $records;
 		}
-
-
-		function get_states($country_id,$only_names=false){
-			$this->db->select('state_id, state');
-			if($country_id!=-1)$this->db->where("country_id",$country_id);
-
-			$query=$this->db->order_by("state", "asc")->get("states");
-			$states=array();
-			foreach($query->result() as $row){
-				if($only_names)$states[$row->state_id]=$row->state;
-				else $states[]=$row;
-			}
-			return $states;
-		}
-
 
 		######################### UTILITIES #####################################
 		
@@ -2103,7 +2049,7 @@ MTN Nigeria
 			else $this->db->query("UPDATE "._DB_PREFIX_."users SET $set_query WHERE user_id=$user_id LIMIT 1");
 		}
 		
-				
+
 		function deactivate_reseller_account($user_id){
 			$user=$this->get_user($user_id);
 			if(empty($user))return 'User record not found';
@@ -2143,11 +2089,11 @@ MTN Nigeria
 						'transaction_reference'=>$time,
 						'amount'=>$amount,
 						'type'=>2,
-						'currency_code'=>'NGN',
+						'currency_code'=>_CURRENCY_CODE_,
 						'details'=>$details,									
 						'payment_method'=>'free_checkout',
 						'sms_units'=>$reseller_surety_fee,
-						'net_amount_ngn'=>$amount,
+						'net_amount_fiat'=>$amount,
 						'status'=>1
 					);
 							

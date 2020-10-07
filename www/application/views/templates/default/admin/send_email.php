@@ -28,10 +28,10 @@
 
 	<div class='form-group col-md-3 col-sm-3'>
 		<label>Countries</label>
-		<select name='country_id' class='form-control input-sm' multiple >
+		<select name='country_code' class='form-control input-sm' multiple >
 			<option value=''>Select countries</option>
-			<?php foreach($countries as $country_id=>$country){ ?>
-				<option value='<?php echo $country_id;?>'  >
+			<?php foreach($countries as $country_code=>$country){ ?>
+				<option value='<?php echo $country_code;?>'  >
 					<?php echo $country;?> 
 				</option>
 			<?php } ?>
@@ -88,16 +88,13 @@
 	</div>
 </form>
 <script type='text/javascript'>
-	function recipientTypeChanged()
-	{
-		if($('#recipient_type').val()=='specified')
-		{
+	function recipientTypeChanged()	{
+		if($('#recipient_type').val()=='specified'){
 			$('#specified_recipients_div').show();
 			$('#filters_div').hide();
 			$('#recipient_emails').prop('required',true);
 		}
-		else
-		{
+		else {
 			$('#specified_recipients_div').hide();
 			$('#filters_div').show();
 			$('#recipient_emails').prop('required',false);

@@ -10,6 +10,7 @@
 <link rel="stylesheet" type="text/css" href="<?php echo $home_url;?>assets/css/jquery-ui.css" />  
 <link rel='stylesheet' type='text/css' href='<?php echo $this->general_model->get_url('assets/css/bootstrap-datetimepicker.min.css');?>' />
 <link rel='stylesheet' type='text/css' href='<?php echo $this->general_model->get_url('assets/css/summernote.css');?>' />
+<link href='<?php echo $this->general_model->get_url('assets/css/custom_bootstrap_header.css'); ?>' rel='stylesheet' type='text/css' defer />
 		
 <script src="<?php echo $this->general_model->get_url('assets/js/modernizr-inputtypes.js');?>"></script>
 <script src="<?php echo $home_url;?>assets/js/jquery.min.js"></script>  
@@ -59,7 +60,7 @@
 <body>
 
 <nav class="navbar navbar-inverse">
-  <div class="container-fluid">
+  <div class="container container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">

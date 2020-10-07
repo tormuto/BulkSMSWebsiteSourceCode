@@ -16,6 +16,28 @@
 <?php } ?>
     <div class='row'>
         <div class='col-sm-4'>
+			<div class='well well-sm'>At what price, and conversion rate are you buying credits from cheapglobalsms.com?</div>
+			<form role='form' method='post'>
+				<div class='form-group'>
+					<label>CheapGlobalSMS Price Per SMS Credit</label>
+					<div class='input-group'>
+						<input step='any' min='0.1' type='number' placeholder='1.75' required class='form-control input-sm' name='cheapglobalsms_price_per_unit' id='cheapglobalsms_price_per_unit' value='<?php echo empty($configs['cheapglobalsms_price_per_unit'])?1.75:$configs['cheapglobalsms_price_per_unit']; ?>'>
+						<span class='input-group-addon'>NGN/Unit</span>
+					</div>
+				</div>
+				<div class='form-group'>
+					<label>Conversion Rate At CheapGlobalSMS</label>
+					<div class='input-group'>
+						<span class='input-group-addon'>1 <?php echo _CURRENCY_CODE_; ?>=</span>
+						<input step='any' min='0.00000001' type='number' placeholder='1' required class='form-control input-sm' name='default_currency_to_ngn' id='default_currency_to_ngn' value='<?php echo empty($configs['default_currency_to_ngn'])?1:$configs['default_currency_to_ngn']; ?>'>
+						<span class='input-group-addon'>NGN</span>
+					</div>
+				</div>
+				<div class='text-center'>
+					<button class='btn btn-sm btn-default'><i class='fa fa-save'></i> SAVE</button>
+				</div>
+			</form>
+			<hr/>
             <div class='well well-sm'>
                 <i class='fa fa-lightbulb-o'></i>
                 Pricing are normally set such that, the higher the volume, the lower the rates.<br/>
@@ -36,11 +58,11 @@
             </form>
             <div id='pricing_suggestions'></div>
         </div>
-        <div class='col-sm-8'>
+        <div class='col-sm-8'>			
             <div class='help-block'>
                 <i class='fa fa-info'></i> To remove any price, just empty the price name and save the form.
             </div>            
-            <form role='form ' method='post'>
+            <form role='form' method='post'>
                 <div id='price_divs'></div>
                 
                 <div id='actions_div' style='margin-top:20px;'>
@@ -67,7 +89,7 @@
 			<label for='price_'>Selling Price-per-unit</label>
 			<div class='input-group'>
 				<input type='number' step='any' name='price_' class='form-control input-sm' placeholder='1.85' style='min-width:30px;'>
-				<span class='input-group-addon'>NGN</span>
+				<span class='input-group-addon'><?php echo _CURRENCY_CODE_; ?></span>
 			</div>
 		</div>
 		<div class='col-sm-4 form-group'>
@@ -84,8 +106,18 @@
 <script type='text/javascript'>
 	var num=0;
 	var current_price_id='';
-			
+	var DEFAULT_CURRENCY_TO_NGN=1;
+
 	$(function(){
+		$('#default_currency_to_ngn').on('change',function(){
+			var val=$(this).val();
+			if(val<=0)val=1;
+			DEFAULT_CURRENCY_TO_NGN=val;
+			$('#pricing_suggestions').html('');
+		});
+		
+		$('#default_currency_to_ngn').trigger('change');
+		
         var prices=<?php echo $prices_json; ?>;
         
         $.each(prices,function(price_name,price_data){
@@ -121,10 +153,14 @@
                                 var row=json.pricing[k];
                                 var temp_price=row['price_ngn']+(profit_percent*row['price_ngn']*0.01);
                                 temp_price=Math.ceil(temp_price*100)/100;
-                                str+="<tr><td>"+temp_price+"</td><td>"+row['min_units']+" - "+row['max_units']+"</td></tr>";
+								var price_equiv=temp_price*DEFAULT_CURRENCY_TO_NGN;
+								price_equiv=Math.ceil(price_equiv*100)/100;
+								
+                                str+="<tr><td>"+temp_price+"</td><td>"+price_equiv+"</td><td>"+row['min_units']+"</td><td>"+row['max_units']+"</td></tr>";
                             }
-                            str="<table class='table table-striped table-bordered table-condensed'>"+
-                                "<tr><td>Price (NGN)</td><td>Suggested Range</td></tr>"+str+"</table>";
+                            str="<h4>Suggested SMS Pricing Per Credit Range</h4>"+
+								"<table class='table table-striped table-bordered table-condensed'>"+
+                                "<tr><td>Price NGN</td><td>Price (<?php echo _CURRENCY_CODE_; ?>)</td><td>Min</td><td>Max</td></tr>"+str+"</table>";
                             $('#pricing_suggestions').html(str);
                         }
                     } 
@@ -138,12 +174,7 @@
             }).error(function(xhr){
                 console.log('Connection Error: '+xhr.statusText,url,xhr.responseText);
                 $('#pricing_suggestions').html("Error fetching pricing suggestion: <div class='well'>"+xhr.responseText+"</div>");
-            });
-    
-            
-            
-            
-            
+            });            
         });
 	});
 	

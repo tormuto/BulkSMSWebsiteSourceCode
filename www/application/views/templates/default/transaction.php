@@ -6,8 +6,7 @@
 		My Balance: <?php echo $my_balance.' units'; ?> 
 	</a>
 </h3>
-<div class='clearfix'></div>
-<hr/>
+<div class='clearfix'></div><hr/>
 <?php echo $this->general_model->display_bootstrap_alert(@$Success,@$Error); ?>
 <?php
 	if(!empty($transaction))
@@ -338,17 +337,7 @@
 							</td>
 							
 							<td>
-								<?php if($row['status']==0&&($row['payment_method']=='bitcoin')){ ?>
-										<form method='post'>
-											<input type='hidden' name='confirm_trans' value='<?php echo $row['transaction_reference']; ?>' />
-											<div class='form-group'>
-												<label>Bitcoin TX Hash</label>
-												<input name='bit_hash' type='text' class='form-control input-sm'  minlength='64' maxlength='64' pattern='^[a-z0-9]{64}$' required />
-											</div>
-											<button class='btn btn-default btn-xs pull-right' value='requery' >Requery</button>
-										</form>
-										<?php
-										} elseif(!in_array($row['payment_method'],$this->general_model->payment_methods_no_requery))echo $trans_action; ?>
+								<?php echo $trans_action; ?>
 							<?php
 								if($row['status']==-1)echo "<div><span class='btn btn-xs text-danger'><i class='fa fa-times'></i> Failed</span></div>";
 								elseif($row['status']==1)echo "<div><span class='btn btn-xs text-success'><i class='fa fa-check'></i> Completed</span></div>";

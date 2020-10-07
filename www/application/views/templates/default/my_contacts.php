@@ -1,5 +1,4 @@
-<h3><i class='fa fa-mobile'></i> My Contacts</h3>
-<hr/>
+<div class='default_breadcrumb'><h3><i class='fa fa-mobile'></i> My Contacts</h3><hr/></div>
 <?php if(!empty($Error)){ ?>
 		<div class='alert alert-danger fade in'>
 			<span class='close' data-dismiss='alert'>&times;</span>
@@ -78,7 +77,7 @@
 		</div>
 		<div class='form-group alone col-md-12 col-sm-12'>
 			<label for='phone_numbers'>Or Paste Phone Numbers</label>
-			<textarea name='phone_numbers' placeholder='+2348094309926,+2348086689567' class='form-control input-sm'></textarea>
+			<textarea name='phone_numbers' placeholder='+<?php echo $configs['default_dial_code']; ?>8094309926,+<?php echo $configs['default_dial_code']; ?>8086689567' class='form-control input-sm'></textarea>
 		</div>
 		<div class='form-group alone col-md-12 col-sm-12'>
 			<label for='group_name'>Group Name</label>

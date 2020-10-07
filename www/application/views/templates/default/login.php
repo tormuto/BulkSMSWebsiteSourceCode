@@ -1,12 +1,10 @@
-<div class='row'>
-<form role='form' method='post' class='autovalidate' >
-	<h4 class='content-heading'><i class='fa fa-lock'></i> Account Login</h4>
+
+	<h4 class='content-heading default_breadcrumb'><i class='fa fa-lock'></i> Account Login</h4>
 	<?php
 		if(empty($Error)&&validation_errors()!='')$Error=validation_errors();
 		
 		
-		if(empty($Error))
-		{
+		if(empty($Error)){
 	?>	
 		<script type='text/javascript'>
 			$(function(){ $('#signup').modal('show'); });
@@ -16,43 +14,43 @@
 		
 		if(empty($Error)&&!empty($_REQUEST['dest']))$Error="Please login or <a href='".$this->general_model->get_url('registration')."' class='alert-link' >register</a> first.";
 		
-		if(!empty($Error))
-		{
+		if(!empty($Error)){
 	?>
 		<div class='alert alert-warning'>
 			<span class='close' data-dismiss='alert'>&times;</span>
 			<?php echo $Error;?>
 		</div>
-	<?php
-		}
-	?>
+		<?php } ?><br/>
+	<div class='clearfix'></div>
+<div class='row'>
 	<div class='col-md-4 col-sm-4  col-md-offset-4 col-sm-offset-4' style='border:1px solid #ccc;padding:25px 5px;border-radius:5px;'>
-		<label>Username or Email</label>
-		<div class='input-group'>
-			<span class='input-group-addon'>
-				<i class='fa fa-user'></i>
-			</span>
-			<input type='email' name='email' placeholder='email' class='form-control pull-right' value="<?php echo set_value('email',@$_GET['pending_email']);?>"  required />		
+		
+		<form role='form' method='post' class='autovalidate' >
+		<div class='form-group'>
+			<label>Username or Email</label>
+			<div class='input-group'>
+				<span class='input-group-addon'>
+					<i class='fa fa-user'></i>
+				</span>
+				<input type='email' name='email' placeholder='email' class='form-control pull-right' value="<?php echo set_value('email',@$_GET['pending_email']);?>"  required />		
+			</div>
 		</div>
 		<br/>
-		<div class='clearfix'></div>
+		<div class='form-group'>
 			<label>Password</label>
-		<div class='input-group'>
-			<span class='input-group-addon'>
-				<i class='fa fa-key'></i>
-			</span>
-			<input type='password' name='password' placeholder='password' class='form-control pull-right' required />
+			<div class='input-group'>
+				<span class='input-group-addon'>
+					<i class='fa fa-key'></i>
+				</span>
+				<input type='password' name='password' placeholder='password' class='form-control pull-right' required />
+			</div>
 		</div>
 		<br/>
-		<?php
-			if(!empty($_REQUEST['dest']))
-			{
-		?>
+		<?php if(!empty($_REQUEST['dest'])){ ?>
 			<input type='hidden' name='dest' value="<?php echo $_REQUEST['dest'];?>"/>
-		<?php
-			}
-		?>
+		<?php } ?>
 		<button class='btn btn-primary pull-right' style='margin-right:10px;' > Login</button>
+		</form>
 		<div class='clearfix'></div>
 		<hr/>
 		<a href='<?php echo $this->general_model->get_url('registration');?>' class='btn btn-default btn-xs' >
@@ -60,5 +58,5 @@
 		</a>
 		<a href='<?php echo $this->general_model->get_url('reset_password');?>' style='color:#F63;' class='btn btn-link btn-xs pull-right'>I forgot my password</a>
 	</div>		
-</form>
+
 </div>

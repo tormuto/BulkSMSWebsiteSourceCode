@@ -19,8 +19,17 @@ class Default_router extends CI_Controller{
 			$this->config->set_item('base_url',$this->base_url) ;
 		}
 		
-		if(!defined('_DB_NAME_')){
-			redirect(base_url()."install");
+		if(!defined('_DB_NAME_')){			
+			//Set Base URL.
+			$is_https=(!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')||$_SERVER['SERVER_PORT']==443;
+			$url=$is_https? 'https://' : 'http://';
+			$domain=($_SERVER['HTTP_HOST']=='[::1]')?'localhost':$_SERVER['HTTP_HOST'];
+			$url.=$domain.dirname($_SERVER['PHP_SELF']);
+			$this->base_url=rtrim($url,'/').'/';
+			//$this->config->set_item('base_url',$this->base_url) ;
+			//End Setting Base-url
+			$install_url=$this->base_url.'install';
+			header("Location: $install_url");
 			exit("Configuration Not Found");
 		}
 		$this->load->library('user_agent');
@@ -354,7 +363,6 @@ class Default_router extends CI_Controller{
 	}
 	
 	public function index(){
-		$data['page_title']="The Cheapest, Fastest and Most Reliable Bulk SMS Gateway in the World";
 		$uri=trim(uri_string(),'/');
 		if(is_numeric($uri))return $this->profile($uri);
 		elseif(!empty($uri))return $this->show_error_page("Oops! The page you're looking for '$uri' was not found on this website.",$uri);
@@ -363,13 +371,20 @@ class Default_router extends CI_Controller{
 			$this->general_model->unset_login_cookie();
 			$this->b_redirect();
 		}
+		
+		$data['configs']=$this->general_model->get_configs();		
+		$data['page_title']=@$data['configs']['site_meta_title'];
 		if($this->general_model->logged_in()){
 			$this->load_client_views('dashboard.php',$data);
 		}
 		else  $this->load_client_views('dashboard.php',$data);
 	}
 	
-	public function registration(){
+	function signup(){
+		return $this->registration();
+	}
+	
+	function registration(){
 		$this->uncheck_login();
 		$data['page_title']="Registration";
 		$data['signup_stage']=0;
@@ -408,7 +423,7 @@ class Default_router extends CI_Controller{
 			   array(
 					 'field'=>'country',
 					 'label'=>'country',
-					 'rules'=>'required|max_length[3]|integer'
+					 'rules'=>'required|max_length[2]|alpha'
 				  ),
 			   array(
 					 'field'=>'default_dial_code',
@@ -462,7 +477,7 @@ class Default_router extends CI_Controller{
 					'email'=>$email,
 					'default_sender_id'=>$default_sender_id,
 					'phone'=>$phone,
-					'country_id'=>$this->input->post('country',true),
+					'country_code'=>$this->input->post('country',true),
 					'default_dial_code'=>$this->input->post('default_dial_code',true),
 					'timezone_offset'=>$this->input->post('timezone_offset',true),
 					'password'=>$this->input->post('password',true),
@@ -533,7 +548,7 @@ class Default_router extends CI_Controller{
 				'email'=>$pendingEmailData['email'],
 				'default_sender_id'=>$pendingEmailData['default_sender_id'],
 				'phone'=>$pendingEmailData['phone'],
-				'country_id'=>$pendingEmailData['country_id'],
+				'country_code'=>$pendingEmailData['country_code'],
 				'default_dial_code'=>$pendingEmailData['default_dial_code'],
 				'timezone_offset'=>$pendingEmailData['timezone_offset'],
 				'balance'=>$data['configs']['free_sms'],
@@ -556,12 +571,11 @@ class Default_router extends CI_Controller{
 		$user_id=$this->get_login_data('user_id');
 		$p_user=$user_id;
 		
-		if($this->input->post('update_profile'))
-		{
+		if($this->input->post('update_profile')){
 			$my_profile=$this->general_model->get_user($user_id,'user_id');
 				
 			$rules=array(
-			   array('field'=>'country','label'=>'country','rules'=>'required|max_length[3]|integer'),
+			   array('field'=>'country','label'=>'country','rules'=>'required|max_length[2]|alpha'),
 			   array('field'=>'default_dial_code','label'=>'default dial code','rules'=>'required|integer'),
 			   array('field'=>'timezone_offset','label'=>'timezone offset','rules'=>'required|max_length[6]'),
 			   array('field'=>'default_sender_id','label'=>'default sender id','rules'=>'required|min_length[3]|callback__valid_sender_id'),
@@ -576,11 +590,10 @@ class Default_router extends CI_Controller{
 			
 			$this->form_validation->set_rules($rules);					
 			if(!$this->form_validation->run())$data['Error']=validation_errors();
-			else
-			{
+			else {
 				$update_data=array(
 					'default_sender_id'=>$this->input->post('default_sender_id',true),
-					'country_id'=>$this->input->post('country',true),
+					'country_code'=>$this->input->post('country',true),
 					'default_dial_code'=>$this->input->post('default_dial_code',true),
 					'timezone_offset'=>$this->input->post('timezone_offset',true),
 					'credit_notification'=>$this->input->post('credit_notification',true),
@@ -766,19 +779,19 @@ class Default_router extends CI_Controller{
 	public function coverage_list(){
 		$data['page_title']="Coverage List";
 		$data['filter']=array(
+			'traffic_volume'=>$this->input->get('traffic_volume',true),
 			'continent'=>$this->input->get('continent',true),
 			'units'=>$this->input->get('units',true),
 			'prefix'=>$this->input->get('prefix',true),
 			'country_code'=>$this->input->get('country',true)
 		);
-		if($this->input->get('action')){
+		if(true||$this->input->get('action')){
 			$data['coverage_list']=$this->general_model->get_coverage_list($data['filter']);
 			
 			if($this->input->get('action')=='export_json'&&!empty($data['coverage_list'])){
 				header('Content-Type: application/json');
 				$records=array();
-				foreach($data['coverage_list'] as $route)
-				{
+				foreach($data['coverage_list'] as $route){
 					$records[]=array(
 						'country'=>$route['country'],
 						'network'=>$route['network'],
@@ -792,23 +805,43 @@ class Default_router extends CI_Controller{
 				echo json_encode($records);
 				exit;
 			}
-			elseif($this->input->get('action')=='export'&&!empty($data['coverage_list']))
-			{
+			elseif($this->input->get('action')=='export'&&!empty($data['coverage_list'])){
+				if(!empty($data['filter']['traffic_volume'])){
+					$tvol=$data['filter']['traffic_volume'];
+					$tvolf=number_format($tvol);
+				}
+				else $tvol=0;
+				
 				$content="<table border='1'>
 					<tr>
 						<th class='col-xs-1'>ID</th>
 						<th class='col-xs-2'>Country</th>
 						<th class='col-xs-3'>Network</th>
 						<th class='col-xs-1'>Prefix</th>
-						<th class='col-xs-1' title='units per sms page'>Units</th>	
+						<th class='col-xs-1' title='units per sms page'>Units</th>
+						<th class='col-xs-1'>Explanation</th>
 						<th class='col-xs-1'>Continent</th>	
 						<th class='col-xs-1'>Country Code</th>	
 					</tr>";
 					
-					$sn=0;			
-				foreach($data['coverage_list'] as $route)
-				{
+				$sn=0;
+				$explanation="";
+				$cur_code=_CURRENCY_CODE_;
+				
+				foreach($data['coverage_list'] as $route){
 					$sn++;
+					
+					if(!empty($tvol)){
+						$tunits=$tvol*$route['units'];
+						$tunitsf=number_format($tunits);
+				
+						$ppv=$this->general_model->sms_units_to_price($tunits);
+						$ppm=$ppv/$tvol;
+						$ppm=ceil($ppm*100000)/100000;
+						$ppv=ceil($ppv*100000)/100000;
+						
+						$explanation="<small class='text-warning'>$tvolf SMS = $tunitsf units = $ppv $cur_code ( @$ppm $cur_code per SMS)</small>";
+					}
 					
 					$content.="<tr/>
 							<td>+$sn</td>
@@ -816,6 +849,7 @@ class Default_router extends CI_Controller{
 							<td>{$route['network']}</td>
 							<td>+{$route['dial_code']}</td>
 							<td>{$route['units']}</td>
+							<td>$explanation</td>
 							<td>{$route['continent']}</td>
 							<td>{$route['country_code']}</td>
 						</tr>";
@@ -2439,8 +2473,8 @@ class Default_router extends CI_Controller{
 	}
 
 	public function pricing(){
-		$data['page_title']='Pricing';
-		$data['section_title']='Buy SMS Credits';
+		$data['page_title']='Buy SMS Credits';
+		$data['section_title']='Pricing';
 		$this->load_client_views('pricing.php',$data);
 	}
 	
@@ -2485,7 +2519,7 @@ class Default_router extends CI_Controller{
 					'details'=>$payment_memo,									
 					'payment_method'=>'unifiedpurse',
 					'sms_units'=>$sms_units,
-					'net_amount_ngn'=>$original_amount/$currencies[$cur]['value'],
+					'net_amount_fiat'=>$original_amount/$currencies[$cur]['value'],
 					'json_details'=>json_encode($json_details)
 					);
 		
@@ -2500,7 +2534,7 @@ class Default_router extends CI_Controller{
 			Please find your transaction information below:<br/><br/>
 			Date: $payment_date<br/>
 			Amount: {$transaction['amount']} {$transaction['currency_code']}<br/>
-			Payment Method: unifiedpurse.com<br/>
+			Payment Method: UnifiedPurse.com<br/>
 			Details: {$transaction['details']}<br/><br/>
 			You can always confirm your transaction/payment status at $notify_url?confirm_trans={$transaction['transaction_reference']}<br/><br/>Regards.";
 			$this->general_model->send_email($user_data['email'],"Transaction Information",$mail_message);
@@ -2678,8 +2712,7 @@ class Default_router extends CI_Controller{
 		
 		if($this->form_validation->run()){
 			if($this->input->post('email')!=_ADMIN_EMAIL_||$this->input->post('password')!=_ADMIN_PASS_)$data['Error']="Incorrect admin email or password.";
-			else
-			{
+			else {
 				$skip_email=$this->input->get('override_e2fa',true);
 
 				if($this->general_model->on_localhost()||$skip_email)
@@ -2730,6 +2763,8 @@ class Default_router extends CI_Controller{
 						'cgsms_sub_account_password'=>$this->input->post('cgsms_sub_account_password',true),
 						'max_linked_sms'=>$this->input->post('max_linked_sms',true),
 						'force_default_lang'=>$this->input->post('force_default_lang',true),
+						'default_dial_code'=>$this->input->post('default_dial_code',true),
+						'default_country_code'=>$this->input->post('default_country_code',true),
 						'site_meta_title'=>$this->input->post('site_meta_title',true),
 						'site_meta_copyright'=>$this->input->post('site_meta_copyright',true),
 						'site_meta_keywords'=>$this->input->post('site_meta_keywords',true),
@@ -2745,7 +2780,6 @@ class Default_router extends CI_Controller{
 						'site_notice_logged_out'=>$this->input->post('site_notice_logged_out',true),
 						'facebook_url'=>$this->input->post('facebook_url',true),
 						'twitter_url'=>$this->input->post('twitter_url',true),
-						'facebook_page_id'=>$this->input->post('facebook_page_id',true),
 						'facebook_app_id'=>$this->input->post('facebook_app_id',true),
 					);
 
@@ -2798,8 +2832,7 @@ class Default_router extends CI_Controller{
 			$data['Success']="Record Updated";
 		}
 		
-		if(isset($_GET['show_balance']))
-		{			
+		if(isset($_GET['show_balance'])){			
 			$total_unused_units=$this->general_model->get_total_user_balance();
 			$cheapglobalsms_balance_units=0;
 			$info_resp=$this->general_model->_cheapglobalsms_get_balance($configs);
@@ -2817,19 +2850,18 @@ class Default_router extends CI_Controller{
 		}
 		
 		
-		if(isset($_POST['show_dues']))
-		{
+		if(isset($_POST['show_dues'])){
 			$start_date=$this->_valid_date($this->input->post('start_date'));
 			$start_time=strtotime($start_date);
 			
 			$end_date=$this->_valid_date($this->input->post('end_date'));
 			$end_time=strtotime($end_date)+86400-1;
 						
-			$query=$this->db->query("SELECT SUM(sms_units) as total_units,SUM(net_amount_ngn) as total_amount FROM "._DB_PREFIX_."transactions WHERE status=1 AND time>$start_time AND time<$end_time ");
+			$query=$this->db->query("SELECT SUM(sms_units) as total_units,SUM(net_amount_fiat) as total_amount FROM "._DB_PREFIX_."transactions WHERE status=1 AND time>$start_time AND time<$end_time ");
 			$sum=$query->row();
 			$total_units=$sum->total_units;
 			
-			$cheapglobalsms_price_per_unit=1.75;  //assuming that you are always buying from cheapglobalsms at 1.75
+			$cheapglobalsms_price_per_unit=empty($configs['cheapglobalsms_price_per_unit'])?1.75:$configs['cheapglobalsms_price_per_unit'];
 			
 			$cheapglobalsms_total=$total_units*$cheapglobalsms_price_per_unit;
 			$gross_gain=$sum->total_amount-$cheapglobalsms_total;
@@ -2849,19 +2881,19 @@ class Default_router extends CI_Controller{
 			$data['Success']="FOR THE PERIOD OF: <strong>$start_date_str</strong> <i>TO</i> <strong>$end_date_str</strong><br/>
 			<div class='list-group'>
 				<div class='list-group-item'>
-					CheapGlobalSMS Total: ".number_format($cheapglobalsms_total,2)." NGN  ($total_units UNITS)
+					CheapGlobalSMS Total: ".number_format($cheapglobalsms_total,2)." "._CURRENCY_CODE_."  ($total_units UNITS)
 				</div>
 				<div class='list-group-item'>
-					My Vat: <strong>".number_format($my_vat,2)." NGN</strong>
+					My Vat: <strong>".number_format($my_vat,2)." "._CURRENCY_CODE_."</strong>
 				</div>
 				<div class='list-group-item'>
-					Gross Gain: ".number_format($gross_gain,2)." NGN
+					Gross Gain: ".number_format($gross_gain,2)." "._CURRENCY_CODE_."
 				</div>
 				<div class='list-group-item'>
-					Tithe: <strong>".number_format($tithe,2)." NGN</strong>
+					Tithe: <strong>".number_format($tithe,2)." "._CURRENCY_CODE_."</strong>
 				</div>
 				<div class='list-group-item'>
-					My Profit: <strong>".number_format($my_profit,2)." NGN</strong>
+					My Profit: <strong>".number_format($my_profit,2)." "._CURRENCY_CODE_."</strong>
 				</div>
 			</div>";
 			
@@ -2880,13 +2912,26 @@ class Default_router extends CI_Controller{
 		$data['templates']=array();
 		$path='application/views/templates';
 		
+		if($this->input->post('default_currency_to_ngn')){
+			$default_currency_to_ngn=floatval($this->input->post('default_currency_to_ngn',true));
+			$this->general_model->update_config('default_currency_to_ngn',$default_currency_to_ngn);
+			$data['configs']['default_currency_to_ngn']=$default_currency_to_ngn;
+		}
+		
+		if($this->input->post('cheapglobalsms_price_per_unit')){
+			$cheapglobalsms_price_per_unit=floatval($this->input->post('cheapglobalsms_price_per_unit',true));
+			$this->general_model->update_config('cheapglobalsms_price_per_unit',$cheapglobalsms_price_per_unit);
+			$data['configs']['cheapglobalsms_price_per_unit']=$cheapglobalsms_price_per_unit;
+		}
+
+
 		if($this->input->post('update_coverage_list')){
 			$coverage=$this->general_model->_curl_json('https://cheapglobalsms.com/coverage_list?action=export_json');
 			if(!empty($coverage['error']))$data['Error']=$coverage['error'];
 			else {
 				$this->general_model->update_coverage_list($coverage);
 				$data['Success']='Coverage list reloaded';
-			}			
+			}
 		}
 		
 
@@ -2894,8 +2939,7 @@ class Default_router extends CI_Controller{
 			$num_prices=$this->input->post('num_prices');
 			$prices=array();
 
-			for($num=1;$num<=$num_prices;$num++)
-			{
+			for($num=1;$num<=$num_prices;$num++){
 				$price_i=$this->input->post("price_$num");
 				$price_i=strtolower(trim($price_i));
 				if(!is_numeric($price_i))continue;
@@ -2907,8 +2951,7 @@ class Default_router extends CI_Controller{
 								);
 			}
 			$prices=array_values($prices);
-			if(!empty($prices))
-			{
+			if(!empty($prices)){
 				$this->general_model->update_prices($prices);
 				$data['Success']="prices updated successfully.";
 			}
@@ -2940,6 +2983,34 @@ class Default_router extends CI_Controller{
 				$mail_msg="Dear {$temp_user['firstname']}\r\n\r\nPlease note that your submitted verification document has been removed from the server.\r\nYou may like to re-upload a genuine/valid document for verification.\r\n\r\nRegards";
 				$this->general_model->send_email($temp_user['email'],'Your verification document was rejected',"");
 				$data['Success']='Verification file has been removed';
+			}
+		}
+		
+		
+		if($this->input->post('topup_user_id')){
+			$topup_user_id=$this->input->post('topup_user_id')*1;
+			$topup_units=$this->input->post('topup_units')*1;
+			if($topup_units!=0&&$topup_user_id>0){
+				$this->general_model->charge_balance($topup_units*-1,$topup_user_id);
+				
+				if($this->input->post('log_transaction')){
+					$time=time();
+					$transaction=array(
+						'user_id'=>$topup_user_id,
+						'time'=>$time,
+						'transaction_reference'=>$time,
+						'amount'=>0,
+						'type'=>1,
+						'status'=>1,
+						'currency_code'=>'',
+						'details'=>"System updated SMS balance by $topup_units units",								
+						'payment_method'=>'free_checkout',
+						'sms_units'=>$topup_units,
+					);
+					
+					$this->general_model->insert_transaction($transaction);
+				}
+				$data['Success']="Balance altered by $topup_units units";
 			}
 		}
 		
@@ -3096,10 +3167,10 @@ class Default_router extends CI_Controller{
 			
 			$amount_paid=$payment_info['amount_paid'];
 			$ccode=@$payment_info['currency_code'];
-			if($ccode!='USD'&&$ccode!='NGN')$ccode=$transaction['currency_code'];
+			if($ccode!='USD'&&$ccode!=_CURRENCY_CODE_)$ccode=$transaction['currency_code'];
 			$currencies=$this->general_model->get_currencies();
 			
-			//$currency_value=1; for NGN
+			//$currency_value=1; for _CURRENCY_CODE_
 			$currency_value=$currencies[$ccode]['value'];					
 			$payment_method=$transaction['payment_method'];
 			
@@ -3142,7 +3213,7 @@ class Default_router extends CI_Controller{
 			//then re-update transaction
 			$update_data=array('json_details'=>json_encode($json_details),'amount'=>$amount_paid);
 			$update_data['sms_units']=$new_sms_units;
-			$update_data['net_amount_ngn']=$net_amount_paid/$currencies[$ccode]['value'];
+			$update_data['net_amount_fiat']=$net_amount_paid/$currencies[$ccode]['value'];
 					
 			$this->general_model->update_transaction($transaction['transaction_reference'],$update_data,false);
 			
@@ -3242,7 +3313,7 @@ class Default_router extends CI_Controller{
 					//then re-update transaction
 					$update_data=array('json_details'=>json_encode($json_details),'amount'=>$amount_paid);
 					$update_data['sms_units']=$new_sms_units;
-					$update_data['net_amount_ngn']=$net_amount_paid/$currencies[$ccode]['value'];
+					$update_data['net_amount_fiat']=$net_amount_paid/$currencies[$ccode]['value'];
 							
 					$this->general_model->update_transaction($transaction['transaction_reference'],$update_data,false);
 					
@@ -3258,10 +3329,6 @@ class Default_router extends CI_Controller{
 					SMS CREDITS: $new_sms_units Units";
 				}
 				if(!empty($teller_info))$json_info['info']=$teller_info;
-				if($transaction['payment_method']=='western_union')
-					foreach($this->general_model->payment_western_union_params as $pbp)$json_info[$pbp]=$this->input->post($pbp,true); 
-				elseif($transaction['payment_method']=='ussd_code')
-					foreach($this->general_model->payment_ussd_code_params as $pbp)$json_info[$pbp]=$this->input->post($pbp,true); 
 				else foreach($this->general_model->payment_bank_params as $pbp)$json_info[$pbp]=$this->input->post($pbp,true); 
 				$json_info['admin_email']=$admin_login_data['email'];
 				$json_info['admin_id']=$admin_login_data['admin_id'];
@@ -3503,11 +3570,8 @@ function _replace_placeholders($template,$values)
 						$data['Error']="Mail not sent to $inv_count invalid email address $inv_str.";
 					}
 				}
-				else
-				{
-					$filters=array(
-								'country_id'=>@$_POST['country_id']
-								);
+				else {
+					$filters=array('country_code'=>@$_POST['country_code']);
 
 					$recipients=$this->general_model->admin_filter_recipients($filters);
 
@@ -3517,8 +3581,7 @@ function _replace_placeholders($template,$values)
 				}
 
 				$num=count($mails);
-				if($num!=0)
-				{
+				if($num!=0){
 					$resp_str=($num==1)?$mails[0]['email']:"$num recipients";
 					$temp=0;
 					if($diff<=0&&$num<10) //time is past, or present

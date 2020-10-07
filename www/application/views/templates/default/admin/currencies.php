@@ -32,7 +32,7 @@
 					<span class='input-group-addon'>
 						<input type='checkbox' name='enabled_' checked value='1' />
 					</span>
-					<input type='text' name='currency_' placeholder='NGN' pattern='^[a-zA-Z]{3}$' class='form-control input-sm' >
+					<input type='text' name='currency_' placeholder='<?php echo _CURRENCY_CODE_; ?>' pattern='^[a-zA-Z]{3}$' class='form-control input-sm' >
 				</div>
 			</div>
 			<div class='col-md-2 col-sm-2 form-group'>

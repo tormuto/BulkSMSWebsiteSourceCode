@@ -1,5 +1,5 @@
 <div class="panel panel-default">
-	<div class="panel-heading"><h3 style='margin:0px;'>Frequently Asked Questions</h3></div>
+	<div class="panel-heading default_breadcrumb"><h3 style='margin:0px;'>Frequently Asked Questions</h3></div>
 		<div class="panel-body">
 			
 			<p>
@@ -58,7 +58,7 @@
 			<li class='list-group-item' >
 				 <h4 class='list-group-item-heading'>I saw a negative account balance, what happened?</h4>
 				<p class='list-group-item-text'>
-					Because the exact cost/units of the SMS couldn't be determined before the message was sent, the <strong>lowest</strong> charge to the <abbr title='e.g 234 for nigeria (the lowest is 1unit, though there are some networks that are still up to 3units'>sms prefix</abbr> per SMS page will be assumed.<br/>
+					Because the exact cost/units of the SMS couldn't be determined before the message was sent, the <strong>lowest</strong> charge to the <abbr title='e.g <?php echo $configs['default_dial_code']; ?> for nigeria (the lowest is 1unit, though there are some networks that are still up to 3units'>sms prefix</abbr> per SMS page will be assumed.<br/>
 					After few seconds, the real network/units will be determined; and if more units were spent, the excess will be deducted as well<br/>
 					But if your balance was already empty at that point, it will reflect a negative.
 				</p>
