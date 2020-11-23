@@ -280,11 +280,8 @@ class Default_router extends CI_Controller{
 	
 	
 	function _valid_sender_id($sender_id){
-		if($sender_id=='')return true;	
-		$test1=preg_match("~^.{3,11}$~",$sender_id);
-		$test2=preg_match("~^[0-9]{3,14}$~",$sender_id);
-		//$test2=preg_match("~^.{3,11}|[0-9]{3,14}$~",$sender_id);
-		if($test1||$test2)return $sender_id;
+		if($sender_id=='')return true;
+		if(preg_match("~(^[^'\" ]{3,11}$)|(^[0-9]{3,14}$)~",$sender_id))return $sender_id;
 		$this->form_validation->set_message('_valid_sender_id',"Invalid sender id '$sender_id'. Sender Id length can either be between 3 to 11 characters (or 3 to 14 digits if numeric)");
 		return false;		
 	}

@@ -1,7 +1,7 @@
 Start your own bulk SMS business very easily by using this ready-made free bulk sms website source code from [Cheap Global SMS](https://cheapglobalsms.com)
 This application has already been integrated with the [CheapGlobalSMS.com API](https://cheapglobalsms.com/gateway_api), so all you need to do is: get a [CheapGlobalSMS Sub-Account](https://cheapglobalsms.com/sub_account) to be used with this free bulk SMS website bootstrap from CheapGlobalSMS.com.
 
-See a live sample at http://cgsms.tormuto.com
+See a live sample at https://bestsmsgateway.com/
 
 HIGHLIGHTS
 
