@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `gm_whitelisted_sms` (
   `message` TEXT,
   `user_id` INT(11) NOT NULL DEFAULT 0,
   `sub_account_id` INT(11) NOT NULL DEFAULT 0,
-  `date_time` DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00',
+  `date_time` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`whitelisted_sms_id`),
   KEY `user_id` (`user_id`),
   KEY `sub_account_id` (`sub_account_id`),

@@ -852,7 +852,7 @@ class Default_router extends CI_Controller{
 						</tr>";
 				}
 				$content.="</table>";
-				$filename="CheapGlobalSMS_coverage_and_pricing_list.xls";
+				$filename="SMS_coverage_and_pricing_list.xls";
 				header("Pragma: public");
 				header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
 				header("Pragma: no-cache");
@@ -1191,7 +1191,7 @@ class Default_router extends CI_Controller{
 			$content .= "FN:$firstname $lastname\r\n";
 			$content .= "N:$lastname;$firstname ;;;\r\n";
 			//$content .= "TITLE:Technology And Systems Administrator\r\n";
-			$content .= "ORG:Contact Generated via CheapGlobalSMS.com\r\n";
+			$content .= "ORG:Contacts\r\n";
 			//$content .= "ADR;TYPE=work:;;21 W. 20th St.;Broadview ;IL;60559;\r\n";
 			//$content .= "EMAIL;TYPE=internet,pref:joe@wegnerdesign.com\r\n";
 			//$content .= "TEL;TYPE=work,voice:7089181512\r\n";
