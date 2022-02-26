@@ -25,7 +25,7 @@
 	</div>
 	<button name='show_dues' value='1' class='btn btn-sm btn-default'>Compute Dues</button>
 </form>
-<hr/>
+<hr style='margin:2px 0;'/>
 <form role='form' method='post'>
 	<div class='form-group col-md-3 col-sm-4'>
 		<label for='site_name'>Website Name</label>
@@ -75,7 +75,7 @@
 	
 	<div class='clearfix'></div>
 	<h3>CheapGlobalSMS.com Account Configuration</h3>
-	<hr/>
+	<hr style='margin:2px 0;'/>
 	<div class='form-group col-sm-6'>
 		<label for='cgsms_sub_account'>CheapGlobalSMS Sub-Account</label>
 		<input type='text' name='cgsms_sub_account' class='form-control' value="<?php echo $presetData['cgsms_sub_account'];?>" placeholder='001_subaccountname' required pattern='[0-9]+_[a-zA-Z0-9_]+' />
@@ -89,7 +89,7 @@
 		<a href='http://cheapglobalsms.com/sub_accounts'>Get/manage your sub-account here</a>
 	</div>
 	<div class='clearfix'></div>
-	<hr/>
+	<hr style='margin:2px 0;'/>
     
     <div class='form-group col-md-12' data-toggle='tooltip' title='E.g @gmail.com,@yahoo.com, ... If supplied, only those email containing these will be allowed'>
         <label for=''>Allowed Signup Email Domains</label>
@@ -105,7 +105,7 @@
 	
 	<div class='clearfix'></div>
 	<h3> Website Notice </h3>
-	<hr/>	
+	<hr style='margin:2px 0;'/>	
 	<div class='form-group col-sm-6'>
 		<label for='site_notice_logged_in'>When Logged In</label>
 		<textarea name='site_notice_logged_in' class='form-control'  placeholder='Enjoy your stay' rows=2><?php echo $presetData['site_notice_logged_in'];?></textarea>
@@ -117,10 +117,10 @@
 
 	<div class='clearfix'></div>
 	<h3>SOCIAL <small>(optional)</small></h3>
-	<hr/>
+	<hr style='margin:2px 0;'/>
 	<div class='form-group col-md-3 col-sm-3'>
 		<label for='facebook_url'>Facebook Url</label>
-		<input type='text' name='facebook_url' class='form-control' value="<?php echo $presetData['facebook_url'];?>" placeholder='http://facebook.com/username'/>
+		<input type='url' name='facebook_url' class='form-control' value="<?php echo $presetData['facebook_url'];?>" placeholder='http://facebook.com/username'/>
 	</div>
 	
 	<div class='form-group col-md-3 col-sm-3'>
@@ -129,14 +129,31 @@
 	</div>
 	<div class='form-group col-md-3 col-sm-3'>
 		<label for='twitter_url'>Twitter Url</label>
-		<input type='text' name='twitter_url' class='form-control' value="<?php echo $presetData['twitter_url'];?>" placeholder='http://twitter.com/username'/>
+		<input type='url' name='twitter_url' class='form-control' value="<?php echo $presetData['twitter_url'];?>" placeholder='http://twitter.com/username'/>
 	</div>
 	
 	<div class='clearfix'></div>
-	<h3>
-		SEO PARAMETERS
-	</h3>
-	<hr/>
+	<h4>CONTACTS <small>(optional)</small></h4>
+	<hr style='margin:2px 0;'/>
+	<div class='form-group col-md-3 col-sm-3'>
+		<label for='contact_phone'>Phone</label>
+		<input type='tel' name='contact_phone' class='form-control' value="<?php echo $presetData['contact_phone'];?>" placeholder='+0000000000'/>
+	</div>	
+	<div class='form-group col-md-3 col-sm-3'>
+		<label for='contact_whatsapp'>Whatsapp</label>
+		<input type='text' name='contact_whatsapp' class='form-control' value="<?php echo $presetData['contact_whatsapp'];?>" placeholder='+0000000000'/>
+	</div>
+	<div class='form-group col-md-3 col-sm-3'>
+		<label for='contact_telegram'>Telegram Username</label>
+		<div class='input-group'>
+			<span class='input-group-addon'>@</span>
+			<input type='text' name='contact_telegram' class='form-control' value="<?php echo $presetData['contact_telegram'];?>" placeholder='username'/>
+		</div>
+	</div>
+	
+	<div class='clearfix'></div>
+	<h3>SEO PARAMETERS</h3>
+	<hr style='margin:2px 0;'/>
 	<div class='form-group col-sm-6'>
 		<label for='site_meta_title'>Website Meta Title</label>
 		<input type='text' name='site_meta_title' class='form-control' required value="<?php echo $presetData['site_meta_title'];?>" placeholder='Customized International SMS'/>
@@ -162,7 +179,7 @@ i want to send bulk sms,sms gateway,sms marketing,bulk sms,send bulk sms,cheap b
     
 	<div class='clearfix'></div>
 	<h3> Snippets </h3>
-	<hr/>	
+	<hr style='margin:2px 0;'/>	
 	<div class='form-group col-sm-6'>
 		<label for='snippets_in_header'>To Be Inserted Before &lt;/HEAD&gt;</label>
 		<textarea name='snippets_in_header' class='form-control'  placeholder='Optional extra JS/CSS' rows='3' ><?php echo $presetData['snippets_in_header'];?></textarea>
@@ -274,12 +291,12 @@ $home_default="
 	</div>	
 </form>
 <div class='clearfix'></div>
-<hr/>
+<hr style='margin:2px 0;'/>
 <div class='alert alert-info'>
 	Remember to set up a <strong>Cron Job</strong> with the following command.<br/>
 	<pre> */15 * * * * 	curl <?php echo $this->general_model->get_url('run_sms_cron'); ?> >/dev/null 2>&amp;1 </pre>
 	<p>i.e, run this command "<i>curl <?php echo $this->general_model->get_url('run_sms_cron'); ?> >/dev/null 2>&amp;1</i>" once every 15 minutes</p>
-	<hr/>
+	<hr style='margin:2px 0;'/>
 	<h4>Also, set up another cron like this</h4>
 	<pre> */15 * * * * curl <?php echo $this->general_model->get_url('run_mail_queue'); ?> >/dev/null 2>&amp;1 </pre>
 	<p>i.e, run this command "<i>curl <?php echo $this->general_model->get_url('run_mail_queue'); ?> >/dev/null 2>&amp;1</i>" once every 15 minutes</p>

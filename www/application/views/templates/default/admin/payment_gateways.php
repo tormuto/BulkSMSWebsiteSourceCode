@@ -87,12 +87,12 @@
 	</div>
 	<div class='clearfix'></div>
 	
-	<div class='form-group col-md-6 col-sm-6 col-xs-12'>
+	<div class='form-group col-md-4 col-sm-4 col-xs-12'>
 		<label for='<?php echo $pglabel; ?>'><?php echo $this->general_model->split_format($pgpname); ?> Label</label>
 		<input type='text' name='<?php echo $pglabel; ?>' class='form-control input-sm <?php echo $pgclass;?>' <?php if(!empty($presetData[$pgen]))echo 'required'; ?> value="<?php echo $presetData[$pglabel];?>" />
 	</div>
 	
-	<div class='form-group col-md-2 col-sm-2 col-xs-6'>
+	<div class='form-group col-md-3 col-sm-3 col-xs-6'>
 		<label for='<?php echo $pgcharge_fixed; ?>'><?php echo $this->general_model->split_format($pgpname); ?> Fixed Charge </label>
 		<div class='input-group'>
 			<input type='number' step='any' name='<?php echo $pgcharge_fixed; ?>' class='form-control input-sm <?php echo $pgclass;?>' <?php if(!empty($presetData[$pgen]))echo 'required'; ?> value="<?php echo $presetData[$pgcharge_fixed];?>" />
@@ -108,7 +108,7 @@
 		</div>
 	</div>
 	
-	<div class='form-group col-md-2 col-sm-2 col-xs-6'>
+	<div class='form-group col-md-3 col-sm-3 col-xs-6'>
 		<label for='<?php echo $pgcharge_cap; ?>'><?php echo $this->general_model->split_format($pgpname); ?> Max. Charge </label>
 		<div class='input-group'>
 			<input type='number' step='any' placeholder='300'		name='<?php echo $pgcharge_cap; ?>' class='form-control input-sm <?php echo $pgclass;?>' <?php if(!empty($presetData[$pgen]))echo 'required'; ?> value="<?php echo $presetData[$pgcharge_cap];?>" />

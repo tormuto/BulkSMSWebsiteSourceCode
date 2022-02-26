@@ -152,9 +152,9 @@
                             for(var k in json.pricing){
                                 var row=json.pricing[k];
                                 var temp_price=row['price_ngn']+(profit_percent*row['price_ngn']*0.01);
-                                temp_price=Math.ceil(temp_price*100)/100;
-								var price_equiv=temp_price*DEFAULT_CURRENCY_TO_NGN;
-								price_equiv=Math.ceil(price_equiv*100)/100;
+                                temp_price=Math.ceil(temp_price*100000)/100000;
+								var price_equiv=temp_price/DEFAULT_CURRENCY_TO_NGN;
+								price_equiv=Math.ceil(price_equiv*100000)/100000;
 								
                                 str+="<tr><td>"+temp_price+"</td><td>"+price_equiv+"</td><td>"+row['min_units']+"</td><td>"+row['max_units']+"</td></tr>";
                             }

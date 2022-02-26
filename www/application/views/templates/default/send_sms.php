@@ -51,17 +51,13 @@
 					Preserve Unicode <i>(e.g Chinese, Russian or other special symbols) <strong>72 chars/page</strong></i>
 				</label>			
 			</div>			
-			
-			<?php if($my_profile['country_code']==$configs['default_country_code']){ ?>
-				<div>Sending to Nigerian networks on corporate/financial route charges 2 units per SMS page</div>
-			<?php } ?>
-			<div class='form-group' data-toggle='tooltip' title="TIPS: While using CORPORATE ROUTE helps your budget (economizing by sending through standard channel if the destination has already been found to be unrestrictive). FINANCIAL ROUTE doesn't do such fallback (typically used for OTP/Transactional messages)." >
+			<div class='form-group'  >
 				<div class='input-group'>
 					<span class='input-group-addon'>Use</span>
 					<select class='form-control input-sm' name='route' >
-						<option value='0' <?php if(isset($_POST['route'])&&$_POST['route']==0)echo 'selected'; ?> >Standard Route</option>
-						<option value='1' <?php if(@$_POST['route']=='1')echo 'selected'; ?> >Financial Route</option>
-						<option value='2' <?php if(@$_POST['route']=='2'||(!isset($_POST['route'])&&$my_profile['country_code']==$configs['default_country_code']))echo 'selected'; ?> >Corporate Route</option>
+						<option value='0' <?php if(isset($_POST['route'])&&$_POST['route']==0)echo 'selected'; ?> >Optimal Standard Route</option>
+						<option value='1' <?php if(@$_POST['route']=='1')echo 'selected'; ?> >Priority Delivery Route</option>
+						<option value='2' <?php if(@$_POST['route']=='2')echo 'selected'; ?> >Best Pricing Route</option>
 					</select>
 				</div>
 			</div>

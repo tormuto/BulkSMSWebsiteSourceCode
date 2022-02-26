@@ -18,6 +18,17 @@
 		<?php } else { ?>
 		<p><a class="btn btn-primary btn-lg" href='javascript:void(0)' data-toggle='modal' data-target='#signup' role="button">Register</a></p>
 		<?php } ?>
+		<div >
+			<?php if(!empty($configs['contact_phone'])){ ?>
+				<a href='tel:<?php echo $configs['contact_phone']; ?>' class='btn btn-xs btn-default'><i class='fa fa-phone'></i> Call <?php echo $configs['contact_phone']; ?></a>
+			<?php } ?>
+			<?php if(!empty($configs['contact_whatsapp'])){ ?>
+				<a href='https://wa.me/<?php echo $configs['contact_whatsapp']; ?>' target='_blank' class='btn btn-xs btn-success'><i class='fa fa-whatsapp'></i> Whatsapp</a>
+			<?php } ?>
+			<?php if(!empty($configs['contact_telegram'])){ ?>
+				<a href='https://t.me/<?php echo $configs['contact_telegram']; ?>' target='_blank' class='btn btn-xs btn-primary'><i class='fa fa-telegram'></i> Telegram</a>
+			<?php } ?>
+		</div>
 	</div>
 	<?php if($this->general_model->logged_in()&&!$this->general_model->has_sub_account($my_profile['user_id'])){ ?>
 		<div class='alert alert-info fade in'>

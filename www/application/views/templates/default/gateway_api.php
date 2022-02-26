@@ -133,8 +133,7 @@
 			<tr>
 				<td>route</td>
 				<td>
-					<b>0</b> means standard route, <b>1</b> means financial route, <b>2</b> means corporate route
-					<i class='fa fa-lightbulb-o'></i> TIPS: <i>TIPS: While using CORPORATE ROUTE helps your budget (economizing by sending through standard channel if the destination has already been found to be unrestrictive). FINANCIAL ROUTE doesn't do such fallback (typically used for OTP/Transactional messages).</i>
+					<b>0</b> means <i>Optimal Standard Route</i>, <b>1</b> means <i>Priority Delivery Route</i>, <b>2</b> means <i>Best Pricing Route</i>
 				</td>
 				<td>0</td>
 			</tr>

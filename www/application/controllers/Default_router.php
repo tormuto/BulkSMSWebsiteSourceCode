@@ -88,22 +88,17 @@ class Default_router extends CI_Controller{
 	
     function _set_prefered_language() {
 		$browser_preferred_language=$this->general_model->get_cookie('browser_preferred_language');
-		if($browser_preferred_language!==null)return $browser_preferred_language;
-		
+		if($browser_preferred_language!==null&&$browser_preferred_language!='zh-cn'&&$browser_preferred_language!='zh-tw')return $browser_preferred_language;
 		// Languages we support
 		$available_languages="en,fr,es,ru,it,ar,ja,de,zh-cn,zh-tw,nl,pt,af,ga,sq,az,eu,ko,bn,be,lv,bg,lt,ca,mk,ms,mt,hr,no,cs,fa,da,pl,ro,et,sr,tl,sk,fi,sl,gl,sw,ka,sv,ta,el,th,ht,tr,iw,uk,hi,ur,hu,vi,is,cy,id";
 		$available_languages=explode(',',$available_languages);
         
+		$http_accept_language=empty($_SERVER["HTTP_ACCEPT_LANGUAGE"])?null:$_SERVER["HTTP_ACCEPT_LANGUAGE"];
         $force_default_lang=$this->general_model->get_config('force_default_lang');
-        if(!empty($force_default_lang)&&in_array($force_default_lang,$available_languages))$_SERVER["HTTP_ACCEPT_LANGUAGE"]="$force_default_lang";
-        
-		if(empty($_SERVER["HTTP_ACCEPT_LANGUAGE"])){
-			return null;
-		}
-		
+		$fdlow=strtolower($force_default_lang);
+        if(!empty($fdlow)&&in_array($fdlow,$available_languages))$http_accept_language=$force_default_lang;		
+		if(empty($http_accept_language))return null;		
 		//$_SERVER["HTTP_ACCEPT_LANGUAGE"] = 'en-us,en;q=0.8,es-cl;q=0.5,zh-cn;q=0.3';
-		$http_accept_language=@$_SERVER["HTTP_ACCEPT_LANGUAGE"];
-		
 		
 		$available_languages = array_flip($available_languages);
 		$langs=array();
@@ -128,6 +123,9 @@ class Default_router extends CI_Controller{
 		if(!empty($langs)){
 			$maxs = array_keys($langs, max($langs));
 			$pref_lang=$maxs[0];
+			if(stristr($pref_lang,'-')){ 
+				$pref_lang=explode('-',$pref_lang,2); $pref_lang=$pref_lang[0].'-'.strtoupper($pref_lang[1]);
+			}
 			$this->general_model->set_cookie('browser_preferred_language',$pref_lang);
 			return $pref_lang;
 		}
@@ -2778,6 +2776,10 @@ class Default_router extends CI_Controller{
 						'facebook_url'=>$this->input->post('facebook_url',true),
 						'twitter_url'=>$this->input->post('twitter_url',true),
 						'facebook_app_id'=>$this->input->post('facebook_app_id',true),
+						
+						'contact_phone'=>$this->input->post('contact_phone',true),
+						'contact_whatsapp'=>$this->input->post('contact_whatsapp',true),
+						'contact_telegram'=>$this->input->post('contact_telegram',true),
 					);
 
             if(empty(trim(strip_tags($presetData['home']))))$presetData['home']='';

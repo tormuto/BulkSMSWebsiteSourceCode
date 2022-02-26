@@ -51,7 +51,7 @@
 						<td><?php echo $row['sender_id']; ?></td>
 						<td style='word-break: break-all;' ><?php echo $row['message']; ?></td>
 						<td >
-							<a href='<?php echo $this->general_model->get_url("admin_manage_members/{$row['user_id']}");?>'>
+							<a href='<?php echo $this->general_model->get_url("admin_manage_users?f_user_id={$row['user_id']}");?>'>
 								<?php echo $row['firstname']." ".$row['lastname'];?>
 							</a>
 						</td>

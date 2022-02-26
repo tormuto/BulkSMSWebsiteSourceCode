@@ -349,6 +349,11 @@
 	   function add_plus($phone){ return '+'.$phone; }
 	   function format_user_id($user_id){ return str_pad($user_id,3,'0',STR_PAD_LEFT); }
 	   function format_sub_account($sub_account,$user_id){ return str_pad($user_id,3,'0',STR_PAD_LEFT)."_$sub_account"; }
+	   
+	   
+		function valid_sms_batch_id($batch_id){
+			return preg_match("~^[0-9]+_[0-9]+_[0-9]+$~",$batch_id);
+		}
 
 	   
 		####################### Bitcoin Payment Helper #######

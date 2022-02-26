@@ -124,17 +124,14 @@
 				</div>
 				
 				
-				<?php if($my_profile['country_code']==$configs['default_country_code']){ ?>
 				<div class='form-group'>
-					<label style='color:#990000;'>Standard or Corporate(DND Bypass) Route</label>
-					<select class='form-control input-sm' id='route' name='route' data-toggle='tooltip' title="TIPS: While using CORPORATE ROUTE helps your budget (economizing by sending through standard channel if the destination has already been found to be unrestrictive). FINANCIAL ROUTE doesn't do such fallback (typically used for OTP/Transactional messages)." >
-						<option value='0' <?php if(@$_POST['route']==0)echo 'selected'; ?> >Use Standard Route</option>
-						<option value='1' <?php if(@$_POST['route']=='1')echo 'selected'; ?> >Use Corporate Route for all recipients - 2 units per page</option>
-						<option value='2' <?php if(@$_POST['route']=='2')echo 'selected'; ?> >Use Corporate Route if on DND - 2 units if on DND</option>
+					<label style='color:#990000;'>Use:</label>
+					<select class='form-control input-sm' id='route' name='route' >
+						<option value='0' <?php if(@$_POST['route']==0)echo 'selected'; ?> >Optimal Standard Route</option>
+						<option value='1' <?php if(@$_POST['route']=='1')echo 'selected'; ?> >Priority Delivery Route</option>
+						<option value='2' <?php if(@$_POST['route']=='2')echo 'selected'; ?> >Best Pricing Route</option>
 					</select>
-				</div>
-				<?php } ?>
-			
+				</div>			
 				
 				<div class='text-right'>
 					<button class='btn btn-success' name='send_message' value='send_message' >
