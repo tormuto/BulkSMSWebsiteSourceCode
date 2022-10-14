@@ -269,6 +269,7 @@
 			else $query=$this->db->query('SELECT * FROM '._DB_PREFIX_.'users WHERE email=? AND (password=? OR temp_password=?) LIMIT 1',array($email,$encpass,$encpass));
 
 			if($row=$query->row()){
+				if($row->flag_level>=5)return "Account Not Found or Suspended!";
 				$user_id=$row->user_id;
 
 				$login_data=array(
@@ -278,7 +279,7 @@
                     //'name'=>ucwords(strtolower($this->firstname.' '.$this->lastname)),
 					'timezone_offset'=>$row->timezone_offset,
 					'default_dial_code'=>$row->default_dial_code,
-					'default_sender_id'=>$row->default_sender_id,
+					'flag_level'=>$row->flag_level,
 				);
 
 				if($row->temp_password!=''){
@@ -1495,39 +1496,57 @@
 		
 		function remove_error($error_id){$this->db->where('error_id',$error_id)->limit(1)->delete('errors');}
 		
-		function dispatch_suspended_batch($batch_id){
-			$log=$this->db->where('related_id',$batch_id)->where('type','suspended_sms')->limit(1)->get('errors')->row_array();
-			if(empty($log))return "Record not found, or already dispatched";
+		function dispatch_suspended_batch($batch_id,$is_user_id=false){
+			if($is_user_id)$this->db->where('user_id',$batch_id);
+			else $this->db->where('related_id',$batch_id);
 			
-			$log_json=$this->get_json($log['json_details']);
-			if(!$this->is_sms_whitelisted($log_json)){
-				$log_json['date_time']=date('Y-m-d H:i');
-				$this->db->insert('whitelisted_sms',$log_json);
+			$logs=$this->db->where('type','suspended_sms')->get('errors')->result_array();
+			if(empty($logs))return "Record not found, or already dispatched";
+			foreach($logs as $log){
+				$batch_id=$log['related_id'];
+				$log_json=$this->get_json($log['json_details']);
+				if(!$this->is_sms_whitelisted($log_json)){
+					$log_json['date_time']=date('Y-m-d H:i');
+					$this->db->insert('whitelisted_sms',$log_json);
+				}
+
+				$this->db->where('batch_id',$batch_id)->where('locked',1)->where('status',0)->update('sms_log',array('locked'=>0));
+				$this->db->where('related_id',$batch_id)->where('type','suspended_sms')->limit(1)->delete('errors');
+			}
+			
+			return true;
+		}
+		
+		function cancel_suspended_batch($batch_id,$is_user_id=false){
+			if($is_user_id)$this->db->where('user_id',$batch_id);
+			else $this->db->where('related_id',$batch_id);
+			
+			$logs=$this->db->where('type','suspended_sms')->get('errors')->result_array();
+			if(empty($logs))return "Record not found, or already dispatched";
+			foreach($logs as $log){
+				$batch_id=$log['related_id'];
+				$res=$this->db->where('batch_id',$batch_id)->where('locked',1)->where('status',0)->select_sum('units','units_sum')->select('user_id,sub_account_id')->get('sms_log');
+				$row=$res->row();
+				$this->charge_balance($row->units_sum*-1,$row->user_id,$row->sub_account_id);
+				
+				$this->db->where('batch_id',$batch_id)->where('locked',1)->where('status',0)->update('sms_log',array('locked'=>0,'status'=>'-2','units'=>0,'units_confirmed'=>1));
+				$this->db->where('related_id',$batch_id)->where('type','suspended_sms')->limit(1)->delete('errors');
 			}
 
-			$this->db->where('batch_id',$batch_id)->where('locked',1)->where('status',0)->update('sms_log',array('locked'=>0));
-			$this->db->where('related_id',$batch_id)->where('type','suspended_sms')->limit(1)->delete('errors');
 			return true;
 		}
 		
-		function cancel_suspended_batch($batch_id){
-			$log=$this->db->where('related_id',$batch_id)->where('type','suspended_sms')->limit(1)->get('errors')->row_array();
-			if(empty($log))return "Record not found, or already dispatched";
-			$res=$this->db->where('batch_id',$batch_id)->where('locked',1)->where('status',0)->select_sum('units','units_sum')->select('user_id,sub_account_id')->get('sms_log');
-			$row=$res->row();
-			$this->charge_balance($row->units_sum*-1,$row->user_id,$row->sub_account_id);
+		function penalize_suspended_batch($batch_id,$is_user_id=false){
+			if($is_user_id)$this->db->where('user_id',$batch_id);
+			else $this->db->where('related_id',$batch_id);
 			
-			$this->db->where('batch_id',$batch_id)->where('locked',1)->where('status',0)->update('sms_log',array('locked'=>0,'status'=>'-2','units'=>0,'units_confirmed'=>1));
-			$this->db->where('related_id',$batch_id)->where('type','suspended_sms')->limit(1)->delete('errors');
-			
-			return true;
-		}
-		
-		function penalize_suspended_batch($batch_id){
-			$log=$this->db->where('related_id',$batch_id)->where('type','suspended_sms')->limit(1)->get('errors')->row_array();
-			if(empty($log))return "Record not found, or already dispatched";
-			$this->db->where('batch_id',$batch_id)->where('locked',1)->where('status',0)->update('sms_log',array('locked'=>0,'status'=>'-4','units_confirmed'=>1));
-			$this->db->where('related_id',$batch_id)->where('type','suspended_sms')->limit(1)->delete('errors');
+			$logs=$this->db->where('type','suspended_sms')->get('errors')->result_array();
+			if(empty($logs))return "Record not found, or already dispatched";
+			foreach($logs as $log){
+				$batch_id=$log['related_id'];
+				$this->db->where('batch_id',$batch_id)->where('locked',1)->where('status',0)->update('sms_log',array('locked'=>0,'status'=>'-4','units_confirmed'=>1,'info'=>"Blacklisted as suspected fraudulent"));
+				$this->db->where('related_id',$batch_id)->where('type','suspended_sms')->limit(1)->delete('errors');
+			}
 			
 			return true;
 		}

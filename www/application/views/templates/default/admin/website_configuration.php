@@ -90,17 +90,35 @@
 	</div>
 	<div class='clearfix'></div>
 	<hr style='margin:2px 0;'/>
-    
-    <div class='form-group col-md-12' data-toggle='tooltip' title='E.g @gmail.com,@yahoo.com, ... If supplied, only those email containing these will be allowed'>
-        <label for=''>Allowed Signup Email Domains</label>
-        <?php 
-            $temp_default="@yahoo.,@gmail.,@googlemail.,@aol.,@yandex.,@live.,@outlook.,@hotmail.,@ymail.,@mail.,@gmx.,@rocketmail.,@protonmail.,@hushmail.,@foxmail.,@vfemail.net,@pophorn.,@puxmail.,@qq.,@msn.";
-            if(!isset($presetData['allowed_signup_email_domains']))$presetData['allowed_signup_email_domains']=$temp_default; ?>
-        <textarea name='allowed_signup_email_domains' class='form-control'  placeholder='<?php echo $temp_default; ?>' rows=2><?php echo $presetData['allowed_signup_email_domains'];?></textarea>
-    </div>
-	<div class='form-group col-md-12'>
-		<label for=''>Blacklisted Names</label>
-		<textarea name='blacklisted_names' class='form-control'  placeholder='Blacklist malicious user names/ sender_ids; these ids will not be allowed to register' rows=2><?php echo $presetData['blacklisted_names'];?></textarea>
+    <div class='row'>
+		<div class='form-group col-md-6' data-toggle='tooltip' title='E.g @gmail.com,@yahoo.com, ... If supplied, only those email containing these will be allowed'>
+			<label for=''>Allowed Signup Email Domains</label>
+			<?php 
+				$temp_default="@yahoo.,@gmail.,@googlemail.,@aol.,@yandex.,@live.,@outlook.,@hotmail.,@ymail.,@mail.,@gmx.,@rocketmail.,@protonmail.,@hushmail.,@foxmail.,@vfemail.net,@pophorn.,@puxmail.,@qq.,@msn.";
+				if(!isset($presetData['allowed_signup_email_domains']))$presetData['allowed_signup_email_domains']=$temp_default; ?>
+			<textarea name='allowed_signup_email_domains' class='form-control'  placeholder='<?php echo $temp_default; ?>' rows=2><?php echo $presetData['allowed_signup_email_domains'];?></textarea>
+		</div>
+		<div class='form-group col-md-6'>
+			<label for=''>Blacklisted Names</label>
+			<textarea name='blacklisted_names' class='form-control'  placeholder='Blacklist malicious user names/ sender_ids; these ids will not be allowed to register' rows=2><?php echo $presetData['blacklisted_names'];?></textarea>
+		</div>
+	</div>
+	<div class='row'>
+		<div class='form-group col-md-6'>
+			<label>Flagged SMS Words (needs approval to dispatch)</label>
+			<?php 
+				$temp_default="InPost|posteinfo|scotiabank|ics|steinf|binance|attacked|urgently|update|account|alert|credit|debit|protector|gentile|support|apple|icloud|iPhоne|iphone|security|robot|alisupplier|deactivate|reactivate|atm|blocked|card|suspended|suspension|cbn|cibc|goo.gl|bit\.|icIoud|locked|appIe|attempt|attempts|P60|WS85gp|KASKUS|Transaksi|Salam|Marybenson1919|bazos|ingbank|bnpverificatie|bnp|fortis|verificatie|beperk|wereldpas|betaalpas|rabo|rabobank|heractiveer|domicilliering|geconstanteerd|annuleer|verify|facebook|google|instagram|verification|geblokkeerd|verifieer|rekening|veiligheidsoverwegingen|mijn|ingapp|blokkeer|postnl|Italicinema|GCash|BBVA|Secure|ransomware|critical|attack|funds|Colissimo|Lloyds|suspensa|temporariamente|verificacao|acesse|acesso|suspenso|desbloquei|livelo|Livelo |bloqueio|expirar|desativada|sacbb|sabb|caix|calxa|atualize|tax|refund|Tax Return|Claim now|Loyds|ahlifax|VirginMedia|Vipps|Bancolombia|suspendido|activala|seguridad|haIifax|cuenta|banco|ativado|BarcIay|Banca|attivazione|unauthorized|ANZ|nataliesonn9|hotmail|michealhans189|zoltan|yahoo|gumtree|keress|tecudaniel2001|Overdue|Invoice|halifax|mohp|covid19|covid|frozen|unfamiliar|venmo|suspicious|unusual|activity|detected|venmocaseid30493|venmocaseid|Netflix|resolution|venmo|interac|interacwebservices|sign in|terminated|package|shipment|breach|venmoinquiry|temporarily|CenterVN|expoaccess|AlRajhiBank|cutt.ly|inquiryvemno|latest login|latest login|CommBank|myhermes|ROS|rb.gy|Ubisoft|marketplace|penar|afton|afton.|registrera|tjänat|tjanat|5700kr|exodus|banking|Adidas|adesclaim|Afghan|Relocations|paypal|hacked|Leboncoin|bancaire|BB Informa|BB Inform|FASTSHOP|lt@u|Segurança|Seguranca|realizada|IMPOTS_GOUV|fiscale|parcel|shipping|equifax|equifax-report|Bankkarte|Coinment|coinregion|adidasmails|Adidasmails|BNQ FRANCE|Volksbank|validieren|OXXO|acreditar|desactivado|activarlo|DNBasa|sikkerhetsgrunner|midlertidig|kortet|Bekreft|Transferencia|transacao|contate";
+				if(!isset($presetData['flagged_words']))$presetData['flagged_words']=$temp_default; ?>
+			<textarea name='flagged_words' class='form-control'  placeholder='<?php echo $temp_default; ?>' rows=2><?php echo $presetData['flagged_words'];?></textarea>
+		</div>
+		<div class='form-group col-md-6'>
+			<label>Restricted Sender-ids</label>
+			<?php 
+				$temp_default="tripadvisor|facebook|instagram|lnstagram|whatsapp|gtb|uba|google|apple|shopify|orange|T-mobile|icloud|binnance|osk|bkash|saudi bank|FidorBank|TymeBank|from FNB|world bank|Volksbank|cbn|accessbank|zenithbank|uba|gtbank|fcmb|caixa|w.u|ebay|CANEMBASSY|HAKIMI-TOLA|Airbnb|ZENlTHBANK|firstbank|Firstmark|FLPKRT|OPEN24|Snapchat|tiktok|zoom|olx|paypal|bbva|EMPRESAS|AJANS|lNG Support|Cashapp|CAGRICOLE|hsbc|Citizens|BOI|Italicinema|JONATHAN|DHL|GCash|Halifax|HaliPay|Netflix|Barclays|LIoydsBank|LIoydsUK|HMRC|ICS|AMEX|Lloyds|PostNL|lLoYdSbAnk|GOVUK|Santander|Uk_GOV|GOVUK|My3AIerts|Amazon|giffgaff|VirginMedia|EEUpdates|HSBCAlerts|HSAlert|EEAlerts|Vipps|Sovereign|STCBANK|Garanti|Finans|haIifax|VISACard|BarcIays|ImpotsFr|Banca|NatWest|ANZ|Bankia|Deutsche|RoyalMail|WellsFargo|asb|RBLN|MBBANK|AlRajhiBank|Swiss|light4find|Etisalat|NYL|Centrust|Cadence|BNI|CommBank|NetBank|Nordea|NetBank|Hermes|CA Banque|H S B C|QNB|Pandemic|Capital|IDES|LCL|activer|securite|compte|FNBA|MobilMoney|BANCO|boabenin|PBAlert|Sparkasse|Chase|JP Morgan|53rd Bank|FirstCarib|CA BANK|Sarah&Sons|alliedbank|ITHMAAR|Addiko|o2|rangeM|bileM|ElectroFX|splonline|LEBONCOIN|Amaizon|Saudipost|WCBK|IMPOTS_GOUV|Avtonet|Gulfair|NHS|VK.com|binance|BANXO|UBS|Tutti.ch|AUTHTSB|ADDS|Booking|B00KING|securite|valider |commande|Confirmation|Amazon|BNP PARIBAS|NAGAD|bKash|Adidas|SABB|NAGAD|Uber|MailRu|ATO|Ledger|Livret|IsraelPost";
+				if(!isset($presetData['restricted_sender_ids']))$presetData['restricted_sender_ids']=$temp_default; ?>
+			<textarea name='restricted_sender_ids' class='form-control'  placeholder='<?php echo $temp_default; ?>' rows=2><?php echo $presetData['restricted_sender_ids'];?></textarea>
+		</div>
+	
 	</div>
 	
 	<div class='clearfix'></div>

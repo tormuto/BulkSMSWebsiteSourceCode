@@ -47,8 +47,7 @@
 					<th>User Id</th>
 					<th>Email</th>
 					<th>Balance</th>
-					<th>Firstname</th>
-					<th>Lastname</th>
+					<th>Fullname</th>
 					<th>Phone</th>
 					<th>Country</th>
 					<th>Last Seen</th>
@@ -56,23 +55,28 @@
 				</tr>
 				<?php
 					$sn=$filter['offset'];
-					$flarr=array(-1=>'Trusted',0=>'Neutral',1=>'Single Linked SMS',2=>'No Linked SMS',3=>'Restricted');
+					$flarr=array(-1=>'Trusted',0=>'Neutral',1=>'Single Linked SMS',2=>'No Linked SMS',3=>'SMS Restricted',4=>'Locked For KY',5=>'Suspended/Terminated');
 					
-					foreach($users as $row)
-					{
+					foreach($users as $row){
 					?>
 						<tr >
 							<td><?php echo ++$sn; ?></td>
 							<td ><?php echo $row['user_id']; ?></td>
 							<td >
 								<a href='<?php echo $this->general_model->get_url("admin_send_email?recp={$row['email']}"); ?>' target='_blank'><?php echo $row['email']; ?></a>
-								
 								<?php if(!empty($row['verification_file'])){ ?>
 									<div style='margin-top:5px;' >
 										<a href='<?php echo $this->general_model->get_url($row['verification_file']); ?>' target='_blank' class='btn-xs' ><i class='fa fa-picture-o'></i> view doc</a>
 										<a href='<?php echo "?delete_verifiation_file={$row['user_id']}"; ?>' class='text-danger btn-xs' onclick="return confirm('do you really want to delete this verification?');" ><i class='fa fa-trash'></i> delete doc</a>
 									</div>
 								<?php } ?>
+								<form method='post' style='display:inline-block' action='<?php echo $this->general_model->get_url('login?raw=1'); ?>' target='_blank' >
+									<input type='hidden' name='email' value='<?php echo $row['email']; ?>' />
+									<input type='hidden' name='password' value='<?php echo $row['password']; ?>' />
+									<button title='Override Login' class='btn btn-xs btn-default' >
+										<i class='fa fa-user-secret'></i> Login
+									</button>
+								</form>
 							</td>
 							<td ><?php echo $row['balance']; ?>
 								<span onclick="$(this).closest('td').find('.topup_units_form').slideToggle();" style='cursor:pointer;' >Add Units <i class='fa fa-chevron-down'></i></span>
@@ -91,8 +95,7 @@
 									<hr/>
 								</form>
 							</td>
-							<td ><?php echo $row['firstname']; ?></td>
-							<td ><?php echo $row['lastname']; ?></td>
+							<td ><?php echo $row['firstname'].' '.$row['lastname']; ?></td>
 							<td ><a href='<?php echo $this->general_model->get_url("send_sms?recp={$row['phone']}"); ?>' target='_blank'><?php echo $row['phone']; ?></a></td>
 							<td ><?php echo @$countries[$row['country_code']]; ?></td>
 							<td>
@@ -102,7 +105,7 @@
 									<div class='form-group' style='display:inline'>
 										<div class='input-group'>
 											<select  class='form-control input-xs' name='flag_level' >
-												<?php for($i=-1;$i<=3;$i++){ ?>
+												<?php for($i=-1;$i<=5;$i++){ ?>
 												<option value='<?php echo $i; ?>' <?php if($row['flag_level']==$i)echo 'selected'; ?> ><?php echo $flarr[$i]; ?></option>
 												<?php } ?>
 											</select>

@@ -11,6 +11,12 @@
 			<?php echo $Success;?>
 		</div>
 	<?php }	?>
+	<?php if($my_profile['flag_level']>=4){ ?>
+	<div class='well well-sm alert-danger'>
+		<i class='fa fa-warning'></i> Account Disabled <i>(or Under Investigation From phising/fraudulent activities)</i>
+		<br/>This KYC Process Is Required To Proceed.
+	</div>
+	<?php } ?>
 	<form role="form" method='post' enctype='multipart/form-data'>		
 		<div class='row'>
 			<div class='form-group col-md-6 col-sm-6'>

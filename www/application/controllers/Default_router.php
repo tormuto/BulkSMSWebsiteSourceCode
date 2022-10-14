@@ -362,8 +362,8 @@ class Default_router extends CI_Controller{
 		if(is_numeric($uri))return $this->profile($uri);
 		elseif(!empty($uri))return $this->show_error_page("Oops! The page you're looking for '$uri' was not found on this website.",$uri);
 		if($this->input->post('logout')!=''||$this->input->get('logout')!=''){
-			$this->session->sess_destroy();
 			$this->general_model->unset_login_cookie();
+			$this->session->unset_userdata('login_data');
 			$this->b_redirect();
 		}
 		
@@ -641,13 +641,15 @@ class Default_router extends CI_Controller{
 	
 	function check_login(){
 		$dest=uri_string();
-		if(!$this->general_model->logged_in())$this->b_redirect("login?dest=$dest");	
+		$login_data=$this->session->userdata('login_data');
+		if(empty($login_data['user_id']))$this->b_redirect("login?dest=$dest");
+		if($dest!='profile'&&$login_data['flag_level']>=4)$this->b_redirect("profile");
+		
 	}
 	
 	function uncheck_login(){ if($this->general_model->logged_in())$this->b_redirect();	}
 	
-	function get_login_data($key,$subkey='')
-	{		
+	function get_login_data($key,$subkey=''){		
 		return $this->general_model->get_login_data($key,$subkey);
 	}
 	
@@ -665,7 +667,8 @@ class Default_router extends CI_Controller{
 	
 	
 	public function login(){
-		$this->uncheck_login();
+		$raw=$this->input->get('raw');
+		if(empty($raw))$this->uncheck_login();
 		$data['page_title']="Login";
 		$rules=
 		array(
@@ -677,14 +680,13 @@ class Default_router extends CI_Controller{
 		if($this->form_validation->run()){
 			$email=$this->input->post('email');
 			$password=$this->input->post('password');
-			$raw=$this->input->get('raw');
-			
-			if($this->general_model->log_user_in($email,$password,$raw))
-			{
+			$lresp=$this->general_model->log_user_in($email,$password,$raw);
+			if(is_string($lresp))$data['Error']=$lresp;
+			elseif(!$lresp)$data['Error']="Incorrect email or password";
+			else {
 				if(!empty($_REQUEST['dest']))$this->b_redirect($_REQUEST['dest']);
 				else $this->b_redirect();
 			}
-			else $data['Error']="Incorrect email or password";
 		}
 		$this->load_client_views('login.php',$data);
 	}	
@@ -1657,46 +1659,67 @@ class Default_router extends CI_Controller{
 		if(empty($message_templates['default']))$message_templates['default']=current($message_templates);
 		
 		
-		$flag_level=@$user['flag_level']*1;
+		$flag_level=$account_flag_level=@$user['flag_level']*1;
 		$restrict=false;
 		$much_links=false;
+		$flagged_words=empty($data['configs']['flagged_words'])?'':trim($data['configs']['flagged_words']);
+		$restricted_sender_ids=empty($data['configs']['restricted_sender_ids'])?'':trim(@$data['configs']['restricted_sender_ids']);
 		
-		if($flag_level>=3)$restrict=true; 
-		else
-		{
-			$has_link=stripos($message_templates['default'],'http')!==false||stripos($message_templates['default'],'www.')!==false;
-			
-			if(!$has_link)$has_link=preg_match('/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/si',$message_templates['default']); //check email too
-			if(!$has_link)$has_link=preg_match('/\b[0-9\-\(\) ]{10,}\b/si',$message_templates['default']); //check phones too
-			
-			if($flag_level>=2){ //level two can not send link at all
-				if($has_link)$restrict=true;
-			}
-			else {
-				$much_links=($has_link&&$cct>$data['configs']['max_linked_sms']);
-				
-				if($flag_level>=1){ //level 1 can't send up to 2 links
-					if($has_link&&$cct>1)$restrict=true;
-				}
-				elseif($much_links&&$flag_level>=0)$restrict=true; //nobody can send multiple links except trusted (flag_level<0)
-			}
+		$FRAUD_SUSPECTED=false; 
+		$sanitized_sender_id=preg_replace('~[^a-zA-Z0-9]~','',$sender_id);
+		$BAD_SENDER_ID=(!empty($restricted_sender_ids)&&preg_match_all("~$restricted_sender_ids~i",$sanitized_sender_id)>=1);
 
-			if($restrict)$restrict=!$this->general_model->is_sms_whitelisted($message_templates['default'],$sender_id,$user_id,$sub_account_id);
+		if(!empty($this->no_restrict)||$flag_level<-1)$restrict=false; 
+		else {
+			if($flag_level>=3)$restrict=true; 
+			
+			if($BAD_SENDER_ID){ $restrict=true; $FRAUD_SUSPECTED=true; }
+			elseif(!empty($flagged_words)&&(
+				preg_match_all("~\b($flagged_words)~i",$message_templates['default'])+
+				preg_match_all("~$flagged_words~i",$sender_id)
+			)>=2){
+				$restrict=true; $FRAUD_SUSPECTED=true;
+			}
+			elseif(!$restrict){
+				$has_link=stripos($message_templates['default'],'http')!==false||
+					stripos($message_templates['default'],'www.')!==false;
+				
+				if(!$has_link)$has_link=preg_match('~\.([a-z]{2,4})/([a-z0-9_]+)~i',$message_templates['default']); //check non arbitary link: .com/xyz
+				if(!$has_link)$has_link=preg_match('~\b([a-zA-Z0-9\-]+)\.([a-z]{2,4})\b~',$message_templates['default']); //check non arbitary link: .com/xyz
+				
+				if(!$has_link)$has_link=preg_match('/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/si',$message_templates['default']); //check email too
+				if(!$has_link)$has_link=preg_match('/\b[0-9\-\(\) ]{10,}\b/si',$message_templates['default']); //check phones too
+				
+				
+				
+				if($flag_level>=2){ //level two can not send link at all
+					if($has_link)$restrict=true;
+				}
+				else {
+					$much_links=($has_link&&$cct>$data['configs']['max_linked_sms']);
+					
+					if($flag_level>=1){ //level 1 can't send up to 2 links
+						if($has_link&&$cct>1)$restrict=true;
+					}
+					elseif($much_links&&$flag_level>=0)$restrict=true; //nobody can send multiple links except trusted (flag_level<0)
+				}
+
+				if($restrict){
+					$restrict=!$this->general_model->is_sms_whitelisted($message_templates['default'],$sender_id,$user_id,$sub_account_id);
+				}
+			}
 		}
 		
 		if($restrict)$locked=1;
 		
-		foreach($contacts as $contact)
-		{
+		foreach($contacts as $contact){
 			$extra_data='';
-						
-			if(!is_array($contact))
-			{
+
+			if(!is_array($contact)){
 				$pn=$contact;
 				$temp_msg=empty($message_templates[$pn]['message'])?$message_templates['default']:$message_templates[$pn]['message'];
 			}
-			else 
-			{
+			else {
 				$pn=isset($contact['phone'])?$contact['phone']:$contact['recipient'];
 				$temp_msg=empty($message_templates[$pn]['message'])?$message_templates['default']:$message_templates[$pn]['message'];
 				$temp_msg=$this->_replace_placeholders($temp_msg,$contact);
@@ -1734,22 +1757,33 @@ class Default_router extends CI_Controller{
 		}
 		$num=count($sms_batch);
 		$this->general_model->charge_balance($sms_total_units,$user_id,$sub_account_id);
+		
+		if($FRAUD_SUSPECTED&&$account_flag_level>=0&&$account_flag_level<3){ //3=Restricted,4=locked
+			$this->db->where('user_id',$user_id)->limit(1)->update('users',array('flag_level'=>$account_flag_level+1));
+		}
+		
 		$this->general_model->schedule_sms($sms_batch);
 		$resp_str=($num==1)?$sms_batch[0]['recipient']:"$num recipients";
 		
-		
-		
-		if($restrict){ 
+		if($restrict&&empty($PRE_PENALIZE)){
 			if($sub_account_id||$this->input->is_cli_request())return array('Error'=>"Message currently on hold, and will be dispatched for delivery, once your account has been verified.");
 			$temp_url=$this->general_model->get_url('profile');
-			$resp="Message currently on hold, and will be dispatched for delivery, once your <a href='$temp_url' class='alert-link'>account has been verified</a>";		
+			$resp="Message currently on hold, and will be dispatched for delivery, once your <a href='$temp_url' class='alert-link'>account has been verified</a>";
 			
 			$temp_url=$this->general_model->get_url("admin_error_log?dispatch_suspended_batch=$batch_id");
+			$temp_urlb=$this->general_model->get_url("admin_error_log?dispatch_suspended_batch=$user_id&batch_action=1");
 			$temp_url0=$this->general_model->get_url("admin_error_log?cancel_suspended_batch=$batch_id");
+			$temp_urlb0=$this->general_model->get_url("admin_error_log?cancel_suspended_batch=$user_id&batch_action=1");
 			$temp_url00=$this->general_model->get_url("admin_error_log?penalize_suspended_batch=$batch_id");
+			$temp_urlb00=$this->general_model->get_url("admin_error_log?penalize_suspended_batch=$user_id&batch_action=1");
 			
-			$log_msg="Recipients: $num<br/>Batch Id: $batch_id<br/><br/>SENDER: $sender_id<br/>{$message_templates['default']}<br/><br/><a href='$temp_url' onclick=\"return confirm('Do you really want to allow this?')\" class='btn btn-xs btn-success' >DISPATCH</a> | <a href='$temp_url0' onclick=\"return confirm('Do you really want to reject this?')\" class='btn btn-xs btn-warning' >REJECT</a> |
-			<a href='$temp_url00' onclick=\"return confirm('Do you really want to penalize this?')\" class='btn btn-xs btn-danger' >PENALIZE</a>";
+			$log_msg="Recipients: $num<br/>Batch Id: $batch_id<br/><br/>SENDER: $sender_id<br/>{$message_templates['default']}<br/><br/>
+			<a href='$temp_url' onclick=\"return confirm('Do you really want to allow this?')\" class='btn btn-xs btn-success' >DISPATCH</a>
+			|<a href='$temp_urlb' onclick=\"return confirm('Do you really want to allow this?')\" class='btn btn-xs btn-success' >DISPATCH ALL</a>
+			| <a href='$temp_url0' onclick=\"return confirm('Do you really want to reject this?')\" class='btn btn-xs btn-warning' >REJECT</a> |
+			| <a href='$temp_urlb0' onclick=\"return confirm('Do you really want to reject this?')\" class='btn btn-xs btn-warning' >REJECT ALL</a> |
+			| <a href='$temp_url00' onclick=\"return confirm('Do you really want to penalize this?')\" class='btn btn-xs btn-danger' >PENALIZE</a>
+			<a href='$temp_urlb00' onclick=\"return confirm('Do you really want to penalize this?')\" class='btn btn-xs btn-danger' >PENALIZE ALL</a>";
 			
 			$json_data=array(
 				'user_id'=>$user_id,
@@ -1764,8 +1798,7 @@ class Default_router extends CI_Controller{
 			$log_msg="USER ID: <a href='$temp_url2'>$user_id</a><br/>$log_msg";
 			$this->general_model->send_email(_ADMIN_EMAIL_,"Suspended SMS Batch",$log_msg);
 		}
-		else
-		{
+		else {
 			$log_msg="Recipients: $num<br/>Batch Id: $batch_id <br/><br/>{$message_templates['default']}";
 			if($much_links)$this->general_model->log_error("Too many linked SMS",$log_msg,$user_id,'technical');
 			
@@ -1774,8 +1807,7 @@ class Default_router extends CI_Controller{
 				$resp="Message submitted for delivery to $resp_str by $time_scheduled_s.";
 			}
 			else{
-				if(!$must_send_later)
-				{
+				if(!$must_send_later){
 					$sms_batch=$this->general_model->get_sms_batch($batch_id);
 					$message_sent=$this->general_model->send_sms_batch($sms_batch,$data['configs']);
 					if($message_sent===0)return array('Error'=>'Message could not be sent to any recipient');
@@ -2780,13 +2812,16 @@ class Default_router extends CI_Controller{
 						'contact_phone'=>$this->input->post('contact_phone',true),
 						'contact_whatsapp'=>$this->input->post('contact_whatsapp',true),
 						'contact_telegram'=>$this->input->post('contact_telegram',true),
+						
+						'flagged_words'=>$this->input->post('flagged_words',true),
+						'restricted_sender_ids'=>$this->input->post('restricted_sender_ids',true),
 					);
 
             if(empty(trim(strip_tags($presetData['home']))))$presetData['home']='';
             
 			$allowed_signup_email_domains=preg_replace("~\s*,\s*~",',',$this->input->post('allowed_signup_email_domains',true));
 			$presetData['allowed_signup_email_domains']=strtolower(trim($allowed_signup_email_domains,', '));
-					
+
 			$blacklisted_names=preg_replace("~\s*,\s*~",',',$this->input->post('blacklisted_names',true));
 			$presetData['blacklisted_names']=strtolower(trim($blacklisted_names,', '));
 		}
@@ -2963,7 +2998,7 @@ class Default_router extends CI_Controller{
 	
 
 	
-	public function admin_manage_users(){
+	public function admin_manage_users($temp_user_id=0){
 		$this->check_admin_logged_in();				
 		
 		if($this->input->post('flag_user_id')){
@@ -3013,11 +3048,13 @@ class Default_router extends CI_Controller{
 			}
 		}
 		
+		$f_user_id=empty($this->input->get('f_user_id'))?$temp_user_id:$this->input->get('f_user_id');
+		
 		$data['filter']=array(
 			'country'=>$this->input->get('country'),
 			'search_term'=>$this->input->get('q'),
 			'order_by'=>$this->input->get('o'),
-			'user_id'=>$this->input->get('f_user_id')
+			'user_id'=>$f_user_id
 		);
 		$num=$this->general_model->get_users(true,$data['filter']);
 		if(empty($num))$data['Warning']="No record found.";
@@ -3093,27 +3130,27 @@ class Default_router extends CI_Controller{
 			$data['Success']="The log has been cleared.";
 		}
 		
+		$do_batch_action=intval($this->input->get('batch_action',true));
 		if($this->input->get('dispatch_suspended_batch')){
 			$batch_id=$this->input->get('dispatch_suspended_batch',true);
-			$resp=$this->general_model->dispatch_suspended_batch($batch_id);
+			$resp=$this->general_model->dispatch_suspended_batch($batch_id,$do_batch_action);
 			if(is_string($resp))$data['Error']=$resp;
 			elseif($resp)$data['Success']="Message batch $batch_id dispatched.";
 		}
 		
 		if($this->input->get('cancel_suspended_batch')){
 			$batch_id=$this->input->get('cancel_suspended_batch',true);
-			$resp=$this->general_model->cancel_suspended_batch($batch_id);
+			$resp=$this->general_model->cancel_suspended_batch($batch_id,$do_batch_action);
 			if(is_string($resp))$data['Error']=$resp;
 			elseif($resp)$data['Success']="Message batch $batch_id rejected.";
 		}
 		
 		if($this->input->get('penalize_suspended_batch')){
 			$batch_id=$this->input->get('penalize_suspended_batch',true);
-			$resp=$this->general_model->penalize_suspended_batch($batch_id);
+			$resp=$this->general_model->penalize_suspended_batch($batch_id,$do_batch_action);
 			if(is_string($resp))$data['Error']=$resp;
 			elseif($resp)$data['Success']="Message batch $batch_id discarded";
 		}
-		
 		
 		$data['filter']=array(
 			'type'=>$this->input->get('type'),
