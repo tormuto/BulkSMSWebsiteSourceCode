@@ -55,7 +55,7 @@
 				</tr>
 				<?php
 					$sn=$filter['offset'];
-					$flarr=array(-1=>'Trusted',0=>'Neutral',1=>'Single Linked SMS',2=>'No Linked SMS',3=>'SMS Restricted',4=>'Locked For KY',5=>'Suspended/Terminated');
+					$flarr=array(-1=>'Trusted',0=>'Neutral',1=>'Single Linked SMS',2=>'No Linked SMS',3=>'SMS Restricted',4=>'Locked For KYC',5=>'Suspended/Terminated');
 					
 					foreach($users as $row){
 					?>

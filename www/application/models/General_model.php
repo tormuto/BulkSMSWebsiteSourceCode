@@ -1645,7 +1645,7 @@
 			$sent_count=false;
 		
 			$sent_count=$this->_cgsms_send_instant_sms($sms_batch,$configs);
-			if(is_numeric($sent_count)){
+			if(is_numeric($sent_count)&&$sent_count!==false){
 				$this->_batch_completed_mail($batch_id,$total_sms_count,$sent_count,$user_id);
 				return $sent_count;
 			}
@@ -1698,7 +1698,7 @@
 				'action'=>'account_info'
 				);
 			
-			$resp=$this->_curl_json('http://cheapglobalsms.com/api_v1',$params,true);
+			$resp=$this->_curl_json('https://cheapglobalsms.com/api_v1',$params,true);
 			if(isset($resp['response_code'])&&$resp['response_code']!=200)return $resp['response_info'];
 			if(!empty($resp['error']))return $resp['error'];
 			return $resp;
@@ -1735,11 +1735,11 @@
 			'message'=>$default_message
 			);
 			
-			$response_json=$this->_curl_json('http://cheapglobalsms.com/api_v1',$params,true);
+			$response_json=$this->_curl_json('https://cheapglobalsms.com/api_v1',$params,true);
 		
 			//$this->_log_error('CheapGlobalSMS Sending params',json_encode($params));
 			
-			if(empty($response_json['error'])){
+			if(!empty($response_json['total'])){
 				//response_json->total
 				$update_data=array(
 					'time_sent'=>time(),

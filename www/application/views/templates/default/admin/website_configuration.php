@@ -310,14 +310,15 @@ $home_default="
 </form>
 <div class='clearfix'></div>
 <hr style='margin:2px 0;'/>
+<?php $absolute_path=realpath('index.php'); ?>
 <div class='alert alert-info'>
 	Remember to set up a <strong>Cron Job</strong> with the following command.<br/>
-	<pre> */15 * * * * 	curl <?php echo $this->general_model->get_url('run_sms_cron'); ?> >/dev/null 2>&amp;1 </pre>
-	<p>i.e, run this command "<i>curl <?php echo $this->general_model->get_url('run_sms_cron'); ?> >/dev/null 2>&amp;1</i>" once every 15 minutes</p>
+	<pre> */15 * * * * 	/usr/local/bin/php <?php echo "$absolute_path run_sms_cron"; ?> >/dev/null 2>&amp;1 </pre>
+	<p>i.e, run this command "<i>/usr/local/bin/php <?php echo "$absolute_path run_sms_cron"; ?> >/dev/null 2>&amp;1</i>" once every 15 minutes</p>
 	<hr style='margin:2px 0;'/>
 	<h4>Also, set up another cron like this</h4>
-	<pre> */15 * * * * curl <?php echo $this->general_model->get_url('run_mail_queue'); ?> >/dev/null 2>&amp;1 </pre>
-	<p>i.e, run this command "<i>curl <?php echo $this->general_model->get_url('run_mail_queue'); ?> >/dev/null 2>&amp;1</i>" once every 15 minutes</p>
+	<pre> */15 * * * * /usr/local/bin/php <?php echo "$absolute_path run_mail_queue"; ?> >/dev/null 2>&amp;1 </pre>
+	<p>i.e, run this command "<i>/usr/local/bin/php <?php echo "$absolute_path run_mail_queue"; ?> >/dev/null 2>&amp;1</i>" once every 15 minutes</p>
 </div>
 
 <div style='display:none;' id='home_default_content'><?php echo $home_default; ?></div>

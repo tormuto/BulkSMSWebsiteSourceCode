@@ -47,6 +47,12 @@ if(empty($_POST['smtp_user']))$_POST['smtp_user']=$sample_user;
 if(empty($_POST['smtp_port']))$_POST['smtp_port']=587;
 
 if(isset($_POST['install'])){
+	if(strstr($_POST['db_pass'],'$')||strstr($_POST['db_pass'],"'"))$Error="DB Password must not contain $ nor '";
+	elseif(strstr($_POST['admin_pass'],'$')||strstr($_POST['admin_pass'],"'"))$Error="Admin Password must not contain $ nor '";
+	elseif(strstr($_POST['default_mail_sender'],'$')||strstr($_POST['default_mail_sender'],"'"))$Error="Mail sender must not contain $ nor '";
+}
+	
+if(empty($Error)&&isset($_POST['install'])){
 	$cid=@mysqli_connect('localhost', $_POST['db_user'], $_POST['db_pass'],$_POST['db_name']);	
 	
 	if(!$cid)$Error=mysqli_connect_error()." Please make sure you have already created the database and assigned a user to it.";	
